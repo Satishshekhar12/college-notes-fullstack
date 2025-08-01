@@ -1,0 +1,578 @@
+{
+	"bhu": {
+		"bsc": {
+			"courseName": "Bachelor of Science (BSc)",
+			"description": "Undergraduate science degree program",
+			"course": {
+				"botany": {
+					"name": "Botany",
+					"description": "Study of plants and plant life",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Botany 1" }, { "name": "Botany 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Botany 1" }, { "name": "Botany 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Botany 1" }, { "name": "Botany 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Botany 1" }, { "name": "Botany 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Botany 1" },
+								{ "name": "Botany 2" },
+								{ "name": "Botany 3" },
+								{ "name": "Botany 4" },
+								{ "name": "Botany 5" },
+								{ "name": "Botany 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Botany 1" },
+								{ "name": "Botany 2" },
+								{ "name": "Botany 3" },
+								{ "name": "Botany 4" },
+								{ "name": "Botany 5" },
+								{ "name": "Botany 6" }
+							]
+						}
+					}
+				},
+				"chemistry": {
+					"name": "Chemistry",
+					"description": "Chemical processes and properties",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Chemistry 1" }, { "name": "Chemistry 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Chemistry 1" }, { "name": "Chemistry 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Chemistry 1" }, { "name": "Chemistry 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Chemistry 1" }, { "name": "Chemistry 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Chemistry 1" },
+								{ "name": "Chemistry 2" },
+								{ "name": "Chemistry 3" },
+								{ "name": "Chemistry 4" },
+								{ "name": "Chemistry 5" },
+								{ "name": "Chemistry 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Chemistry 1" },
+								{ "name": "Chemistry 2" },
+								{ "name": "Chemistry 3" },
+								{ "name": "Chemistry 4" },
+								{ "name": "Chemistry 5" },
+								{ "name": "Chemistry 6" }
+							]
+						}
+					}
+				},
+				"computerscience": {
+					"name": "Computer Science",
+					"description": "Computing and programming",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" },
+								{ "name": "Computer Science 3" },
+								{ "name": "Computer Science 4" },
+								{ "name": "Computer Science 5" },
+								{ "name": "Computer Science 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Computer Science 1" },
+								{ "name": "Computer Science 2" },
+								{ "name": "Computer Science 3" },
+								{ "name": "Computer Science 4" },
+								{ "name": "Computer Science 5" },
+								{ "name": "Computer Science 6" }
+							]
+						}
+					}
+				},
+				"geography": {
+					"name": "Geography",
+					"description": "Earth's features and phenomena",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Geography 1" }, { "name": "Geography 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Geography 1" }, { "name": "Geography 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Geography 1" }, { "name": "Geography 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Geography 1" }, { "name": "Geography 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Geography 1" },
+								{ "name": "Geography 2" },
+								{ "name": "Geography 3" },
+								{ "name": "Geography 4" },
+								{ "name": "Geography 5" },
+								{ "name": "Geography 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Geography 1" },
+								{ "name": "Geography 2" },
+								{ "name": "Geography 3" },
+								{ "name": "Geography 4" },
+								{ "name": "Geography 5" },
+								{ "name": "Geography 6" }
+							]
+						}
+					}
+				},
+				"geology": {
+					"name": "Geology",
+					"description": "Earth's structure and processes",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Geology 1" }, { "name": "Geology 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Geology 1" }, { "name": "Geology 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Geology 1" }, { "name": "Geology 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Geology 1" }, { "name": "Geology 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Geology 1" },
+								{ "name": "Geology 2" },
+								{ "name": "Geology 3" },
+								{ "name": "Geology 4" },
+								{ "name": "Geology 5" },
+								{ "name": "Geology 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Geology 1" },
+								{ "name": "Geology 2" },
+								{ "name": "Geology 3" },
+								{ "name": "Geology 4" },
+								{ "name": "Geology 5" },
+								{ "name": "Geology 6" }
+							]
+						}
+					}
+				},
+				"homescienceancillary": {
+					"name": "Home Science Ancillary",
+					"description": "Domestic and family sciences",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" },
+								{ "name": "Home Science Ancillary 3" },
+								{ "name": "Home Science Ancillary 4" },
+								{ "name": "Home Science Ancillary 5" },
+								{ "name": "Home Science Ancillary 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Home Science Ancillary 1" },
+								{ "name": "Home Science Ancillary 2" },
+								{ "name": "Home Science Ancillary 3" },
+								{ "name": "Home Science Ancillary 4" },
+								{ "name": "Home Science Ancillary 5" },
+								{ "name": "Home Science Ancillary 6" }
+							]
+						}
+					}
+				},
+				"industrialmicrobiology": {
+					"name": "Industrial Microbiology",
+					"description": "Microorganisms in industry",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" },
+								{ "name": "Industrial Microbiology 3" },
+								{ "name": "Industrial Microbiology 4" },
+								{ "name": "Industrial Microbiology 5" },
+								{ "name": "Industrial Microbiology 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Industrial Microbiology 1" },
+								{ "name": "Industrial Microbiology 2" },
+								{ "name": "Industrial Microbiology 3" },
+								{ "name": "Industrial Microbiology 4" },
+								{ "name": "Industrial Microbiology 5" },
+								{ "name": "Industrial Microbiology 6" }
+							]
+						}
+					}
+				},
+				"maths": {
+					"name": "Mathematics",
+					"description": "Mathematical concepts and applications",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" },
+								{ "name": "Mathematics 3" },
+								{ "name": "Mathematics 4" },
+								{ "name": "Mathematics 5" },
+								{ "name": "Mathematics 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Mathematics 1" },
+								{ "name": "Mathematics 2" },
+								{ "name": "Mathematics 3" },
+								{ "name": "Mathematics 4" },
+								{ "name": "Mathematics 5" },
+								{ "name": "Mathematics 6" }
+							]
+						}
+					}
+				},
+				"physics": {
+					"name": "Physics",
+					"description": "Matter, energy, and their interactions",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Physics 1" }, { "name": "Physics 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Physics 1" }, { "name": "Physics 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Physics 1" }, { "name": "Physics 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Physics 1" }, { "name": "Physics 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Physics 1" },
+								{ "name": "Physics 2" },
+								{ "name": "Physics 3" },
+								{ "name": "Physics 4" },
+								{ "name": "Physics 5" },
+								{ "name": "Physics 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Physics 1" },
+								{ "name": "Physics 2" },
+								{ "name": "Physics 3" },
+								{ "name": "Physics 4" },
+								{ "name": "Physics 5" },
+								{ "name": "Physics 6" }
+							]
+						}
+					}
+				},
+				"psychology": {
+					"name": "Psychology",
+					"description": "Human behavior and mind",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" },
+								{ "name": "Psychology 3" },
+								{ "name": "Psychology 4" },
+								{ "name": "Psychology 5" },
+								{ "name": "Psychology 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Psychology 1" },
+								{ "name": "Psychology 2" },
+								{ "name": "Psychology 3" },
+								{ "name": "Psychology 4" },
+								{ "name": "Psychology 5" },
+								{ "name": "Psychology 6" }
+							]
+						}
+					}
+				},
+				"statistics": {
+					"name": "Statistics",
+					"description": "Data analysis and interpretation",
+					"semesters": {
+						"1": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" }
+							]
+						},
+						"2": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" }
+							]
+						},
+						"3": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" }
+							]
+						},
+						"4": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" }
+							]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" },
+								{ "name": "Statistics 3" },
+								{ "name": "Statistics 4" },
+								{ "name": "Statistics 5" },
+								{ "name": "Statistics 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Statistics 1" },
+								{ "name": "Statistics 2" },
+								{ "name": "Statistics 3" },
+								{ "name": "Statistics 4" },
+								{ "name": "Statistics 5" },
+								{ "name": "Statistics 6" }
+							]
+						}
+					}
+				},
+				"zoology": {
+					"name": "Zoology",
+					"description": "Animal biology and behavior",
+					"semesters": {
+						"1": {
+							"subjects": [{ "name": "Zoology 1" }, { "name": "Zoology 2" }]
+						},
+						"2": {
+							"subjects": [{ "name": "Zoology 1" }, { "name": "Zoology 2" }]
+						},
+						"3": {
+							"subjects": [{ "name": "Zoology 1" }, { "name": "Zoology 2" }]
+						},
+						"4": {
+							"subjects": [{ "name": "Zoology 1" }, { "name": "Zoology 2" }]
+						},
+						"5": {
+							"subjects": [
+								{ "name": "Zoology 1" },
+								{ "name": "Zoology 2" },
+								{ "name": "Zoology 3" },
+								{ "name": "Zoology 4" },
+								{ "name": "Zoology 5" },
+								{ "name": "Zoology 6" }
+							]
+						},
+						"6": {
+							"subjects": [
+								{ "name": "Zoology 1" },
+								{ "name": "Zoology 2" },
+								{ "name": "Zoology 3" },
+								{ "name": "Zoology 4" },
+								{ "name": "Zoology 5" },
+								{ "name": "Zoology 6" }
+							]
+						}
+					}
+				}
+			}
+		},
+		"bcom": {
+			"courseName": "Bachelor of Commerce (BCom)",
+			"description": "Comming Soon",
+			"subjects": {}
+		},
+		"ba": {
+			"courseName": "Bachelor of Arts (BA)",
+			"description": "Comming Soon",
+			"subjects": {}
+		},
+		"Bca": {
+			"courseName": "Bachelor of Computer Applications (BCA)",
+			"description": "Comming Soon",
+			"subjects": {}
+		},
+		"mca": {
+			"courseName": "Master of Computer Applications (MCA)",
+			"description": "Coming Soon",
+			"subjects": {}
+		},
+		"msc": {
+			"courseName": "Master of Science (MSc)",
+			"description": "Coming Soon",
+			"subjects": {}
+		},
+		"mcom": {
+			"courseName": "Master of Commerce (MCom)",
+			"description": "Coming Soon",
+			"subjects": {}
+		},
+		"ma": {
+			"courseName": "Master of Arts (MA)",
+			"description": "Coming Soon",
+			"subjects": {}
+		},
+		"phd": {
+			"courseName": "Doctor of Philosophy (PhD)",
+			"description": "Coming Soon",
+			"subjects": {}
+		}
+	}
+}

@@ -1,0 +1,312 @@
+.container {
+	min-height: calc(100vh - 70px);
+	margin-top: 70px; /* Account for fixed navbar */
+}
+
+/* Hero Section */
+.hero {
+	background: linear-gradient(135deg, #66bfbf 0%, #11999e 100%);
+	padding: 100px 20px;
+	text-align: center;
+	color: white;
+	position: relative;
+	overflow: hidden;
+}
+
+.hero::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: url("../../assets/mountain.png") no-repeat bottom center;
+	/* background: url("../../assets/cloud.png") no-repeat center,
+		url("../../assets/mountain.png") no-repeat bottom center; 
+	background-size: 100px, 200px;
+		
+		*/
+	background-size: 800px, 1600px;
+	opacity: 0.2;
+	pointer-events: none;
+}
+
+.heroContent {
+	max-width: 800px;
+	margin: 0 auto;
+	position: relative;
+	z-index: 1;
+}
+
+.title {
+	font-size: 4rem;
+	font-family: "Montserrat", sans-serif;
+	font-weight: 700;
+	margin: 0 0 20px 0;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+	font-size: 1.4rem;
+	margin: 0 0 30px 0;
+	opacity: 0.9;
+	font-weight: 300;
+}
+
+.college {
+	background: rgba(255, 255, 255, 0.2);
+	padding: 12px 30px;
+	border-radius: 30px;
+	font-size: 1.1rem;
+	font-weight: 500;
+	display: inline-block;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	margin: 0 10px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.college:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: translateY(-2px);
+}
+
+.college.active {
+	background: rgba(255, 255, 255, 0.4);
+	border-color: rgba(255, 255, 255, 0.6);
+	box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Courses Section */
+.coursesSection {
+	padding: 80px 20px;
+	background: #f8f9fa;
+}
+
+.sectionContent {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.sectionTitle {
+	text-align: center;
+	color: #40514e;
+	font-size: 2.5rem;
+	font-family: "Montserrat", sans-serif;
+	font-weight: 600;
+	margin-bottom: 50px;
+}
+
+.coursesGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 25px;
+}
+
+@media (min-width: 768px) {
+	.coursesGrid {
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 30px;
+	}
+}
+
+@media (min-width: 1200px) {
+	.coursesGrid {
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+	}
+}
+
+.courseCard {
+	background: white;
+	border-radius: 16px;
+	padding: 30px;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+	border: 1px solid rgba(102, 191, 191, 0.1);
+}
+
+.courseCard:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 25px;
+}
+
+.cardTitle {
+	color: #40514e;
+	font-size: 1.8rem;
+	font-weight: 700;
+	margin: 0;
+	font-family: "Montserrat", sans-serif;
+	line-height: 1.2;
+	word-wrap: break-word;
+	flex: 1;
+	margin-right: 15px;
+}
+
+.badge {
+	background: linear-gradient(135deg, #66bfbf, #11999e);
+	color: white;
+	padding: 6px 15px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.subjects {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.subjectBtn {
+	background: #f8f9fa;
+	border: 2px solid transparent;
+	border-radius: 12px;
+	padding: 15px 20px;
+	color: #40514e;
+	font-size: 1rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-align: left;
+}
+
+.subjectBtn:hover {
+	background: linear-gradient(135deg, #66bfbf, #11999e);
+	color: white;
+	transform: translateX(5px);
+	border-color: #66bfbf;
+}
+
+/* Books Section */
+.booksSection {
+	padding: 80px 20px;
+	background: white;
+}
+
+.booksCard {
+	background: linear-gradient(135deg, #66bfbf, #11999e);
+	color: white;
+	padding: 50px;
+	border-radius: 20px;
+	text-align: center;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.booksDescription {
+	font-size: 1.2rem;
+	margin: 0 0 30px 0;
+	line-height: 1.6;
+	opacity: 0.9;
+}
+
+.booksBtn {
+	background: white;
+	color: #66bfbf;
+	border: none;
+	padding: 15px 30px;
+	border-radius: 12px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.booksBtn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.arrow {
+	font-size: 1.2rem;
+	transition: transform 0.3s ease;
+}
+
+.booksBtn:hover .arrow {
+	transform: translateX(5px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.hero {
+		padding: 60px 15px;
+	}
+
+	.title {
+		font-size: 2.5rem;
+	}
+
+	.subtitle {
+		font-size: 1.2rem;
+	}
+
+	.college {
+		font-size: 1rem;
+		padding: 10px 20px;
+	}
+
+	.coursesSection,
+	.booksSection {
+		padding: 50px 15px;
+	}
+
+	.sectionTitle {
+		font-size: 2rem;
+	}
+
+	.coursesGrid {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+
+	.courseCard {
+		padding: 20px;
+	}
+
+	.cardTitle {
+		font-size: 1.6rem;
+	}
+
+	.booksCard {
+		padding: 30px 20px;
+	}
+
+	.booksDescription {
+		font-size: 1.1rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.title {
+		font-size: 2rem;
+	}
+
+	.subtitle {
+		font-size: 1rem;
+	}
+
+	.sectionTitle {
+		font-size: 1.8rem;
+	}
+
+	.cardHeader {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.badge {
+		align-self: flex-end;
+	}
+}

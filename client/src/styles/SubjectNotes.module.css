@@ -1,0 +1,262 @@
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 40px 20px;
+	min-height: 100vh;
+}
+
+.header {
+	text-align: center;
+	margin-bottom: 40px;
+}
+
+.title {
+	color: #66bfbf;
+	font-size: 2.5rem;
+	font-family: "Montserrat", sans-serif;
+	font-weight: 600;
+	margin: 0;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tabContainer {
+	background: white;
+	border-radius: 16px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+}
+
+.tabNav {
+	display: flex;
+	background: linear-gradient(135deg, #66bfbf 0%, #11999e 100%);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tabButton {
+	flex: 1;
+	padding: 16px 24px;
+	background: transparent;
+	border: none;
+	color: white;
+	font-size: 16px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	position: relative;
+}
+
+.tabButton:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.tabButton.active {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.tabButton.active::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: #ffd93d;
+}
+
+.tabContent {
+	padding: 40px;
+	min-height: 400px;
+}
+
+.homeTab {
+	text-align: center;
+	padding: 60px 20px;
+}
+
+.homeTab h2 {
+	color: #40514e;
+	font-size: 1.8rem;
+	margin-bottom: 16px;
+}
+
+.homeTab p {
+	color: #666;
+	font-size: 1.1rem;
+	line-height: 1.6;
+}
+
+.lecturesTab h2,
+.booksTab h2 {
+	color: #40514e;
+	font-size: 1.8rem;
+	margin-bottom: 30px;
+	text-align: center;
+}
+
+.lecturesList,
+.booksList {
+	display: grid;
+	gap: 16px;
+}
+
+.lectureItem,
+.bookItem {
+	background: #f8f9fa;
+	border-radius: 12px;
+	transition: all 0.3s ease;
+	overflow: hidden;
+}
+
+.lectureItem:hover,
+.bookItem:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.lectureLink,
+.bookLink {
+	display: flex;
+	align-items: center;
+	padding: 20px;
+	text-decoration: none;
+	color: #40514e;
+	transition: all 0.3s ease;
+}
+
+.lectureLink:hover,
+.bookLink:hover {
+	color: #11999e;
+	text-decoration: none;
+}
+
+.lectureNumber {
+	background: linear-gradient(135deg, #66bfbf, #11999e);
+	color: white;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-weight: 600;
+	margin-right: 16px;
+	min-width: 50px;
+	text-align: center;
+}
+
+.bookIcon {
+	font-size: 1.5rem;
+	margin-right: 16px;
+}
+
+.lectureTitle,
+.bookTitle {
+	flex: 1;
+	font-weight: 500;
+	font-size: 1.1rem;
+}
+
+.linkIcon {
+	color: #11999e;
+	font-size: 1.2rem;
+	font-weight: bold;
+	transition: transform 0.3s ease;
+}
+
+.lectureLink:hover .linkIcon,
+.bookLink:hover .linkIcon {
+	transform: translateX(4px);
+}
+
+.bookUnavailable {
+	display: flex;
+	align-items: center;
+	padding: 20px;
+	color: #999;
+}
+
+.unavailableTag {
+	background: #f0f0f0;
+	color: #666;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+.authRequired {
+	text-align: center;
+	padding: 100px 20px;
+	color: #666;
+}
+
+.authRequired h3 {
+	color: #40514e;
+	margin-bottom: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.container {
+		padding: 20px 15px;
+	}
+
+	.title {
+		font-size: 2rem;
+	}
+
+	.tabNav {
+		flex-direction: column;
+	}
+
+	.tabButton {
+		padding: 12px 20px;
+	}
+
+	.tabContent {
+		padding: 30px 20px;
+	}
+
+	.lectureLink,
+	.bookLink {
+		padding: 16px;
+	}
+
+	.lectureNumber {
+		margin-right: 12px;
+		min-width: 40px;
+		padding: 6px 8px;
+	}
+
+	.lectureTitle,
+	.bookTitle {
+		font-size: 1rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.container {
+		padding: 15px 10px;
+	}
+
+	.title {
+		font-size: 1.6rem;
+	}
+
+	.tabContent {
+		padding: 20px 15px;
+	}
+
+	.lectureLink,
+	.bookLink {
+		padding: 12px;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.lectureNumber {
+		margin-right: 0;
+		align-self: flex-start;
+	}
+
+	.linkIcon {
+		align-self: flex-end;
+	}
+}

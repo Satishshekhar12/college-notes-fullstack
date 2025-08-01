@@ -1,0 +1,23 @@
+[
+	{
+		"id": 1,
+		"title": "Campbell Biology",
+		"author": "Jane B. Reece, Lisa A. Urry",
+		"edition": "12th Edition",
+		"year": "2021"
+	},
+	{
+		"id": 2,
+		"title": "Raven Biology of Plants",
+		"author": "Ray F. Evert, Susan E. Eichhorn",
+		"edition": "8th Edition",
+		"year": "2019"
+	},
+	{
+		"id": 3,
+		"title": "Plant Physiology and Development",
+		"author": "Lincoln Taiz, Eduardo Zeiger",
+		"edition": "6th Edition",
+		"year": "2020"
+	}
+]

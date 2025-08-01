@@ -1,0 +1,16 @@
+.books {
+	padding: 100px 20px;
+	text-align: center;
+	min-height: calc(100vh - 200px);
+	background-color: #f9f9f9;
+}
+
+.books h2 {
+	font-size: 2rem;
+	color: #333;
+}
+
+.books p {
+	font-size: 1.2rem;
+	color: #666;
+}

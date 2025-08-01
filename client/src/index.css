@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* /even removing below part wont resolve margin issue */
+/* @tailwind base, 
+@tailwind components, 
+@tailwind utilities; */

@@ -1,0 +1,30 @@
+[
+	{
+		"id": 1,
+		"title": "University Physics with Modern Physics",
+		"author": "Hugh D. Young, Roger A. Freedman",
+		"edition": "15th Edition",
+		"year": "2020"
+	},
+	{
+		"id": 2,
+		"title": "Fundamentals of Physics",
+		"author": "David Halliday, Robert Resnick, Jearl Walker",
+		"edition": "11th Edition",
+		"year": "2018"
+	},
+	{
+		"id": 3,
+		"title": "Classical Mechanics",
+		"author": "Herbert Goldstein",
+		"edition": "3rd Edition",
+		"year": "2019"
+	},
+	{
+		"id": 4,
+		"title": "Introduction to Quantum Mechanics",
+		"author": "David J. Griffiths",
+		"edition": "3rd Edition",
+		"year": "2021"
+	}
+]

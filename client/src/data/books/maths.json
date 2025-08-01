@@ -1,0 +1,30 @@
+[
+	{
+		"id": 1,
+		"title": "Calculus and Analytical Geometry",
+		"author": "Thomas & Finney",
+		"edition": "11th Edition",
+		"year": "2019"
+	},
+	{
+		"id": 2,
+		"title": "Linear Algebra and Its Applications",
+		"author": "David C. Lay",
+		"edition": "5th Edition",
+		"year": "2020"
+	},
+	{
+		"id": 3,
+		"title": "Discrete Mathematics and Its Applications",
+		"author": "Kenneth H. Rosen",
+		"edition": "8th Edition",
+		"year": "2018"
+	},
+	{
+		"id": 4,
+		"title": "Real Analysis",
+		"author": "Walter Rudin",
+		"edition": "3rd Edition",
+		"year": "2017"
+	}
+]

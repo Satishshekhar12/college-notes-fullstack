@@ -1,0 +1,26 @@
+# Client-specific ignores
+node_modules/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug and test files (client)
+debug-upload.js
+test-upload.html
+*.test.js
+*.spec.js
+
+# Vite
+.vite/
+dist-ssr/
+*.local
+
+# Cache
+.cache/
+.parcel-cache/
+
+# IDE
+.vscode/
