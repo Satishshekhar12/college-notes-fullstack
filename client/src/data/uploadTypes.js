@@ -27,13 +27,13 @@ export const uploadTypes = [
 		requiresSemester: true,
 		icon: "📄",
 	},
-	// {
-	// 	id: "current-semester-2025",
-	// 	name: "Current Semester (2025)",
-	// 	description: "Materials specific to the current semester",
-	// 	requiresSemester: true,
-	// 	icon: "📅",
-	// },
+	{
+		id: "current-semester-2025",
+		name: "Current Semester (2025)",
+		description: "Materials specific to the current semester",
+		requiresSemester: true,
+		icon: "📅",
+	},
 	{
 		id: "books",
 		name: "General Book(soon)",

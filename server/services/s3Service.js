@@ -233,10 +233,17 @@ class S3Service {
 				pyqs: [],
 				assignments: [],
 				others: [],
+				"current-semester-2025": [],
 			};
 
 			// Get files from each category folder
-			const categories = ["notes", "pyqs", "assignments", "others"];
+			const categories = [
+				"notes",
+				"pyqs",
+				"assignments",
+				"others",
+				"current-semester-2025",
+			];
 
 			for (const category of categories) {
 				const categoryPrefix = `${basePrefix}/${category}`;
@@ -282,6 +289,13 @@ class S3Service {
 					fileName.includes("project")
 				) {
 					organizedFiles.assignments.push(file);
+				} else if (
+					fileName.includes("current") ||
+					fileName.includes("2025") ||
+					fileName.includes("current-semester") ||
+					fileName.includes("current semester")
+				) {
+					organizedFiles["current-semester-2025"].push(file);
 				} else if (
 					fileName.includes("note") ||
 					fileName.includes("chapter") ||

@@ -52,7 +52,15 @@ const noteSchema = new mongoose.Schema(
 		uploadType: {
 			type: String,
 			required: [true, "Upload type is required"],
-			enum: ["notes", "pyqs", "books", "assignments", "lab-manuals", "others"],
+			enum: [
+				"notes",
+				"pyqs",
+				"books",
+				"assignments",
+				"lab-manuals",
+				"others",
+				"current-semester-2025",
+			],
 		},
 
 		// File information (S3 references only - no file storage in MongoDB)

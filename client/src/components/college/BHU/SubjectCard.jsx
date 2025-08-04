@@ -4,7 +4,13 @@ import { listFilesByCategory } from "../../../services/apiService";
 
 const SubjectCard = ({ subject, courseId, semester }) => {
 	const [activeTab, setActiveTab] = useState("notes");
-	const [files, setFiles] = useState({ notes: [], pyqs: [] });
+	const [files, setFiles] = useState({
+		notes: [],
+		pyqs: [],
+		assignments: [],
+		others: [],
+		"current-semester-2025": [],
+	});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 
@@ -28,8 +34,14 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 					originalSubject: subject.name,
 				});
 
-				// Fetch files for both notes and previous year questions
-				const [notesResult, pyqsResult] = await Promise.all([
+				// Fetch files for all types
+				const [
+					notesResult,
+					pyqsResult,
+					assignmentsResult,
+					othersResult,
+					currentSemesterResult,
+				] = await Promise.all([
 					listFilesByCategory({
 						college: "bhu",
 						course: courseId,
@@ -44,13 +56,45 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 						subject: normalizedSubject,
 						type: "pyqs",
 					}),
+					listFilesByCategory({
+						college: "bhu",
+						course: courseId,
+						semester: semester,
+						subject: normalizedSubject,
+						type: "assignments",
+					}),
+					listFilesByCategory({
+						college: "bhu",
+						course: courseId,
+						semester: semester,
+						subject: normalizedSubject,
+						type: "others",
+					}),
+					listFilesByCategory({
+						college: "bhu",
+						course: courseId,
+						semester: semester,
+						subject: normalizedSubject,
+						type: "current-semester-2025",
+					}),
 				]);
 
-				console.log("📁 API Results:", { notesResult, pyqsResult });
+				console.log("📁 API Results:", {
+					notesResult,
+					pyqsResult,
+					assignmentsResult,
+					othersResult,
+					currentSemesterResult,
+				});
 
 				const newFiles = {
 					notes: notesResult.success ? notesResult.files : [],
 					pyqs: pyqsResult.success ? pyqsResult.files : [],
+					assignments: assignmentsResult.success ? assignmentsResult.files : [],
+					others: othersResult.success ? othersResult.files : [],
+					"current-semester-2025": currentSemesterResult.success
+						? currentSemesterResult.files
+						: [],
 				};
 
 				setFiles(newFiles);
@@ -59,6 +103,9 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 				console.log("📊 Final files count:", {
 					notes: newFiles.notes.length,
 					pyqs: newFiles.pyqs.length,
+					assignments: newFiles.assignments.length,
+					others: newFiles.others.length,
+					"current-semester-2025": newFiles["current-semester-2025"].length,
 				});
 			} catch (err) {
 				console.error("❌ Error fetching files:", err);
@@ -79,6 +126,9 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 						`${subject.name} - Mid Semester Exam 2022.pdf`,
 						`${subject.name} - Sample Question Paper.pdf`,
 					],
+					assignments: [],
+					others: [],
+					"current-semester-2025": [],
 				});
 			} finally {
 				setLoading(false);
@@ -160,6 +210,73 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 						)}
 					</span>
 				</button>
+				<button
+					onClick={() => setActiveTab("current-semester-2025")}
+					className={`py-3 px-4 font-medium text-sm transition-all duration-300 ${
+						activeTab === "current-semester-2025"
+							? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+							: "text-gray-600 hover:text-blue-600 hover:bg-blue-25"
+					}`}
+				>
+					<span className="flex items-center gap-2">
+						📅 Current Semester
+						{loading ? (
+							<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs animate-pulse">
+								...
+							</span>
+						) : (
+							<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
+								{files["current-semester-2025"].length}
+							</span>
+						)}
+					</span>
+				</button>
+				{(files.assignments.length > 0 || !loading) && (
+					<button
+						onClick={() => setActiveTab("assignments")}
+						className={`py-3 px-4 font-medium text-sm transition-all duration-300 ${
+							activeTab === "assignments"
+								? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+								: "text-gray-600 hover:text-blue-600 hover:bg-blue-25"
+						}`}
+					>
+						<span className="flex items-center gap-2">
+							📋 Assignments
+							{loading ? (
+								<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs animate-pulse">
+									...
+								</span>
+							) : (
+								<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
+									{files.assignments.length}
+								</span>
+							)}
+						</span>
+					</button>
+				)}
+				{(files.others.length > 0 || !loading) && (
+					<button
+						onClick={() => setActiveTab("others")}
+						className={`py-3 px-4 font-medium text-sm transition-all duration-300 ${
+							activeTab === "others"
+								? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+								: "text-gray-600 hover:text-blue-600 hover:bg-blue-25"
+						}`}
+					>
+						<span className="flex items-center gap-2">
+							📁 Others
+							{loading ? (
+								<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs animate-pulse">
+									...
+								</span>
+							) : (
+								<span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
+									{files.others.length}
+								</span>
+							)}
+						</span>
+					</button>
+				)}
 			</div>
 
 			{/* File List */}
