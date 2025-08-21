@@ -304,9 +304,22 @@ export const updateMe = catchAsync(async (req, res, next) => {
 
 	// 2- Filter out unwanted fields that are not allowed to be updated
 	const filteredBody = {};
-	const allowedFields = ["name", "email"];
+	const allowedFields = [
+		"name",
+		"email",
+		"collegeName",
+		"course",
+		"semester",
+		"studentType",
+		"phoneNumber",
+		"bio",
+		"linkedinProfile",
+		"githubProfile",
+		"interests",
+		"skills",
+	];
 	allowedFields.forEach((field) => {
-		if (req.body[field]) filteredBody[field] = req.body[field];
+		if (req.body[field] !== undefined) filteredBody[field] = req.body[field];
 	});
 
 	// 3- Update user document

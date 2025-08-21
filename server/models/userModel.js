@@ -77,6 +77,48 @@ const userSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		// Additional profile information (optional)
+		phoneNumber: {
+			type: String,
+			default: "",
+		},
+		bio: {
+			type: String,
+			default: "",
+			maxlength: [500, "Bio cannot exceed 500 characters"],
+		},
+		linkedinProfile: {
+			type: String,
+			default: "",
+			validate: {
+				validator: function (v) {
+					if (!v) return true; // Allow empty string
+					return validator.isURL(v);
+				},
+				message: "Please provide a valid LinkedIn URL",
+			},
+		},
+		githubProfile: {
+			type: String,
+			default: "",
+			validate: {
+				validator: function (v) {
+					if (!v) return true; // Allow empty string
+					return validator.isURL(v);
+				},
+				message: "Please provide a valid GitHub URL",
+			},
+		},
+		interests: {
+			type: String,
+			default: "",
+			maxlength: [300, "Interests cannot exceed 300 characters"],
+		},
+		skills: {
+			type: String,
+			default: "",
+			maxlength: [300, "Skills cannot exceed 300 characters"],
+		},
 		// Account status for admin control
 		isActive: {
 			type: Boolean,
