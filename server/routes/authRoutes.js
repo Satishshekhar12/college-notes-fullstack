@@ -71,7 +71,11 @@ router.get(
 
 			const clientUrl =
 				process.env.CLIENT_URL || "https://clg-notes.netlify.app";
-			return res.redirect(`${clientUrl}/login?from=google`);
+			// Remove trailing slash to prevent double slashes
+			const baseUrl = clientUrl.endsWith("/")
+				? clientUrl.slice(0, -1)
+				: clientUrl;
+			return res.redirect(`${baseUrl}/login?from=google`);
 		} catch (err) {
 			console.error("Google OAuth callback error:", err);
 			return res.redirect("/api/login-failed");
@@ -164,7 +168,11 @@ router.get(
 
 			const clientUrl =
 				process.env.CLIENT_URL || "https://clg-notes.netlify.app";
-			return res.redirect(`${clientUrl}/admin?from=google`);
+			// Remove trailing slash to prevent double slashes
+			const baseUrl = clientUrl.endsWith("/")
+				? clientUrl.slice(0, -1)
+				: clientUrl;
+			return res.redirect(`${baseUrl}/admin?from=google`);
 		} catch (err) {
 			console.error("Admin Google OAuth callback error:", err);
 			return res.redirect("/api/admin-login-failed");
@@ -174,13 +182,11 @@ router.get(
 
 // Admin login failure route
 router.get("/admin-login-failed", (_req, res) => {
-	res
-		.status(401)
-		.json({
-			success: false,
-			message:
-				"Admin Google login failed - insufficient privileges or user not found",
-		});
+	res.status(401).json({
+		success: false,
+		message:
+			"Admin Google login failed - insufficient privileges or user not found",
+	});
 });
 
 // Optional failure route
