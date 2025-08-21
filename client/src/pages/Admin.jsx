@@ -49,53 +49,98 @@ function Admin() {
 			console.log("❌ Admin not logged in");
 		}
 
-		// Handle Google OAuth return: prefer URL-hash token then fallback to cookie exchange
-		const { hash, pathname, search } = window.location;
-		const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : "");
-		const hashToken = hashParams.get("google");
-		if (hashToken) {
-			try {
-				localStorage.setItem("adminToken", hashToken);
-				// Also seed user storage so rest of site recognizes login
-				localStorage.setItem("userToken", hashToken);
-				window.dispatchEvent(new Event("adminLogin"));
-				setIsLoggedIn(true);
-				setActiveSection("dashboard");
-			} finally {
-				window.history.replaceState({}, document.title, pathname);
-			}
-			return;
-		}
-
-		const urlParams = new URLSearchParams(search);
+		// Handle Google OAuth return
+		const urlParams = new URLSearchParams(window.location.search);
 		const fromGoogle = urlParams.get("from");
 		console.log("🔍 URL params - from:", fromGoogle);
 
 		if (fromGoogle === "google") {
-			console.log("🔄 Handling Google OAuth return (cookie exchange)...");
+			console.log("🔄 Handling Google OAuth return...");
 			const handleGoogleLogin = async () => {
 				try {
 					setError("");
-					const success = await exchangeAdminCookieForToken();
+					console.log("🔄 Attempting hash token fallback then cookie exchange...");
+					let success = false;
+					// Fallback 1: read token from URL hash
+					const hash = window.location.hash || "";
+					const match = hash.match(/token=([^&]+)/);
+					if (match && match[1]) {
+						try {
+							const t = decodeURIComponent(match[1]);
+							localStorage.setItem("adminToken", t);
+							// Fetch profile to populate adminUser and possibly mirror to user storage
+							try {
+								const profRes = await fetch(`${API_BASE_URL}/me`, {
+									headers: { Authorization: `Bearer ${t}` },
+								});
+								if (profRes.ok) {
+									const prof = await profRes.json();
+									const user = prof?.data?.user;
+									if (user) {
+										localStorage.setItem("adminUser", JSON.stringify(user));
+										// Also seed regular user session so rest of site is aware
+										localStorage.setItem("userToken", t);
+										localStorage.setItem("user", JSON.stringify(user));
+									}
+								}
+							} catch (e) {
+								console.warn("⚠️ Failed to fetch profile with admin hash token", e);
+							}
+							success = true;
+							console.log("✅ Token obtained from URL hash for admin");
+						} catch (e) {
+							console.warn("⚠️ Failed to store admin token from hash", e);
+						}
+					}
+
+					// Fallback 2: cookie exchange
+					if (!success) {
+						console.log("🔄 Calling exchangeAdminCookieForToken...");
+						success = await exchangeAdminCookieForToken();
+					}
+					console.log("📊 Admin Google login result:", success);
+
 					if (success) {
+						// Check if admin is now logged in
+						console.log("🔍 Checking if admin is now logged in...");
 						const isNowLoggedIn = isAdminLoggedIn();
+						console.log("📊 isAdminLoggedIn result:", isNowLoggedIn);
+
 						if (isNowLoggedIn) {
+							console.log(
+								"✅ Admin Google login successful, switching to admin panel"
+							);
 							setIsLoggedIn(true);
 							setActiveSection("dashboard");
 						} else {
+							console.log(
+								"❌ Admin Google login failed: User lacks admin privileges"
+							);
+							// Show friendly non-admin notice
 							setError("");
 							setShowNonAdminNotice(true);
+							console.log("🔍 Setting showNonAdminNotice to true");
 							setTimeout(() => {
 								const el = document.getElementById("non-admin-notice");
-								if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+								console.log("🔍 Looking for non-admin-notice element:", el);
+								if (el)
+									el.scrollIntoView({ behavior: "smooth", block: "start" });
 							}, 0);
 						}
 					} else {
+						console.log("❌ Admin Google login failed: Token exchange failed");
 						setError(
 							"Google login failed. Please try again or check your admin privileges."
 						);
 					}
-					window.history.replaceState({}, document.title, pathname);
+
+					// Clean up URL
+					console.log("🔄 Cleaning up URL...");
+					window.history.replaceState(
+						{},
+						document.title,
+						window.location.pathname
+					);
 				} catch (error) {
 					console.error("❌ Admin Google login error:", error);
 					setError(error.message || "Google login failed. Please try again.");
