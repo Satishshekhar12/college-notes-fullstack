@@ -41,39 +41,72 @@ function Login() {
 	const [availableCourses, setAvailableCourses] = useState([]);
 	const [semesterOptions, setSemesterOptions] = useState([]);
 
-	// If redirected back from Google, first try URL-hash token, then cookie exchange
+	// If redirected back from Google, exchange cookie for token and update UI
 	React.useEffect(() => {
-		(async () => {
-			const { hash, pathname, search } = window.location;
-			// Prefer token in URL fragment to avoid third-party cookie issues
-			if (hash && hash.startsWith("#") && hash.includes("google=")) {
-				const token = new URLSearchParams(hash.slice(1)).get("google");
-				if (token) {
-					try {
-						setLoading(true);
-						localStorage.setItem("userToken", token);
-						// Optionally emit event and fetch user profile later
-						window.dispatchEvent(new Event("userLogin"));
-						setSuccess("Logged in with Google.");
-						// Clean hash and query
-						window.history.replaceState({}, "", pathname);
-						return; // Done
-					} finally {
-						setLoading(false);
-					}
-				}
-			}
-
-			// Legacy fallback: query param triggers cookie exchange
-			const params = new URLSearchParams(search);
-			if (params.get("from") === "google") {
+		const params = new URLSearchParams(window.location.search);
+		if (params.get("from") === "google") {
+			(async () => {
 				setLoading(true);
 				setError("");
 				try {
-					const ok = await exchangeCookieForToken();
+					// Fallback: read token from URL hash (added by server) to bypass 3rd‑party cookie blocks
+					let ok = false;
+					const hash = window.location.hash || "";
+					const match = hash.match(/token=([^&]+)/);
+					if (match && match[1]) {
+						const tokenFromHash = decodeURIComponent(match[1]);
+						try {
+							localStorage.setItem("userToken", tokenFromHash);
+							// Let listeners know immediately
+							window.dispatchEvent(new Event("userLogin"));
+							// Try to fetch user profile so UI has role/name
+							try {
+								const profRes = await fetch(`${API_BASE_URL}/me`, {
+									headers: {
+										Authorization: `Bearer ${tokenFromHash}`,
+									},
+								});
+								if (profRes.ok) {
+									const prof = await profRes.json();
+									if (prof?.data?.user) {
+										localStorage.setItem(
+											"user",
+											JSON.stringify(prof.data.user)
+										);
+										// If admin-capable, mirror to admin storage too
+										const role = prof.data.user.role;
+										if (
+											["admin", "moderator", "senior moderator"].includes(
+												role
+											)
+										) {
+											localStorage.setItem("adminToken", tokenFromHash);
+											localStorage.setItem(
+												"adminUser",
+												JSON.stringify(prof.data.user)
+											);
+											window.dispatchEvent(new Event("adminLogin"));
+										}
+									}
+								}
+							} catch (e) {
+								console.warn("Failed to fetch user profile after hash token", e);
+							}
+							ok = true;
+						} catch (e) {
+							console.warn("Failed to persist token from URL hash", e);
+						}
+					}
+
+					// If not obtained via hash, try cookie exchange as before
+					if (!ok) {
+						ok = await exchangeCookieForToken();
+					}
 					if (ok) {
 						setSuccess("Logged in with Google.");
-						window.history.replaceState({}, "", pathname);
+						// Clean the URL
+						window.history.replaceState({}, "", window.location.pathname);
+						// Notify navbar to switch Login → Profile immediately
 						window.dispatchEvent(new Event("userLogin"));
 					} else {
 						setError("Google login failed. Please try again.");
@@ -81,8 +114,8 @@ function Login() {
 				} finally {
 					setLoading(false);
 				}
-			}
-		})();
+			})();
+		}
 	}, []);
 
 	// Handle college selection change

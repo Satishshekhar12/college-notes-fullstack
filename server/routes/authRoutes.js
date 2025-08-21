@@ -80,7 +80,8 @@ router.get(
 			const baseUrl = clientUrl.endsWith("/")
 				? clientUrl.slice(0, -1)
 				: clientUrl;
-			return res.redirect(`${baseUrl}/login?from=google`);
+			// Include token in URL fragment as a fallback for browsers blocking 3rd‑party cookies
+			return res.redirect(`${baseUrl}/login?from=google#token=${token}`);
 		} catch (err) {
 			console.error("Google OAuth callback error:", err);
 			return res.redirect("/api/login-failed");
@@ -89,49 +90,11 @@ router.get(
 );
 
 // Exchange httpOnly cookie for a bearer token the SPA can store
-router.post("/auth/token", protect, async (req, res) => {
+router.get("/auth/token", protect, async (req, res) => {
 	try {
-		// Security check: Only allow requests from allowed origins with proper headers
-		const origin = req.get("origin") || req.get("referer");
-		const contentType = req.get("content-type");
-
-		// Block requests without proper content-type
-		if (!contentType || !contentType.includes("application/json")) {
-			return res.status(403).json({
-				status: "fail",
-				message: "Invalid content type",
-			});
-		}
-
-		// Ensure request comes from allowed origin
-		const allowedOrigins = [
-			process.env.CLIENT_URL,
-			"https://clg-notes.netlify.app",
-			"http://localhost:5173",
-		];
-
-		if (
-			origin &&
-			!allowedOrigins.some((allowed) => origin.startsWith(allowed))
-		) {
-			return res.status(403).json({
-				status: "fail",
-				message: "Unauthorized origin",
-			});
-		}
-
 		const token = req.cookies?.jwt;
-		if (!token) {
+		if (!token)
 			return res.status(401).json({ status: "fail", message: "No session" });
-		}
-
-		// Clear the cookie after exchange to prevent reuse
-		res.clearCookie("jwt", {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-		});
-
 		res.json({
 			status: "success",
 			token,
@@ -143,7 +106,6 @@ router.post("/auth/token", protect, async (req, res) => {
 			},
 		});
 	} catch (e) {
-		console.error("Token exchange error:", e);
 		res.status(500).json({ status: "error", message: "Exchange failed" });
 	}
 });
@@ -220,7 +182,8 @@ router.get(
 			const baseUrl = clientUrl.endsWith("/")
 				? clientUrl.slice(0, -1)
 				: clientUrl;
-			return res.redirect(`${baseUrl}/admin?from=google`);
+			// Include token in URL fragment as a fallback for browsers blocking 3rd‑party cookies
+			return res.redirect(`${baseUrl}/admin?from=google#token=${token}`);
 		} catch (err) {
 			console.error("Admin Google OAuth callback error:", err);
 			return res.redirect("/api/admin-login-failed");
