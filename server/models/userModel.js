@@ -58,6 +58,12 @@ const userSchema = new mongoose.Schema(
 			enum: ["UG", "PG", "PhD"],
 			required: [true, "Please specify if you are UG/PG/PhD student"],
 		},
+		// OAuth provider ids
+		googleId: {
+			type: String,
+			index: true,
+			unique: false,
+		},
 		// Upload statistics
 		totalUploads: {
 			type: Number,

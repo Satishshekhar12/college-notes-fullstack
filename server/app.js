@@ -6,6 +6,9 @@ import routes from "./routes/index.js";
 import bodyParser from "body-parser";
 import Settings from "./models/settingsModel.js";
 import { applySettingsToS3Config } from "./config/aws.js";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import "./config/passport.js"; // registers strategies
 
 // Initialize Express app
 const app = express();
@@ -14,6 +17,8 @@ const app = express();
 app.use(corsMiddleware);
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
+app.use(passport.initialize());
 
 // Load settings once on startup and watch for changes periodically
 (async () => {

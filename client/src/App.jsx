@@ -16,6 +16,7 @@ import NITKCoursePage from "./components/college/NITK/NITKCoursePage.jsx";
 import BHUCoursePage from "./components/college/BHU/BHUCoursePage.jsx";
 import ScrollToTop from "./components/common/ScrollToTop.jsx";
 import "./App.css";
+import Dashboard from "./pages/Dashboard.jsx";
 
 function App() {
 	return (
@@ -37,6 +38,7 @@ function App() {
 					<Route path="/contact" element={<Contact />} />
 					<Route path="/upload" element={<Upload />} />
 					<Route path="/login" element={<Login />} />
+					<Route path="/dashboard" element={<Dashboard />} />
 					<Route path="/profile" element={<Profile />} />
 					<Route path="/admin" element={<Admin />} />
 					<Route path="/reset-password/:token" element={<ResetPassword />} />

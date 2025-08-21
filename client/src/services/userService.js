@@ -189,7 +189,34 @@ export const userLogout = () => {
 	window.dispatchEvent(new Event("userLogout"));
 };
 
-// Check if user is logged in
+// Begin Google OAuth flow
+export const startGoogleLogin = () => {
+	window.location.href = `${API_BASE_URL}/api/auth/google`;
+};
+
+// Exchange httpOnly cookie for token (used on /dashboard)
+export const exchangeCookieForToken = async () => {
+  try {
+    console.log("🔄 Attempting to exchange cookie for token...");
+    const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
+      credentials: "include",
+    });
+    console.log("📊 Exchange response status:", res.status);
+    const data = await res.json();
+    console.log("📊 Exchange response data:", data);
+    if (res.ok && data.status === "success" && data.token) {
+      localStorage.setItem("userToken", data.token);
+      window.dispatchEvent(new Event("userLogin"));
+      console.log("✅ Cookie exchange successful, token stored");
+      return true;
+    }
+    console.log("❌ Cookie exchange failed");
+    return false;
+  } catch (error) {
+    console.error("❌ Cookie exchange error:", error);
+    return false;
+  }
+};// Check if user is logged in
 export const isUserLoggedIn = () => {
 	const token = localStorage.getItem("userToken");
 	if (!token) {
