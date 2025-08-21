@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../../config/api";
+import { getCurrentAdminUser } from "../../services/adminService";
 
 function ApproveUploads() {
 	const [allNotes, setAllNotes] = useState([]); // Store all notes
@@ -19,6 +20,15 @@ function ApproveUploads() {
 		rejected: 0,
 		total: 0,
 	});
+	const [deleteRequests, setDeleteRequests] = useState([]);
+	const [showDeleteRequestModal, setShowDeleteRequestModal] = useState(false);
+	const [deleteRequestReason, setDeleteRequestReason] = useState("");
+
+	const current = getCurrentAdminUser();
+	const role = current?.role || "moderator";
+	const isAdmin = role === "admin";
+	const isSenior = role === "senior moderator";
+	const canDirectDelete = isAdmin || isSenior; // direct delete only for senior/admin
 
 	// Filter notes function - defined before useEffect
 	const filterNotes = useCallback(() => {
@@ -33,6 +43,9 @@ function ApproveUploads() {
 		if (filter === "all") {
 			console.log("✅ Setting all notes:", allNotes.length);
 			setNotes(allNotes);
+		} else if (filter === "delete-requests") {
+			// handled by separate view
+			setNotes([]);
 		} else {
 			const filteredNotes = allNotes.filter((note) => note.status === filter);
 			console.log(`✅ Setting ${filter} notes:`, filteredNotes.length);
@@ -44,6 +57,7 @@ function ApproveUploads() {
 	useEffect(() => {
 		fetchAllNotes();
 		fetchStats();
+		fetchDeleteRequests();
 	}, []);
 
 	// Filter notes locally when filter changes
@@ -118,6 +132,27 @@ function ApproveUploads() {
 			}
 		} catch (err) {
 			console.error("Error fetching stats:", err);
+		}
+	};
+
+	const fetchDeleteRequests = async () => {
+		try {
+			const token = localStorage.getItem("adminToken");
+			const response = await fetch(
+				`${API_BASE_URL}/api/notes/delete-requests?status=pending`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+				}
+			);
+			if (response.ok) {
+				const data = await response.json();
+				setDeleteRequests(data.data || []);
+			}
+		} catch (e) {
+			console.error("Error fetching delete requests:", e);
 		}
 	};
 
@@ -263,6 +298,51 @@ function ApproveUploads() {
 		}
 	};
 
+	// Bulk delete all notes from a user (only senior/admin)
+	const bulkDeleteUserNotes = async (userNotes) => {
+		if (!canDirectDelete) {
+			alert(
+				"Only admin/senior moderator can bulk delete. Moderators should request delete."
+			);
+			return;
+		}
+		const userName = userNotes[0]?.uploadedBy?.name || "Unknown User";
+
+		if (
+			!confirm(
+				`Are you sure you want to permanently delete all ${userNotes.length} notes from ${userName}? This action cannot be undone and will remove all files from AWS and MongoDB.`
+			)
+		) {
+			return;
+		}
+
+		try {
+			const token = localStorage.getItem("adminToken");
+			const promises = userNotes.map((note) =>
+				fetch(`${API_BASE_URL}/api/notes/${note._id}`, {
+					method: "DELETE",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+				})
+			);
+
+			const responses = await Promise.all(promises);
+			const failedDeletions = responses.filter((response) => !response.ok);
+
+			if (failedDeletions.length > 0) {
+				throw new Error(`Failed to delete ${failedDeletions.length} notes`);
+			}
+
+			fetchAllNotes();
+			fetchStats();
+			alert(`Successfully deleted ${userNotes.length} notes from ${userName}!`);
+		} catch (err) {
+			alert("Error bulk deleting notes: " + err.message);
+		}
+	};
+
 	const downloadNote = async (noteId) => {
 		try {
 			const token = localStorage.getItem("adminToken");
@@ -283,6 +363,121 @@ function ApproveUploads() {
 			window.open(data.data.downloadUrl, "_blank");
 		} catch (err) {
 			alert("Error downloading note: " + err.message);
+		}
+	};
+
+	const requestDeleteNote = async () => {
+		if (!selectedNote) return;
+		try {
+			const token = localStorage.getItem("adminToken");
+			const response = await fetch(
+				`${API_BASE_URL}/api/notes/delete-requests`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						noteId: selectedNote._id,
+						reason: deleteRequestReason.trim(),
+					}),
+				}
+			);
+			if (!response.ok) {
+				const e = await response.json().catch(() => ({}));
+				throw new Error(e.message || "Failed to create delete request");
+			}
+			setShowDeleteRequestModal(false);
+			setDeleteRequestReason("");
+			setSelectedNote(null);
+			await fetchDeleteRequests();
+			alert("Delete request created");
+		} catch (e) {
+			alert(e.message);
+		}
+	};
+
+	const approveDeleteRequest = async (requestId) => {
+		try {
+			const token = localStorage.getItem("adminToken");
+			const response = await fetch(
+				`${API_BASE_URL}/api/notes/delete-requests/${requestId}/approve`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+				}
+			);
+			if (!response.ok) throw new Error("Failed to approve request");
+			await fetchAllNotes();
+			await fetchDeleteRequests();
+			alert("Request approved and note deleted");
+		} catch (e) {
+			alert(e.message);
+		}
+	};
+
+	const rejectDeleteRequest = async (requestId) => {
+		try {
+			const token = localStorage.getItem("adminToken");
+			const response = await fetch(
+				`${API_BASE_URL}/api/notes/delete-requests/${requestId}/reject`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ reason: "Not appropriate" }),
+				}
+			);
+			if (!response.ok) throw new Error("Failed to reject request");
+			await fetchDeleteRequests();
+			alert("Request rejected");
+		} catch (e) {
+			alert(e.message);
+		}
+	};
+
+	const deleteNote = async (noteId, noteTitle) => {
+		if (!canDirectDelete) {
+			// For moderators clicking delete on approved notes, show request modal
+			const note = allNotes.find((n) => n._id === noteId);
+			setSelectedNote(note || { _id: noteId, title: noteTitle });
+			setShowDeleteRequestModal(true);
+			return;
+		}
+		if (
+			!confirm(
+				`Are you sure you want to permanently delete "${noteTitle}"? This action cannot be undone and will remove the file from both AWS and MongoDB.`
+			)
+		) {
+			return;
+		}
+
+		try {
+			const token = localStorage.getItem("adminToken");
+			const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, {
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			});
+
+			if (!response.ok) {
+				const e = await response.json().catch(() => ({}));
+				throw new Error(e.message || "Failed to delete note");
+			}
+
+			fetchAllNotes();
+			fetchStats();
+			alert("Note deleted successfully!");
+		} catch (err) {
+			alert("Error deleting note: " + err.message);
 		}
 	};
 
@@ -429,7 +624,13 @@ function ApproveUploads() {
 
 				{/* Filter Buttons */}
 				<div className="flex space-x-2">
-					{["pending", "approved", "rejected", "all"].map((filterOption) => (
+					{[
+						"pending",
+						"approved",
+						"rejected",
+						"all",
+						...(isAdmin || isSenior ? ["delete-requests"] : []),
+					].map((filterOption) => (
 						<button
 							key={filterOption}
 							onClick={() => setFilter(filterOption)}
@@ -439,7 +640,7 @@ function ApproveUploads() {
 									: "bg-gray-100 text-gray-700 hover:bg-gray-200"
 							}`}
 						>
-							{filterOption}
+							{filterOption.replace("-", " ")}
 						</button>
 					))}
 				</div>
@@ -452,391 +653,501 @@ function ApproveUploads() {
 				</div>
 			)}
 
-			{/* Notes List */}
-			<div className="bg-white rounded-lg shadow-md overflow-hidden">
-				{notes.length === 0 ? (
-					<div className="p-8 text-center text-gray-500">
-						<div className="text-4xl mb-4">📭</div>
-						<p className="text-lg mb-2">
-							No notes found for the selected filter.
-						</p>
-						<div className="text-sm text-gray-400 mt-4">
-							<p>
-								Filter:{" "}
-								<span className="font-mono bg-gray-100 px-2 py-1 rounded">
-									{filter}
-								</span>
-							</p>
-							<p>
-								Total notes loaded:{" "}
-								<span className="font-mono bg-gray-100 px-2 py-1 rounded">
-									{allNotes.length}
-								</span>
-							</p>
-							<p>
-								Available statuses:{" "}
-								{[...new Set(allNotes.map((note) => note.status))].join(", ") ||
-									"None"}
-							</p>
-						</div>
-						<button
-							onClick={fetchAllNotes}
-							className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition duration-200"
-						>
-							🔄 Refresh Data
-						</button>
-					</div>
-				) : filter === "pending" ? (
-					/* User Cards for Pending Notes */
+			{/* Delete Requests List (for admins/seniors) */}
+			{filter === "delete-requests" && (isAdmin || isSenior) && (
+				<div className="bg-white rounded-lg shadow-md overflow-hidden">
 					<div className="p-6">
 						<h3 className="text-lg font-semibold text-gray-800 mb-4">
-							Pending Uploads by User
+							Pending Delete Requests
 						</h3>
-						<div className="space-y-6">
-							{groupNotesByUser(notes).map((userGroup, index) => (
-								<div
-									key={index}
-									className="border border-gray-200 rounded-lg p-6 bg-gray-50"
-								>
-									{/* User Header */}
-									<div className="flex justify-between items-start mb-4">
-										<div className="flex items-center space-x-4">
-											<div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-												{userGroup.user?.name?.charAt(0)?.toUpperCase() || "?"}
+						{deleteRequests.length === 0 ? (
+							<div className="text-gray-500">No pending delete requests.</div>
+						) : (
+							<div className="space-y-4">
+								{deleteRequests.map((req) => (
+									<div
+										key={req._id}
+										className="border rounded p-4 flex items-start justify-between"
+									>
+										<div>
+											<div className="font-medium text-gray-900">
+												{getNoteDisplayName(req.note)}
 											</div>
-											<div className="flex-1">
-												<div className="flex items-center space-x-3 mb-2">
-													<h4 className="text-xl font-semibold text-gray-900">
-														{userGroup.user?.name || "Unknown User"}
-													</h4>
-													<span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-														User
-													</span>
+											<div className="text-sm text-gray-600">
+												Requested by {req.requester?.name} •{" "}
+												{formatDate(req.createdAt)}
+											</div>
+											{req.reason && (
+												<div className="text-sm text-gray-500 mt-1">
+													Reason: {req.reason}
 												</div>
-												<p className="text-sm text-gray-600 mb-3">
-													📧 {userGroup.user?.email || "No email"}
-												</p>
+											)}
+										</div>
+										<div className="flex gap-2">
+											<button
+												onClick={() => approveDeleteRequest(req._id)}
+												className="px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700"
+											>
+												Approve & Delete
+											</button>
+											<button
+												onClick={() => rejectDeleteRequest(req._id)}
+												className="px-3 py-1 text-red-700 bg-red-100 rounded hover:bg-red-200"
+											>
+												Reject
+											</button>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 
-												{/* User Statistics Cards */}
-												<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-													<div className="bg-white p-3 rounded-lg border">
-														<div className="text-xs text-gray-500 mb-1">
-															Member Since
+			{/* Notes List */}
+			{filter !== "delete-requests" && (
+				<div className="bg-white rounded-lg shadow-md overflow-hidden">
+					{notes.length === 0 ? (
+						<div className="p-8 text-center text-gray-500">
+							<div className="text-4xl mb-4">📭</div>
+							<p className="text-lg mb-2">
+								No notes found for the selected filter.
+							</p>
+							<div className="text-sm text-gray-400 mt-4">
+								<p>
+									Filter:{" "}
+									<span className="font-mono bg-gray-100 px-2 py-1 rounded">
+										{filter}
+									</span>
+								</p>
+								<p>
+									Total notes loaded:{" "}
+									<span className="font-mono bg-gray-100 px-2 py-1 rounded">
+										{allNotes.length}
+									</span>
+								</p>
+								<p>
+									Available statuses:{" "}
+									{[...new Set(allNotes.map((note) => note.status))].join(
+										", "
+									) || "None"}
+								</p>
+							</div>
+							<button
+								onClick={fetchAllNotes}
+								className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition duration-200"
+							>
+								🔄 Refresh Data
+							</button>
+						</div>
+					) : filter === "pending" ? (
+						<div className="p-6">
+							<h3 className="text-lg font-semibold text-gray-800 mb-4">
+								Pending Uploads by User
+							</h3>
+							<div className="space-y-6">
+								{groupNotesByUser(notes).map((userGroup, index) => (
+									<div
+										key={index}
+										className="border border-gray-200 rounded-lg p-6 bg-gray-50"
+									>
+										<div className="flex justify-between items-start mb-4">
+											{/* Left: User details */}
+											<div className="flex items-center space-x-4">
+												<div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+													{userGroup.user?.name?.charAt(0)?.toUpperCase() ||
+														"?"}
+												</div>
+												<div className="flex-1">
+													<div className="flex items-center space-x-3 mb-2">
+														<h4 className="text-xl font-semibold text-gray-900">
+															{userGroup.user?.name || "Unknown User"}
+														</h4>
+														<span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+															User
+														</span>
+													</div>
+													<p className="text-sm text-gray-600 mb-3">
+														📧 {userGroup.user?.email || "No email"}
+													</p>
+													<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+														<div className="bg-white p-3 rounded-lg border">
+															<div className="text-xs text-gray-500 mb-1">
+																Member Since
+															</div>
+															<div className="text-sm font-semibold text-gray-900">
+																{userGroup.user?.createdAt
+																	? new Date(
+																			userGroup.user.createdAt
+																	  ).toLocaleDateString("en-US", {
+																			month: "short",
+																			year: "numeric",
+																	  })
+																	: "Unknown"}
+															</div>
 														</div>
-														<div className="text-sm font-semibold text-gray-900">
-															{userGroup.user?.createdAt
-																? new Date(
-																		userGroup.user.createdAt
-																  ).toLocaleDateString("en-US", {
-																		month: "short",
-																		year: "numeric",
-																  })
-																: "Unknown"}
+														{userGroup.user?.stats ? (
+															<>
+																<div className="bg-white p-3 rounded-lg border">
+																	<div className="text-xs text-gray-500 mb-1">
+																		Total Uploads
+																	</div>
+																	<div className="text-sm font-semibold text-blue-600">
+																		📊 {userGroup.user.stats.totalUploads}
+																	</div>
+																</div>
+																<div className="bg-white p-3 rounded-lg border">
+																	<div className="text-xs text-gray-500 mb-1">
+																		Approved
+																	</div>
+																	<div className="text-sm font-semibold text-green-600">
+																		✅ {userGroup.user.stats.approvedCount}
+																	</div>
+																</div>
+																<div className="bg-white p-3 rounded-lg border">
+																	<div className="text-xs text-gray-500 mb-1">
+																		Rejected
+																	</div>
+																	<div className="text-sm font-semibold text-red-600">
+																		❌ {userGroup.user.stats.rejectedCount}
+																	</div>
+																</div>
+																<div className="bg-white p-3 rounded-lg border">
+																	<div className="text-xs text-gray-500 mb-1">
+																		Success Rate
+																	</div>
+																	<div
+																		className={`text-sm font-semibold px-2 py-1 rounded ${getApprovalRateColor(
+																			getApprovalRate(userGroup.user.stats)
+																		)}`}
+																	>
+																		🎯 {getApprovalRate(userGroup.user.stats)}%
+																	</div>
+																</div>
+															</>
+														) : (
+															<div className="col-span-4 bg-white p-3 rounded-lg border">
+																<div className="text-xs text-gray-500">
+																	Statistics not available - User data:{" "}
+																	{JSON.stringify(userGroup.user, null, 2)}
+																</div>
+															</div>
+														)}
+													</div>
+												</div>
+											</div>
+											{/* Right: Bulk Actions */}
+											<div className="flex flex-col space-y-2">
+												<div className="flex space-x-2 flex-wrap gap-2">
+													<button
+														onClick={() =>
+															bulkApproveUserNotes(userGroup.notes)
+														}
+														className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium transition-colors"
+													>
+														✅ Approve All ({userGroup.notes.length})
+													</button>
+													<button
+														onClick={() => {
+															setSelectedUserNotes(userGroup.notes);
+															setShowBulkRejectModal(true);
+														}}
+														className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-colors"
+													>
+														❌ Reject All
+													</button>
+													{canDirectDelete ? (
+														<button
+															onClick={() =>
+																bulkDeleteUserNotes(userGroup.notes)
+															}
+															className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 text-sm font-medium transition-colors"
+															title="Permanently delete all notes from this user (removes from AWS and database)"
+														>
+															🗑️ Delete All
+														</button>
+													) : null}
+												</div>
+												<div className="text-xs text-gray-500 text-right">
+													{userGroup.notes.length} pending file
+													{userGroup.notes.length !== 1 ? "s" : ""}
+												</div>
+											</div>
+										</div>
+										{/* Files List */}
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+											{userGroup.notes.map((note) => (
+												<div
+													key={note._id}
+													className="bg-white border border-gray-200 rounded-lg p-4"
+												>
+													<div className="flex justify-between items-start mb-2">
+														<h5 className="font-medium text-gray-900 text-sm truncate">
+															{getNoteDisplayName(note)}
+														</h5>
+														<span
+															className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
+																note.status
+															)}`}
+														>
+															{note.status}
+														</span>
+													</div>
+													<div className="text-xs text-gray-500 space-y-1">
+														<div>
+															📚 {note.college?.toUpperCase()} - {note.course}
+														</div>
+														<div>
+															📄 Sem {note.semester} - {note.subject}
+														</div>
+														<div>📁 {note.uploadType}</div>
+														<div>💾 {formatFileSize(note.file?.size || 0)}</div>
+														<div>📅 {formatDate(note.createdAt)}</div>
+													</div>
+													<div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+														<button
+															onClick={() => downloadNote(note._id)}
+															className="text-blue-600 hover:text-blue-800 text-xs"
+														>
+															📥 Download
+														</button>
+														<div className="flex space-x-2">
+															<button
+																onClick={() => approveNote(note._id)}
+																className="text-green-600 hover:text-green-800 text-xs"
+															>
+																✅ Approve
+															</button>
+															<button
+																onClick={() => {
+																	setSelectedNote(note);
+																	setShowRejectModal(true);
+																}}
+																className="text-red-600 hover:text-red-800 text-xs"
+															>
+																❌ Reject
+															</button>
+															{canDirectDelete ? (
+																<button
+																	onClick={() =>
+																		deleteNote(
+																			note._id,
+																			getNoteDisplayName(note)
+																		)
+																	}
+																	className="text-red-800 hover:text-red-900 text-xs font-bold"
+																	title="Permanently delete this note (removes from AWS and database)"
+																>
+																	🗑️ Delete
+																</button>
+															) : (
+																<button
+																	onClick={() => {
+																		setSelectedNote(note);
+																		setShowDeleteRequestModal(true);
+																	}}
+																	className="text-orange-700 hover:text-orange-800 text-xs font-semibold"
+																	title="Request deletion (requires senior/admin approval)"
+																>
+																	📝 Request Delete
+																</button>
+															)}
 														</div>
 													</div>
-
-													{userGroup.user?.stats ? (
-														<>
-															<div className="bg-white p-3 rounded-lg border">
-																<div className="text-xs text-gray-500 mb-1">
-																	Total Uploads
-																</div>
-																<div className="text-sm font-semibold text-blue-600">
-																	📊 {userGroup.user.stats.totalUploads}
-																</div>
-															</div>
-															<div className="bg-white p-3 rounded-lg border">
-																<div className="text-xs text-gray-500 mb-1">
-																	Approved
-																</div>
-																<div className="text-sm font-semibold text-green-600">
-																	✅ {userGroup.user.stats.approvedCount}
-																</div>
-															</div>
-															<div className="bg-white p-3 rounded-lg border">
-																<div className="text-xs text-gray-500 mb-1">
-																	Rejected
-																</div>
-																<div className="text-sm font-semibold text-red-600">
-																	❌ {userGroup.user.stats.rejectedCount}
-																</div>
-															</div>
-															<div className="bg-white p-3 rounded-lg border">
-																<div className="text-xs text-gray-500 mb-1">
-																	Success Rate
-																</div>
-																<div
-																	className={`text-sm font-semibold px-2 py-1 rounded ${getApprovalRateColor(
-																		getApprovalRate(userGroup.user.stats)
+												</div>
+											))}
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					) : (
+						<div className="overflow-x-auto">
+							<table className="min-w-full divide-y divide-gray-200">
+								<thead className="bg-gray-50">
+									<tr>
+										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+											Note Details
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+											Course Info
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+											File Info
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+											Status
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+											Actions
+										</th>
+									</tr>
+								</thead>
+								<tbody className="bg-white divide-y divide-gray-200">
+									{notes.map((note) => (
+										<tr key={note._id} className="hover:bg-gray-50">
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div>
+													<div className="text-sm font-medium text-gray-900">
+														{getNoteDisplayName(note)}
+													</div>
+													<div className="flex items-center space-x-2 mt-1">
+														<div className="text-sm text-gray-600">
+															👤 {note.uploadedBy?.name || "Unknown"}
+														</div>
+														{note.uploadedBy?.stats && (
+															<div className="flex items-center space-x-2">
+																<span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+																	📊 {note.uploadedBy.stats.totalUploads} total
+																</span>
+																<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+																	✅ {note.uploadedBy.stats.approvedCount}
+																</span>
+																<span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+																	❌ {note.uploadedBy.stats.rejectedCount}
+																</span>
+																<span
+																	className={`text-xs px-2 py-1 rounded ${getApprovalRateColor(
+																		getApprovalRate(note.uploadedBy.stats)
 																	)}`}
 																>
-																	🎯 {getApprovalRate(userGroup.user.stats)}%
-																</div>
+																	🎯 {getApprovalRate(note.uploadedBy.stats)}%
+																</span>
 															</div>
-														</>
-													) : (
-														<div className="col-span-4 bg-white p-3 rounded-lg border">
+														)}
+													</div>
+													<div className="flex items-center space-x-3 mt-2">
+														<div className="text-xs text-gray-500">
+															📅 Uploaded: {formatDate(note.createdAt)}
+														</div>
+														{note.uploadedBy?.createdAt && (
 															<div className="text-xs text-gray-500">
-																Statistics not available - User data:{" "}
-																{JSON.stringify(userGroup.user, null, 2)}
+																🎯 Member since:{" "}
+																{new Date(
+																	note.uploadedBy.createdAt
+																).toLocaleDateString("en-US", {
+																	month: "short",
+																	year: "numeric",
+																})}
 															</div>
+														)}
+													</div>
+													{note.description && (
+														<div className="text-xs text-gray-400 mt-1 max-w-xs truncate">
+															{note.description}
 														</div>
 													)}
 												</div>
-											</div>
-										</div>
-
-										{/* Bulk Actions */}
-										<div className="flex flex-col space-y-2">
-											<div className="flex space-x-2">
-												<button
-													onClick={() => bulkApproveUserNotes(userGroup.notes)}
-													className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium transition-colors"
-												>
-													✅ Approve All ({userGroup.notes.length})
-												</button>
-												<button
-													onClick={() => {
-														setSelectedUserNotes(userGroup.notes);
-														setShowBulkRejectModal(true);
-													}}
-													className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-colors"
-												>
-													❌ Reject All
-												</button>
-											</div>
-											<div className="text-xs text-gray-500 text-right">
-												{userGroup.notes.length} pending file
-												{userGroup.notes.length !== 1 ? "s" : ""}
-											</div>
-										</div>
-									</div>
-
-									{/* Files List */}
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-										{userGroup.notes.map((note) => (
-											<div
-												key={note._id}
-												className="bg-white border border-gray-200 rounded-lg p-4"
-											>
-												<div className="flex justify-between items-start mb-2">
-													<h5 className="font-medium text-gray-900 text-sm truncate">
-														{getNoteDisplayName(note)}
-													</h5>
-													<span
-														className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
-															note.status
-														)}`}
-													>
-														{note.status}
-													</span>
-												</div>
-
-												<div className="text-xs text-gray-500 space-y-1">
-													<div>
-														📚 {note.college?.toUpperCase()} - {note.course}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="text-sm">
+													<div className="font-medium text-gray-900">
+														{note.college?.toUpperCase()}
 													</div>
-													<div>
-														📄 Sem {note.semester} - {note.subject}
+													<div className="text-gray-500">{note.course}</div>
+													{note.subcourse && (
+														<div className="text-gray-500">
+															{note.subcourse}
+														</div>
+													)}
+													<div className="text-gray-500">
+														Sem {note.semester}
 													</div>
-													<div>📁 {note.uploadType}</div>
-													<div>💾 {formatFileSize(note.file?.size || 0)}</div>
-													<div>📅 {formatDate(note.createdAt)}</div>
+													<div className="text-gray-500">{note.subject}</div>
 												</div>
-
-												{/* Individual Actions */}
-												<div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="text-sm">
+													<div className="font-medium text-gray-900">
+														{note.title || "N/A"}
+													</div>
+													<div className="text-gray-500">
+														{formatFileSize(note.file?.size || 0)}
+													</div>
+													<div className="text-gray-500">{note.uploadType}</div>
+												</div>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<span
+													className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
+														note.status
+													)}`}
+												>
+													{note.status}
+												</span>
+												{note.status === "approved" && note.approvedBy && (
+													<div className="text-xs text-gray-500 mt-1">
+														by {note.approvedBy.name}
+													</div>
+												)}
+												{note.status === "rejected" && note.rejectedBy && (
+													<div className="text-xs text-gray-500 mt-1">
+														by {note.rejectedBy.name}
+													</div>
+												)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+												<div className="flex items-center space-x-3">
 													<button
 														onClick={() => downloadNote(note._id)}
-														className="text-blue-600 hover:text-blue-800 text-xs"
+														className="text-blue-600 hover:text-blue-900 flex items-center"
 													>
 														📥 Download
 													</button>
 
-													<div className="flex space-x-2">
-														<button
-															onClick={() => approveNote(note._id)}
-															className="text-green-600 hover:text-green-800 text-xs"
-														>
-															✅ Approve
-														</button>
-														<button
-															onClick={() => {
-																setSelectedNote(note);
-																setShowRejectModal(true);
-															}}
-															className="text-red-600 hover:text-red-800 text-xs"
-														>
-															❌ Reject
-														</button>
-													</div>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				) : (
-					/* Regular Table for Approved/Rejected/All */
-					<div className="overflow-x-auto">
-						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-gray-50">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-										Note Details
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-										Course Info
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-										File Info
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-										Status
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-										Actions
-									</th>
-								</tr>
-							</thead>
-							<tbody className="bg-white divide-y divide-gray-200">
-								{notes.map((note) => (
-									<tr key={note._id} className="hover:bg-gray-50">
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div>
-												<div className="text-sm font-medium text-gray-900">
-													{getNoteDisplayName(note)}
-												</div>
-												<div className="flex items-center space-x-2 mt-1">
-													<div className="text-sm text-gray-600">
-														👤 {note.uploadedBy?.name || "Unknown"}
-													</div>
-													{note.uploadedBy?.stats && (
-														<div className="flex items-center space-x-2">
-															<span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-																📊 {note.uploadedBy.stats.totalUploads} total
-															</span>
-															<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-																✅ {note.uploadedBy.stats.approvedCount}
-															</span>
-															<span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-																❌ {note.uploadedBy.stats.rejectedCount}
-															</span>
-															<span
-																className={`text-xs px-2 py-1 rounded ${getApprovalRateColor(
-																	getApprovalRate(note.uploadedBy.stats)
-																)}`}
+													{note.status === "pending" && (
+														<>
+															<button
+																onClick={() => approveNote(note._id)}
+																className="text-green-600 hover:text-green-900 flex items-center"
 															>
-																🎯 {getApprovalRate(note.uploadedBy.stats)}%
-															</span>
-														</div>
+																✅ Approve
+															</button>
+															<button
+																onClick={() => {
+																	setSelectedNote(note);
+																	setShowRejectModal(true);
+																}}
+																className="text-red-600 hover:text-red-900 flex items-center"
+															>
+																❌ Reject
+															</button>
+														</>
 													)}
-												</div>
-												<div className="flex items-center space-x-3 mt-2">
-													<div className="text-xs text-gray-500">
-														📅 Uploaded: {formatDate(note.createdAt)}
-													</div>
-													{note.uploadedBy?.createdAt && (
-														<div className="text-xs text-gray-500">
-															🎯 Member since:{" "}
-															{new Date(
-																note.uploadedBy.createdAt
-															).toLocaleDateString("en-US", {
-																month: "short",
-																year: "numeric",
-															})}
-														</div>
-													)}
-												</div>
-												{note.description && (
-													<div className="text-xs text-gray-400 mt-1 max-w-xs truncate">
-														{note.description}
-													</div>
-												)}
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-sm">
-												<div className="font-medium text-gray-900">
-													{note.college?.toUpperCase()}
-												</div>
-												<div className="text-gray-500">{note.course}</div>
-												{note.subcourse && (
-													<div className="text-gray-500">{note.subcourse}</div>
-												)}
-												<div className="text-gray-500">Sem {note.semester}</div>
-												<div className="text-gray-500">{note.subject}</div>
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-sm">
-												<div className="font-medium text-gray-900">
-													{note.title || "N/A"}
-												</div>
-												<div className="text-gray-500">
-													{formatFileSize(note.file?.size || 0)}
-												</div>
-												<div className="text-gray-500">{note.uploadType}</div>
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span
-												className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
-													note.status
-												)}`}
-											>
-												{note.status}
-											</span>
-											{note.status === "approved" && note.approvedBy && (
-												<div className="text-xs text-gray-500 mt-1">
-													by {note.approvedBy.name}
-												</div>
-											)}
-											{note.status === "rejected" && note.rejectedBy && (
-												<div className="text-xs text-gray-500 mt-1">
-													by {note.rejectedBy.name}
-												</div>
-											)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-											<div className="flex items-center space-x-3">
-												<button
-													onClick={() => downloadNote(note._id)}
-													className="text-blue-600 hover:text-blue-900 flex items-center"
-												>
-													📥 Download
-												</button>
 
-												{note.status === "pending" && (
-													<>
+													{canDirectDelete ? (
 														<button
-															onClick={() => approveNote(note._id)}
-															className="text-green-600 hover:text-green-900 flex items-center"
+															onClick={() =>
+																deleteNote(note._id, getNoteDisplayName(note))
+															}
+															className="text-red-800 hover:text-red-900 flex items-center font-bold"
+															title="Permanently delete this note (removes from AWS and database)"
 														>
-															✅ Approve
+															🗑️ Delete
 														</button>
+													) : (
 														<button
 															onClick={() => {
 																setSelectedNote(note);
-																setShowRejectModal(true);
+																setShowDeleteRequestModal(true);
 															}}
-															className="text-red-600 hover:text-red-900 flex items-center"
+															className="text-orange-700 hover:text-orange-800 flex items-center font-semibold"
+															title="Request deletion (requires senior/admin approval)"
 														>
-															❌ Reject
+															📝 Request Delete
 														</button>
-													</>
-												)}
-											</div>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				)}
-			</div>
+													)}
+												</div>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</div>
+			)}
 
 			{/* Individual Reject Modal */}
 			{showRejectModal && (
@@ -923,6 +1234,50 @@ function ApproveUploads() {
 									className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
 								>
 									Reject All {selectedUserNotes.length} Notes
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Request Delete Modal */}
+			{showDeleteRequestModal && (
+				<div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+					<div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+						<div className="mt-3">
+							<h3 className="text-lg font-medium text-gray-900 mb-4">
+								Request Delete:{" "}
+								{selectedNote ? getNoteDisplayName(selectedNote) : "Note"}
+							</h3>
+							<div className="mb-4">
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Reason (optional)
+								</label>
+								<textarea
+									value={deleteRequestReason}
+									onChange={(e) => setDeleteRequestReason(e.target.value)}
+									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+									rows="3"
+									placeholder="Explain why this note should be deleted (spam, copyright, wrong content, etc.)"
+								/>
+							</div>
+							<div className="flex justify-end space-x-3">
+								<button
+									onClick={() => {
+										setShowDeleteRequestModal(false);
+										setDeleteRequestReason("");
+										setSelectedNote(null);
+									}}
+									className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+								>
+									Cancel
+								</button>
+								<button
+									onClick={requestDeleteNote}
+									className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+								>
+									Submit Request
 								</button>
 							</div>
 						</div>

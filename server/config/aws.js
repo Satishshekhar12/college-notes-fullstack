@@ -20,7 +20,7 @@ const S3_CONFIG = {
 	bucket: process.env.AWS_S3_BUCKET_NAME,
 	bucketName: process.env.AWS_S3_BUCKET_NAME || "college-notes-bucket", // Added for consistency
 	region: process.env.AWS_REGION || "us-east-1",
-	maxFileSize: 50 * 1024 * 1024, // 50MB
+	maxFileSize: 50 * 1024 * 1024, // 50MB default, can be overridden by settings
 	allowedFileTypes: [
 		"application/pdf",
 		"image/jpeg",
@@ -31,6 +31,43 @@ const S3_CONFIG = {
 		"application/vnd.ms-powerpoint",
 		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 	],
+};
+
+// Map extensions to MIME types for allowedFileTypes syncing from settings
+const EXT_TO_MIME = {
+	pdf: "application/pdf",
+	doc: "application/msword",
+	docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	ppt: "application/vnd.ms-powerpoint",
+	pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	txt: "text/plain",
+	jpg: "image/jpeg",
+	jpeg: "image/jpeg",
+	png: "image/png",
+};
+
+// Function to apply Settings into S3_CONFIG at runtime
+export const applySettingsToS3Config = (settings) => {
+	if (!settings) return;
+	if (
+		typeof settings.maxUploadSize === "number" &&
+		settings.maxUploadSize > 0
+	) {
+		S3_CONFIG.maxFileSize = settings.maxUploadSize * 1024 * 1024;
+	}
+	if (
+		Array.isArray(settings.allowedFileTypes) &&
+		settings.allowedFileTypes.length
+	) {
+		const mimes = new Set();
+		settings.allowedFileTypes.forEach((ext) => {
+			const key = String(ext).toLowerCase().replace(/^\./, "");
+			if (EXT_TO_MIME[key]) mimes.add(EXT_TO_MIME[key]);
+		});
+		if (mimes.size) {
+			S3_CONFIG.allowedFileTypes = Array.from(mimes);
+		}
+	}
 };
 
 // Helper function to extract original filename by removing timestamp

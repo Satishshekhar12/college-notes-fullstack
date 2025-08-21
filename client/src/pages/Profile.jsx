@@ -8,6 +8,9 @@ import {
 	isUserLoggedIn,
 } from "../services/userService";
 import { useNavigate } from "react-router-dom";
+import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
+import { colleges } from "../data/colleges";
+import { getAllCourses, getCoursesByCollege } from "../utils/courseHelper";
 
 function Profile() {
 	const navigate = useNavigate();
@@ -17,12 +20,36 @@ function Profile() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [activeTab, setActiveTab] = useState("profile");
+	const [showModeratorRequestForm, setShowModeratorRequestForm] =
+		useState(false);
 
 	// Profile form state
 	const [profileData, setProfileData] = useState({
 		name: "",
 		email: "",
+		collegeName: "",
+		course: "",
+		semester: "",
+		studentType: "",
+		// Additional information fields
+		phoneNumber: "",
+		bio: "",
+		linkedinProfile: "",
+		githubProfile: "",
+		interests: "",
+		skills: "",
 	});
+
+	// College autocomplete state
+	const [collegeSearch, setCollegeSearch] = useState("");
+	const [showCollegeSuggestions, setShowCollegeSuggestions] = useState(false);
+	const [filteredColleges, setFilteredColleges] = useState(colleges);
+
+	// Course autocomplete state
+	const [courseSearch, setCourseSearch] = useState("");
+	const [showCourseSuggestions, setShowCourseSuggestions] = useState(false);
+	const [availableCourses, setAvailableCourses] = useState([]);
+	const [filteredCourses, setFilteredCourses] = useState([]);
 
 	// Password form state
 	const [passwordData, setPasswordData] = useState({
@@ -49,7 +76,39 @@ function Profile() {
 					setProfileData({
 						name: response.data.user.name || "",
 						email: response.data.user.email || "",
+						collegeName: response.data.user.collegeName || "",
+						course: response.data.user.course || "",
+						semester: response.data.user.semester || "",
+						studentType: response.data.user.studentType || "",
+						// Additional information
+						phoneNumber: response.data.user.phoneNumber || "",
+						bio: response.data.user.bio || "",
+						linkedinProfile: response.data.user.linkedinProfile || "",
+						githubProfile: response.data.user.githubProfile || "",
+						interests: response.data.user.interests || "",
+						skills: response.data.user.skills || "",
 					});
+					// Set college search to display name if college exists
+					if (response.data.user.collegeName) {
+						const college = colleges.find(
+							(c) => c.id === response.data.user.collegeName
+						);
+						setCollegeSearch(
+							college ? college.name : response.data.user.collegeName
+						);
+
+						// Load courses for the selected college
+						if (college) {
+							const courses = getCoursesByCollege(college.id);
+							setAvailableCourses(courses);
+							setFilteredCourses(courses);
+						}
+					}
+
+					// Set course search to display name if course exists
+					if (response.data.user.course) {
+						setCourseSearch(response.data.user.course);
+					}
 					// Fetch user statistics
 					await fetchUserStats();
 				}
@@ -62,6 +121,113 @@ function Profile() {
 
 		fetchData();
 	}, [navigate]);
+
+	// Handle clicking outside college suggestions
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (
+				!event.target.closest(".college-autocomplete") &&
+				!event.target.closest(".course-autocomplete")
+			) {
+				setShowCollegeSuggestions(false);
+				setShowCourseSuggestions(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
+	// Handle college search
+	const handleCollegeSearch = (value) => {
+		setCollegeSearch(value);
+		const filtered = colleges.filter(
+			(college) =>
+				college.name.toLowerCase().includes(value.toLowerCase()) ||
+				college.shortName.toLowerCase().includes(value.toLowerCase())
+		);
+		setFilteredColleges(filtered);
+		setShowCollegeSuggestions(value.length > 0);
+	};
+
+	// Handle college selection
+	const handleCollegeSelect = (college) => {
+		setCollegeSearch(college.name);
+		setProfileData({
+			...profileData,
+			collegeName: college.id,
+		});
+		setShowCollegeSuggestions(false);
+
+		// Load courses for selected college
+		const courses = getCoursesByCollege(college.id);
+		setAvailableCourses(courses);
+		setFilteredCourses(courses);
+
+		// Clear course selection if changing college
+		setCourseSearch("");
+		setProfileData((prev) => ({
+			...prev,
+			course: "",
+		}));
+	};
+
+	// Handle custom college name (when user types something not in list)
+	const handleCollegeBlur = () => {
+		// If the typed value doesn't match any college, treat it as custom college name
+		const matchedCollege = colleges.find(
+			(c) => c.name.toLowerCase() === collegeSearch.toLowerCase()
+		);
+		if (!matchedCollege && collegeSearch.trim()) {
+			setProfileData({
+				...profileData,
+				collegeName: collegeSearch.trim(),
+			});
+			// Load all courses for custom college
+			const allCourses = getAllCourses();
+			setAvailableCourses(allCourses);
+			setFilteredCourses(allCourses);
+		}
+		setTimeout(() => setShowCollegeSuggestions(false), 150);
+	};
+
+	// Handle course search
+	const handleCourseSearch = (value) => {
+		setCourseSearch(value);
+		const filtered = availableCourses.filter(
+			(course) =>
+				course.name.toLowerCase().includes(value.toLowerCase()) ||
+				course.key.toLowerCase().includes(value.toLowerCase())
+		);
+		setFilteredCourses(filtered);
+		setShowCourseSuggestions(value.length > 0);
+	};
+
+	// Handle course selection
+	const handleCourseSelect = (course) => {
+		setCourseSearch(course.name);
+		setProfileData({
+			...profileData,
+			course: course.key,
+		});
+		setShowCourseSuggestions(false);
+	};
+
+	// Handle custom course name
+	const handleCourseBlur = () => {
+		const matchedCourse = availableCourses.find(
+			(c) => c.name.toLowerCase() === courseSearch.toLowerCase()
+		);
+		if (!matchedCourse && courseSearch.trim()) {
+			setProfileData({
+				...profileData,
+				course: courseSearch.trim(),
+			});
+		}
+		setTimeout(() => setShowCourseSuggestions(false), 150);
+	};
 
 	const fetchUserStats = async () => {
 		try {
@@ -389,6 +555,36 @@ function Profile() {
 					</div>
 				)}
 
+				{/* Moderator Request Section */}
+				{user &&
+					!["moderator", "senior moderator", "admin"].includes(user.role) && (
+						<div className="bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-200 rounded-xl p-6 mb-8">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center space-x-4">
+									<div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
+										<span className="text-white text-xl">👥</span>
+									</div>
+									<div>
+										<h3 className="text-teal-800 font-semibold text-lg">
+											Want to Help Moderate Content?
+										</h3>
+										<p className="text-teal-700 text-sm">
+											Apply to become a moderator and help ensure quality
+											educational resources for everyone
+										</p>
+									</div>
+								</div>
+								<button
+									onClick={() => setShowModeratorRequestForm(true)}
+									className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors font-medium flex items-center space-x-2"
+								>
+									<span>🎯</span>
+									<span>Apply for Moderator</span>
+								</button>
+							</div>
+						</div>
+					)}
+
 				{/* Enhanced Tab Navigation */}
 				<div className="bg-white rounded-xl shadow-lg overflow-hidden">
 					<div className="border-b border-gray-200">
@@ -489,6 +685,335 @@ function Profile() {
 												}
 												placeholder="Enter your email address"
 											/>
+										</div>
+									</div>
+
+									{/* Academic Information Section */}
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+										{/* College Field with Autocomplete */}
+										<div className="relative college-autocomplete">
+											<label className="block text-sm font-semibold text-gray-700 mb-3">
+												<span className="flex items-center space-x-2">
+													<span>🏫</span>
+													<span>College/University</span>
+												</span>
+											</label>
+											<input
+												type="text"
+												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+												value={collegeSearch}
+												onChange={(e) => handleCollegeSearch(e.target.value)}
+												onFocus={() =>
+													setShowCollegeSuggestions(collegeSearch.length > 0)
+												}
+												onBlur={handleCollegeBlur}
+												placeholder="Type to search colleges..."
+											/>
+											{showCollegeSuggestions && (
+												<div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+													{filteredColleges.map((college) => (
+														<div
+															key={college.id}
+															className="px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-gray-100"
+															onClick={() => handleCollegeSelect(college)}
+														>
+															<div className="font-medium text-gray-900">
+																{college.name}
+															</div>
+															<div className="text-sm text-gray-600">
+																{college.shortName}
+															</div>
+														</div>
+													))}
+													{collegeSearch &&
+														!filteredColleges.some(
+															(c) =>
+																c.name.toLowerCase() ===
+																collegeSearch.toLowerCase()
+														) && (
+															<div
+																className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-t border-gray-200 bg-blue-50"
+																onClick={() => {
+																	setProfileData({
+																		...profileData,
+																		collegeName: collegeSearch.trim(),
+																	});
+																	setShowCollegeSuggestions(false);
+																}}
+															>
+																<div className="font-medium text-blue-700">
+																	Add "{collegeSearch}" as custom college
+																</div>
+																<div className="text-sm text-blue-600">
+																	Click to use this custom college name
+																</div>
+															</div>
+														)}
+												</div>
+											)}
+										</div>
+
+										{/* Course Field with Autocomplete */}
+										<div className="relative course-autocomplete">
+											<label className="block text-sm font-semibold text-gray-700 mb-3">
+												<span className="flex items-center space-x-2">
+													<span>📚</span>
+													<span>Course/Branch</span>
+												</span>
+											</label>
+											<input
+												type="text"
+												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+												value={courseSearch}
+												onChange={(e) => handleCourseSearch(e.target.value)}
+												onFocus={() =>
+													setShowCourseSuggestions(courseSearch.length > 0)
+												}
+												onBlur={handleCourseBlur}
+												placeholder="Type to search courses..."
+											/>
+											{showCourseSuggestions && (
+												<div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+													{filteredCourses.map((course) => (
+														<div
+															key={course.key}
+															className="px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-gray-100"
+															onClick={() => handleCourseSelect(course)}
+														>
+															<div className="font-medium text-gray-900">
+																{course.name}
+															</div>
+															<div className="text-sm text-gray-600">
+																{course.college}
+															</div>
+														</div>
+													))}
+													{courseSearch &&
+														!filteredCourses.some(
+															(c) =>
+																c.name.toLowerCase() ===
+																courseSearch.toLowerCase()
+														) && (
+															<div
+																className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-t border-gray-200 bg-blue-50"
+																onClick={() => {
+																	setProfileData({
+																		...profileData,
+																		course: courseSearch.trim(),
+																	});
+																	setShowCourseSuggestions(false);
+																}}
+															>
+																<div className="font-medium text-blue-700">
+																	Add "{courseSearch}" as custom course
+																</div>
+																<div className="text-sm text-blue-600">
+																	Click to use this custom course name
+																</div>
+															</div>
+														)}
+												</div>
+											)}
+										</div>
+
+										{/* Student Type Field */}
+										<div>
+											<label className="block text-sm font-semibold text-gray-700 mb-3">
+												<span className="flex items-center space-x-2">
+													<span>🎓</span>
+													<span>Student Type</span>
+												</span>
+											</label>
+											<select
+												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+												value={profileData.studentType}
+												onChange={(e) =>
+													setProfileData({
+														...profileData,
+														studentType: e.target.value,
+													})
+												}
+											>
+												<option value="">Select student type</option>
+												<option value="UG">Undergraduate (UG)</option>
+												<option value="PG">Postgraduate (PG)</option>
+												<option value="PhD">PhD Scholar</option>
+											</select>
+										</div>
+
+										{/* Semester Field */}
+										<div>
+											<label className="block text-sm font-semibold text-gray-700 mb-3">
+												<span className="flex items-center space-x-2">
+													<span>📝</span>
+													<span>Current Semester</span>
+												</span>
+											</label>
+											<select
+												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+												value={profileData.semester}
+												onChange={(e) =>
+													setProfileData({
+														...profileData,
+														semester: e.target.value,
+													})
+												}
+											>
+												<option value="">Select semester</option>
+												{[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+													<option key={sem} value={sem}>
+														Semester {sem}
+													</option>
+												))}
+											</select>
+										</div>
+									</div>
+
+									{/* Other Information Section */}
+									<div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+										<h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center space-x-2">
+											<span>ℹ️</span>
+											<span>Additional Information</span>
+											<span className="text-sm font-normal text-gray-600">
+												(Optional)
+											</span>
+										</h3>
+
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+											{/* Phone Number */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>📱</span>
+														<span>Phone Number</span>
+													</span>
+												</label>
+												<input
+													type="tel"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white"
+													value={profileData.phoneNumber}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															phoneNumber: e.target.value,
+														})
+													}
+													placeholder="Your phone number"
+												/>
+											</div>
+
+											{/* LinkedIn Profile */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>💼</span>
+														<span>LinkedIn Profile</span>
+													</span>
+												</label>
+												<input
+													type="url"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white"
+													value={profileData.linkedinProfile}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															linkedinProfile: e.target.value,
+														})
+													}
+													placeholder="https://linkedin.com/in/yourprofile"
+												/>
+											</div>
+
+											{/* GitHub Profile */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>💻</span>
+														<span>GitHub Profile</span>
+													</span>
+												</label>
+												<input
+													type="url"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white"
+													value={profileData.githubProfile}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															githubProfile: e.target.value,
+														})
+													}
+													placeholder="https://github.com/yourusername"
+												/>
+											</div>
+
+											{/* Skills */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🚀</span>
+														<span>Skills</span>
+													</span>
+												</label>
+												<input
+													type="text"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white"
+													value={profileData.skills}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															skills: e.target.value,
+														})
+													}
+													placeholder="e.g., Python, Java, Web Development"
+												/>
+											</div>
+										</div>
+
+										{/* Bio and Interests - Full Width */}
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+											{/* Bio */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>📝</span>
+														<span>Bio</span>
+													</span>
+												</label>
+												<textarea
+													rows="4"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white resize-none"
+													value={profileData.bio}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															bio: e.target.value,
+														})
+													}
+													placeholder="Tell us a bit about yourself..."
+												/>
+											</div>
+
+											{/* Interests */}
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🎯</span>
+														<span>Interests</span>
+													</span>
+												</label>
+												<textarea
+													rows="4"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white resize-none"
+													value={profileData.interests}
+													onChange={(e) =>
+														setProfileData({
+															...profileData,
+															interests: e.target.value,
+														})
+													}
+													placeholder="Your hobbies and interests..."
+												/>
+											</div>
 										</div>
 									</div>
 
@@ -747,6 +1272,17 @@ function Profile() {
 					</div>
 				</div>
 			</div>
+
+			{/* Moderator Request Form Modal */}
+			{showModeratorRequestForm && (
+				<ModeratorRequestForm
+					onClose={() => setShowModeratorRequestForm(false)}
+					onSuccess={(message) => {
+						setSuccess(message);
+						setShowModeratorRequestForm(false);
+					}}
+				/>
+			)}
 		</div>
 	);
 }

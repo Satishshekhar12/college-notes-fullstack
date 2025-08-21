@@ -127,7 +127,14 @@ const noteSchema = new mongoose.Schema(
 			{
 				action: {
 					type: String,
-					enum: ["uploaded", "approved", "rejected"],
+					enum: [
+						"uploaded",
+						"approved",
+						"rejected",
+						"delete_requested",
+						"delete_request_rejected",
+						"deleted",
+					],
 					required: true,
 				},
 				timestamp: {

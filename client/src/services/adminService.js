@@ -22,7 +22,7 @@ export const adminLogin = async (email, password) => {
 		// Check if user has admin privileges
 		if (result.status === "success" && result.token && result.user) {
 			const { user } = result;
-			
+
 			// Verify user has admin/moderator role
 			if (!["admin", "moderator", "senior moderator"].includes(user.role)) {
 				throw new Error("Access denied. Admin privileges required.");
@@ -37,6 +37,75 @@ export const adminLogin = async (email, password) => {
 	} catch (error) {
 		console.error("❌ Admin login failed:", error);
 		throw error;
+	}
+};
+
+// Admin Google Login: redirect to server OAuth start
+export const startAdminGoogleLogin = () => {
+	const url = `${API_BASE_URL}/api/auth/google/admin`;
+	console.log("Starting Admin Google OAuth with URL:", url);
+	window.location.href = url;
+};
+
+// Exchange httpOnly cookie for admin token (used for admin Google login)
+export const exchangeAdminCookieForToken = async () => {
+	try {
+		console.log("🔄 Attempting to exchange admin cookie for token...");
+		console.log("🔍 Making request to:", `${API_BASE_URL}/api/auth/token`);
+
+		const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
+			credentials: "include",
+		});
+
+		console.log("📊 Admin exchange response status:", res.status);
+		console.log("📊 Admin exchange response ok:", res.ok);
+
+		const data = await res.json();
+		console.log("📊 Admin exchange response data:", data);
+
+		if (res.ok && data.status === "success" && data.token && data.user) {
+			console.log("📊 Token and user received, checking role...");
+			console.log("📊 User role:", data.user.role);
+
+			// Verify user has admin privileges
+			if (
+				!["admin", "moderator", "senior moderator"].includes(data.user.role)
+			) {
+				console.log(
+					"❌ Admin cookie exchange: User lacks admin privileges, role:",
+					data.user.role
+				);
+				// Seed regular user session so the site recognizes user login
+				try {
+					localStorage.setItem("userToken", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
+					window.dispatchEvent(new Event("userLogin"));
+					console.log("ℹ️ Seeded regular user session from admin exchange");
+				} catch (e) {
+					console.warn("⚠️ Failed setting regular user session:", e);
+				}
+				console.log("🔄 Returning false to indicate non-admin user");
+				return false;
+			}
+
+			console.log("✅ Role verified, storing token and user data...");
+			localStorage.setItem("adminToken", data.token);
+			localStorage.setItem("adminUser", JSON.stringify(data.user));
+
+			console.log("✅ Admin cookie exchange successful, token stored");
+			console.log(
+				"📊 Stored token:",
+				localStorage.getItem("adminToken") ? "exists" : "null"
+			);
+			console.log("📊 Stored user:", localStorage.getItem("adminUser"));
+
+			return true;
+		}
+		console.log("❌ Admin cookie exchange failed - invalid response");
+		return false;
+	} catch (error) {
+		console.error("❌ Admin cookie exchange error:", error);
+		return false;
 	}
 };
 
@@ -85,7 +154,7 @@ export const resetPassword = async (token, password, passwordConfirm) => {
 		// Store token and user info if reset is successful
 		if (result.status === "success" && result.token && result.user) {
 			const { user } = result;
-			
+
 			// Verify user has admin privileges
 			if (["admin", "moderator", "senior moderator"].includes(user.role)) {
 				localStorage.setItem("adminToken", result.token);
@@ -115,17 +184,31 @@ export const getStoredAdmin = () => {
 };
 
 export const isAdminLoggedIn = () => {
+	console.log("🔍 Checking admin login status...");
+
 	const token = localStorage.getItem("adminToken");
 	const userData = localStorage.getItem("adminUser");
-	
+
+	console.log("📊 Admin token exists:", token ? "yes" : "no");
+	console.log("📊 Admin userData exists:", userData ? "yes" : "no");
+
 	if (!token || !userData) {
+		console.log("❌ Admin not logged in - missing token or userData");
 		return false;
 	}
-	
+
 	try {
 		const user = JSON.parse(userData);
+		console.log("📊 Parsed user data:", user);
+		console.log("📊 User role:", user.role);
+
 		// Check if user has admin/moderator role
-		return ["admin", "moderator", "senior moderator"].includes(user.role);
+		const hasAdminRole = ["admin", "moderator", "senior moderator"].includes(
+			user.role
+		);
+		console.log("📊 Has admin role:", hasAdminRole);
+
+		return hasAdminRole;
 	} catch (error) {
 		console.error("❌ Error parsing admin user data:", error);
 		// Clear invalid data
@@ -140,7 +223,7 @@ export const getCurrentAdminUser = () => {
 	if (!userData) {
 		return null;
 	}
-	
+
 	try {
 		return JSON.parse(userData);
 	} catch (error) {
@@ -248,4 +331,86 @@ export const getUploadStats = async () => {
 		console.error("Error getting stats:", error);
 		throw error;
 	}
+};
+
+// New: Admin user management services
+export const fetchUsers = async () => {
+	const res = await fetch(`${API_BASE_URL}/users`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch users");
+	return res.json();
+};
+
+export const fetchModerators = async () => {
+	const res = await fetch(`${API_BASE_URL}/moderators`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch moderators");
+	return res.json();
+};
+
+export const updateUserRole = async (userId, role) => {
+	const res = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify({ role }),
+	});
+	if (!res.ok) {
+		let msg = "Failed to update role";
+		try {
+			const err = await res.json();
+			msg = err.message || err.error || msg;
+		} catch {
+			// ignore JSON parse errors
+		}
+		throw new Error(msg);
+	}
+	return res.json();
+};
+
+export const updateUserStatus = async (userId, isActive) => {
+	const res = await fetch(`${API_BASE_URL}/users/${userId}/status`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify({ isActive }),
+	});
+	if (!res.ok) {
+		let msg = "Failed to update status";
+		try {
+			const err = await res.json();
+			msg = err.message || err.error || msg;
+		} catch {
+			// ignore JSON parse errors
+		}
+		throw new Error(msg);
+	}
+	return res.json();
+};
+
+// New: dashboard combined stats
+export const getDashboardStats = async () => {
+	const res = await fetch(`${API_BASE_URL}/dashboard-stats`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+	return res.json();
+};
+
+export const getSettings = async () => {
+	const res = await fetch(`${API_BASE_URL}/settings`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch settings");
+	return res.json();
+};
+
+export const updateSettings = async (payload) => {
+	const res = await fetch(`${API_BASE_URL}/settings`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify(payload),
+	});
+	if (!res.ok) throw new Error("Failed to update settings");
+	return res.json();
 };

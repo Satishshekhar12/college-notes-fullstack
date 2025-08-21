@@ -92,8 +92,9 @@ const FileList = ({ files }) => {
 			);
 
 			if (url) {
-				// Always use SecureViewer for iframe viewing experience
-				SecureViewer.openFileViewer(url, file.fileName || file.displayName);
+				// Use SecureViewer for all file types
+				const fileName = file.fileName || file.displayName;
+				SecureViewer.openFileViewer(url, fileName);
 				closeToast();
 				Toast.showSuccess("File opened for viewing!");
 			} else {

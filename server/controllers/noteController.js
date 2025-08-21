@@ -7,6 +7,9 @@ import {
 	moveToApprovedLocation,
 } from "../config/aws.js";
 import multer from "multer";
+import { S3_CONFIG } from "../config/aws.js";
+import Settings from "../models/settingsModel.js";
+import { createNotification } from "./notificationController.js";
 
 // Helper function to update user upload statistics
 const updateUserUploadStats = async (userId) => {
@@ -37,31 +40,18 @@ const updateUserUploadStats = async (userId) => {
 	}
 };
 
-// Configure multer for file upload (memory storage for S3 upload)
+// Configure multer for file upload (memory storage for S3 upload) using dynamic settings
 const upload = multer({
 	storage: multer.memoryStorage(),
 	limits: {
-		fileSize: 50 * 1024 * 1024, // 50MB limit
+		fileSize: S3_CONFIG.maxFileSize,
 	},
 	fileFilter: (req, file, cb) => {
-		const allowedTypes = [
-			"application/pdf",
-			"application/msword",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			"application/vnd.ms-powerpoint",
-			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-			"text/plain",
-			"image/jpeg",
-			"image/png",
-		];
-
-		if (allowedTypes.includes(file.mimetype)) {
+		if (S3_CONFIG.allowedFileTypes.includes(file.mimetype)) {
 			cb(null, true);
 		} else {
 			cb(
-				new Error(
-					"Invalid file type. Please upload PDF, DOC, DOCX, PPT, PPTX, TXT, JPG, or PNG files."
-				),
+				new Error("Invalid file type. Please upload allowed file types only."),
 				false
 			);
 		}
@@ -160,20 +150,42 @@ export const uploadNote = async (req, res) => {
 		});
 
 		const savedNote = await newNote.save();
-		console.log(`✅ Note uploaded successfully with ID: ${savedNote._id}`);
-		console.log(`📁 Note details:`, {
-			id: savedNote._id,
-			title: savedNote.title,
-			status: savedNote.status,
-			college: savedNote.college,
-			course: savedNote.course,
-			semester: savedNote.semester,
-			subject: savedNote.subject,
-			s3Key: savedNote.file.s3Key,
-		});
 
 		// Update user upload statistics
 		await updateUserUploadStats(req.user.id);
+
+		// Auto-approve if enabled in settings
+		try {
+			const settings = (await Settings.findOne()) || {};
+			if (settings.autoApproval) {
+				const noteMetadata = {
+					college: savedNote.college,
+					course: savedNote.course,
+					subcourse: savedNote.subcourse,
+					semester: savedNote.semester,
+					subject: savedNote.subject,
+					uploadType: savedNote.uploadType,
+				};
+				const moveResult = await moveToApprovedLocation(
+					savedNote.file.s3Key,
+					noteMetadata
+				);
+				if (moveResult.success) {
+					savedNote.file.s3Key = moveResult.newS3Key;
+					savedNote.status = "approved";
+					savedNote.approvedBy = req.user.id;
+					savedNote.moderationHistory.push({
+						action: "auto-approved",
+						timestamp: new Date(),
+						moderatorId: req.user.id,
+						reason: "Auto-approval enabled",
+					});
+					await savedNote.save();
+				}
+			}
+		} catch (autoErr) {
+			console.error("Auto-approval failed:", autoErr.message);
+		}
 
 		// Populate user details for response
 		await savedNote.populate("uploadedBy", "name email");
@@ -449,7 +461,7 @@ export const approveNote = async (req, res) => {
 		const { id } = req.params;
 		const { reason } = req.body;
 
-		const note = await Note.findById(id);
+		const note = await Note.findById(id).populate("uploadedBy", "_id");
 
 		if (!note) {
 			return res.status(404).json({
@@ -524,6 +536,18 @@ export const approveNote = async (req, res) => {
 		// Update user upload statistics
 		await updateUserUploadStats(note.uploadedBy);
 
+		// Notify note owner
+		if (note.uploadedBy?._id) {
+			await createNotification({
+				user: note.uploadedBy._id,
+				type: "note_approved",
+				title: "Note Approved",
+				message: `Your note '${note.title}' has been approved!`,
+				link: "/profile",
+				metadata: { noteId: note._id },
+			});
+		}
+
 		// Populate for response
 		await note.populate(["uploadedBy", "approvedBy"], "name email");
 
@@ -556,7 +580,7 @@ export const rejectNote = async (req, res) => {
 			});
 		}
 
-		const note = await Note.findById(id);
+		const note = await Note.findById(id).populate("uploadedBy", "_id");
 
 		if (!note) {
 			return res.status(404).json({
@@ -598,6 +622,20 @@ export const rejectNote = async (req, res) => {
 		} catch (s3Error) {
 			console.error("❌ Failed to delete S3 file:", s3Error);
 			// Don't fail the rejection if S3 deletion fails
+		}
+
+		// Notify note owner
+		if (note.uploadedBy?._id) {
+			await createNotification({
+				user: note.uploadedBy._id,
+				type: "note_rejected",
+				title: "Note Rejected",
+				message: `Your note '${
+					note.title
+				}' was rejected. Reason: ${reason.trim()}`,
+				link: "/profile",
+				metadata: { noteId: note._id },
+			});
 		}
 
 		console.log(`❌ Note ${id} rejected by ${req.user.name}: ${reason}`);
@@ -656,7 +694,7 @@ export const getUserNotes = async (req, res) => {
 	}
 };
 
-// Delete note (User can delete own notes, Moderator+ can delete any)
+// Delete note (User can delete own notes, Senior Moderator+ can delete any)
 export const deleteNote = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -671,14 +709,16 @@ export const deleteNote = async (req, res) => {
 		}
 
 		// Check permissions
-		const canDelete =
-			note.uploadedBy.toString() === req.user.id ||
-			["moderator", "senior moderator", "admin"].includes(req.user.role);
+		const isOwner = note.uploadedBy.toString() === req.user.id;
+		const isSeniorOrAdmin = ["senior moderator", "admin"].includes(
+			req.user.role
+		);
 
-		if (!canDelete) {
+		if (!(isOwner || isSeniorOrAdmin)) {
 			return res.status(403).json({
 				success: false,
-				message: "Access denied. You can only delete your own notes.",
+				message:
+					"Access denied. Only the owner can delete directly. Moderators should create a delete request for senior/admin approval.",
 			});
 		}
 

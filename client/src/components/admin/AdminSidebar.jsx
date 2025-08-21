@@ -5,8 +5,8 @@ function AdminSidebar({ activeSection, setActiveSection, handleLogout }) {
 		{ id: "dashboard", icon: "🏠", label: "Dashboard" },
 		{ id: "moderators", icon: "🧑‍💼", label: "Manage Moderators (owner page)" },
 		{ id: "uploads", icon: "✅", label: "Approve Uploads" },
-		{ id: "requests", icon: "👥", label: "User Requests (Future)" },
-		{ id: "settings", icon: "⚙️", label: "Settings (optional)" },
+		{ id: "requests", icon: "👥", label: "User Requests" },
+		{ id: "settings", icon: "⚙️", label: "Settings " },
 	];
 
 	return (

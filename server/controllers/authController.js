@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { errorHandler } from "../middleware/errorHandler.js";
 import sendEmail from "../utils/email.js";
 import crypto from "crypto";
+import Settings from "../models/settingsModel.js";
 
 const signToken = (id) => {
 	return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -14,6 +15,15 @@ const signToken = (id) => {
 
 // Implement signup logic here
 export const signup = catchAsync(async (req, res, next) => {
+	// Check registration setting
+	const settings = (await Settings.findOne()) || {};
+	if (settings.registrationOpen === false) {
+		return next({
+			statusCode: 403,
+			message: "Registration is currently closed.",
+		});
+	}
+
 	const newUser = await User.create({
 		name: req.body.name,
 		email: req.body.email,
@@ -162,6 +172,17 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 			message: "There is no user with this email address.",
 		});
 	}
+
+	// If email notifications disabled, short-circuit
+	const settings = (await Settings.findOne()) || {};
+	if (settings.emailNotifications === false) {
+		return res.status(200).json({
+			status: "success",
+			message:
+				"Email notifications are disabled by admin. Password reset not sent.",
+		});
+	}
+
 	//2- Generate random reset token
 	const resetToken = user.createPasswordResetToken(); //check this
 	await user.save({ validateBeforeSave: false });
@@ -283,9 +304,22 @@ export const updateMe = catchAsync(async (req, res, next) => {
 
 	// 2- Filter out unwanted fields that are not allowed to be updated
 	const filteredBody = {};
-	const allowedFields = ["name", "email"];
+	const allowedFields = [
+		"name",
+		"email",
+		"collegeName",
+		"course",
+		"semester",
+		"studentType",
+		"phoneNumber",
+		"bio",
+		"linkedinProfile",
+		"githubProfile",
+		"interests",
+		"skills",
+	];
 	allowedFields.forEach((field) => {
-		if (req.body[field]) filteredBody[field] = req.body[field];
+		if (req.body[field] !== undefined) filteredBody[field] = req.body[field];
 	});
 
 	// 3- Update user document

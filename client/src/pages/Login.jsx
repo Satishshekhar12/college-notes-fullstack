@@ -4,7 +4,9 @@ import {
 	userLogin,
 	userSignup,
 	userForgotPassword,
+	exchangeCookieForToken,
 } from "../services/userService";
+import { API_BASE_URL } from "../config/api";
 import { colleges } from "../data/colleges";
 import {
 	getCoursesByCollege,
@@ -38,6 +40,31 @@ function Login() {
 
 	const [availableCourses, setAvailableCourses] = useState([]);
 	const [semesterOptions, setSemesterOptions] = useState([]);
+
+	// If redirected back from Google, exchange cookie for token and update UI
+	React.useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		if (params.get("from") === "google") {
+			(async () => {
+				setLoading(true);
+				setError("");
+				try {
+					const ok = await exchangeCookieForToken();
+					if (ok) {
+						setSuccess("Logged in with Google.");
+						// Clean the URL
+						window.history.replaceState({}, "", window.location.pathname);
+						// Notify navbar to switch Login → Profile immediately
+						window.dispatchEvent(new Event("userLogin"));
+					} else {
+						setError("Google login failed. Please try again.");
+					}
+				} finally {
+					setLoading(false);
+				}
+			})();
+		}
+	}, []);
 
 	// Handle college selection change
 	const handleCollegeChange = (collegeId) => {
@@ -86,6 +113,13 @@ function Login() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	// Google Login: redirect to server OAuth start
+	const handleGoogleLogin = () => {
+		const url = `${API_BASE_URL}/api/auth/google`;
+		console.log("Starting Google OAuth with URL:", url);
+		window.location.href = url;
 	};
 
 	const handleSignup = async (e) => {
@@ -219,7 +253,7 @@ function Login() {
 					send an email from <b> your college email</b> account to{" "}
 					<a
 						href="mailto:notes.helper0@gmail.com"
-						class="text-blue-600 underline"
+						className="text-blue-600 underline"
 					>
 						notes.helper0@gmail.com
 					</a>{" "}
@@ -257,6 +291,12 @@ function Login() {
 					{error && (
 						<div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
 							{error}
+						</div>
+					)}
+
+					{success && (
+						<div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+							{success}
 						</div>
 					)}
 
@@ -300,6 +340,22 @@ function Login() {
 							>
 								{loading ? "Logging in..." : "Login"}
 							</button>
+
+							{/* Google Login Button */}
+							<div className="mt-4">
+								<button
+									type="button"
+									onClick={handleGoogleLogin}
+									className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded-md hover:bg-gray-50"
+								>
+									<img
+										src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+										alt="Google"
+										className="w-5 h-5"
+									/>
+									<span>Continue with Google</span>
+								</button>
+							</div>
 
 							{/* Forgot Password Link */}
 							<div className="text-center">

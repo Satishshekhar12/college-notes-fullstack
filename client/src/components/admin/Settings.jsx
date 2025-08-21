@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+	getSettings as apiGetSettings,
+	updateSettings as apiUpdateSettings,
+} from "../../services/adminService";
 
 function Settings() {
 	const [settings, setSettings] = useState({
@@ -12,19 +16,62 @@ function Settings() {
 		registrationOpen: true,
 		moderatorAutoApproval: false,
 	});
-
 	const [unsavedChanges, setUnsavedChanges] = useState(false);
+	const [loading, setLoading] = useState(true);
+	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState("");
+	const [message, setMessage] = useState("");
+
+	useEffect(() => {
+		const load = async () => {
+			try {
+				setLoading(true);
+				setError("");
+				const res = await apiGetSettings();
+				const s = res.data?.settings || {};
+				// Normalize
+				setSettings({
+					siteName: s.siteName ?? "College Notes",
+					siteDescription:
+						s.siteDescription ?? "A platform for sharing educational resources",
+					maxUploadSize: s.maxUploadSize ?? 10,
+					allowedFileTypes:
+						Array.isArray(s.allowedFileTypes) && s.allowedFileTypes.length
+							? s.allowedFileTypes
+							: ["pdf", "doc", "docx", "ppt", "pptx"],
+					autoApproval: !!s.autoApproval,
+					emailNotifications: s.emailNotifications !== false,
+					maintenanceMode: !!s.maintenanceMode,
+					registrationOpen: s.registrationOpen !== false,
+					moderatorAutoApproval: !!s.moderatorAutoApproval,
+				});
+			} catch (e) {
+				setError(e.message || "Failed to load settings");
+			} finally {
+				setLoading(false);
+			}
+		};
+		load();
+	}, []);
 
 	const handleInputChange = (field, value) => {
 		setSettings({ ...settings, [field]: value });
 		setUnsavedChanges(true);
+		setMessage("");
 	};
 
-	const handleSaveSettings = () => {
-		// TODO: Implement actual save functionality
-		console.log("Saving settings:", settings);
-		setUnsavedChanges(false);
-		alert("Settings saved successfully!");
+	const handleSaveSettings = async () => {
+		try {
+			setSaving(true);
+			setError("");
+			await apiUpdateSettings(settings);
+			setUnsavedChanges(false);
+			setMessage("Settings saved successfully");
+		} catch (e) {
+			setError(e.message || "Failed to save settings");
+		} finally {
+			setSaving(false);
+		}
 	};
 
 	const handleResetSettings = () => {
@@ -48,6 +95,14 @@ function Settings() {
 		}
 	};
 
+	if (loading) {
+		return (
+			<div className="p-6">
+				<p className="text-gray-600">Loading settings...</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-6">
 			{/* Header */}
@@ -61,6 +116,16 @@ function Settings() {
 						<p className="text-yellow-800 text-sm">
 							⚠️ You have unsaved changes. Remember to save your settings.
 						</p>
+					</div>
+				)}
+				{error && (
+					<div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+						{error}
+					</div>
+				)}
+				{message && (
+					<div className="mt-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+						{message}
 					</div>
 				)}
 			</div>
@@ -162,46 +227,7 @@ function Settings() {
 					System Settings
 				</h3>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between">
-						<div>
-							<h4 className="font-medium text-gray-700">Auto-Approval</h4>
-							<p className="text-sm text-gray-500">
-								Automatically approve uploads without manual review
-							</p>
-						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								checked={settings.autoApproval}
-								onChange={(e) =>
-									handleInputChange("autoApproval", e.target.checked)
-								}
-								className="sr-only peer"
-							/>
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-						</label>
-					</div>
-
-					<div className="flex items-center justify-between">
-						<div>
-							<h4 className="font-medium text-gray-700">Email Notifications</h4>
-							<p className="text-sm text-gray-500">
-								Send email notifications for important events
-							</p>
-						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								checked={settings.emailNotifications}
-								onChange={(e) =>
-									handleInputChange("emailNotifications", e.target.checked)
-								}
-								className="sr-only peer"
-							/>
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-						</label>
-					</div>
-
+					{/* Maintenance Mode */}
 					<div className="flex items-center justify-between">
 						<div>
 							<h4 className="font-medium text-gray-700">Maintenance Mode</h4>
@@ -221,7 +247,7 @@ function Settings() {
 							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
 						</label>
 					</div>
-
+					{/* Registration Open */}
 					<div className="flex items-center justify-between">
 						<div>
 							<h4 className="font-medium text-gray-700">Open Registration</h4>
@@ -241,7 +267,47 @@ function Settings() {
 							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
 						</label>
 					</div>
-
+					{/* Auto-Approval */}
+					<div className="flex items-center justify-between">
+						<div>
+							<h4 className="font-medium text-gray-700">Auto-Approval</h4>
+							<p className="text-sm text-gray-500">
+								Automatically approve uploads without manual review
+							</p>
+						</div>
+						<label className="relative inline-flex items-center cursor-pointer">
+							<input
+								type="checkbox"
+								checked={settings.autoApproval}
+								onChange={(e) =>
+									handleInputChange("autoApproval", e.target.checked)
+								}
+								className="sr-only peer"
+							/>
+							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+						</label>
+					</div>
+					{/* Email Notifications */}
+					<div className="flex items-center justify-between">
+						<div>
+							<h4 className="font-medium text-gray-700">Email Notifications</h4>
+							<p className="text-sm text-gray-500">
+								Send email notifications for important events
+							</p>
+						</div>
+						<label className="relative inline-flex items-center cursor-pointer">
+							<input
+								type="checkbox"
+								checked={settings.emailNotifications}
+								onChange={(e) =>
+									handleInputChange("emailNotifications", e.target.checked)
+								}
+								className="sr-only peer"
+							/>
+							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+						</label>
+					</div>
+					{/* Moderator Auto-Approval */}
 					<div className="flex items-center justify-between">
 						<div>
 							<h4 className="font-medium text-gray-700">
@@ -272,8 +338,9 @@ function Settings() {
 					<button
 						onClick={handleSaveSettings}
 						className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors font-medium"
+						disabled={!unsavedChanges || saving}
 					>
-						💾 Save Settings
+						{saving ? "Saving..." : "💾 Save Settings"}
 					</button>
 					<button
 						onClick={handleResetSettings}
