@@ -17,6 +17,7 @@ const settingsSchema = new mongoose.Schema(
 		maintenanceMode: { type: Boolean, default: false },
 		registrationOpen: { type: Boolean, default: true },
 		moderatorAutoApproval: { type: Boolean, default: false },
+		requireLoginForUpload: { type: Boolean, default: true },
 	},
 	{ timestamps: true }
 );

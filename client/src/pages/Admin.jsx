@@ -59,7 +59,9 @@ function Admin() {
 			const handleGoogleLogin = async () => {
 				try {
 					setError("");
-					console.log("🔄 Attempting hash token fallback then cookie exchange...");
+					console.log(
+						"🔄 Attempting hash token fallback then cookie exchange..."
+					);
 					let success = false;
 					// Fallback 1: read token from URL hash
 					const hash = window.location.hash || "";
@@ -84,7 +86,10 @@ function Admin() {
 									}
 								}
 							} catch (e) {
-								console.warn("⚠️ Failed to fetch profile with admin hash token", e);
+								console.warn(
+									"⚠️ Failed to fetch profile with admin hash token",
+									e
+								);
 							}
 							success = true;
 							console.log("✅ Token obtained from URL hash for admin");

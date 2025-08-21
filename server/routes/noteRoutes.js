@@ -12,6 +12,7 @@ import {
 	uploadMiddleware,
 } from "../controllers/noteController.js";
 import { protect } from "../controllers/authController.js";
+import Settings from "../models/settingsModel.js";
 import {
 	requireModeratorOrAbove,
 	requireSeniorModeratorOrAbove,
@@ -28,8 +29,8 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.get("/", getAllNotes); // Get approved notes for public viewing
 
-// Protected routes (authentication required)
-router.use(protect); // All routes below require authentication
+// Default: protect routes below
+router.use(protect);
 
 // Test route for debugging
 router.get("/test-auth", (req, res) => {
@@ -64,7 +65,19 @@ router.post(
 ); // reject
 
 // User routes (authenticated users)
-router.post("/upload", uploadMiddleware, uploadNote); // Upload new note
+// Special case: allow upload without auth when toggled off
+const requireAuthIfConfigured = async (req, res, next) => {
+	try {
+		const settings = (await Settings.findOne()) || {};
+		const requireLogin = settings.requireLoginForUpload !== false; // default true
+		if (!requireLogin) return next();
+		return protect(req, res, next);
+	} catch (e) {
+		return protect(req, res, next);
+	}
+};
+
+router.post("/upload", requireAuthIfConfigured, uploadMiddleware, uploadNote); // Upload new note
 router.get("/user/my-notes", getUserNotes); // Get user's own notes
 
 // Note-specific routes (these must come after admin routes to avoid conflicts)

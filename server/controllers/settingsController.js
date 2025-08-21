@@ -37,6 +37,10 @@ export const updateSettings = catchAsync(async (req, res, next) => {
 			.filter(Boolean);
 	}
 
+	if (typeof updates.requireLoginForUpload !== "undefined") {
+		updates.requireLoginForUpload = !!updates.requireLoginForUpload;
+	}
+
 	const doc = await getOrCreateSettings();
 	Object.assign(doc, updates);
 	await doc.save();

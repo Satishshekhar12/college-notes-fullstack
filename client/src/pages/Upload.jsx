@@ -1,29 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import UploadWrapper from "../components/Upload/UploadWrapper.jsx";
 import { isUserLoggedIn } from "../services/userService.js";
 
 const Upload = () => {
-	const navigate = useNavigate();
+	// const navigate = useNavigate();
 	const [authenticated, setAuthenticated] = useState(false);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		// Check if user is logged in
+		// Soft check login; uploading can be open if admin toggled it on
 		const checkAuth = async () => {
 			const loggedIn = await isUserLoggedIn();
-
-			if (!loggedIn) {
-				alert("Please log in to upload files");
-				navigate("/login");
-			} else {
-				setAuthenticated(true);
-			}
+			setAuthenticated(!!loggedIn);
 			setLoading(false);
 		};
-
 		checkAuth();
-	}, [navigate]);
+	}, []);
 
 	if (loading) {
 		return (
@@ -33,7 +26,17 @@ const Upload = () => {
 		);
 	}
 
-	return authenticated ? <UploadWrapper /> : null;
+	return (
+		<>
+			{!authenticated && (
+				<div className="mt-20 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm">
+					You are uploading as a guest. For attribution and faster approval,
+					please log in.
+				</div>
+			)}
+			<UploadWrapper />
+		</>
+	);
 };
 
 export default Upload;
