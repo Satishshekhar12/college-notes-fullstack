@@ -253,7 +253,7 @@ function Login() {
 					send an email from <b> your college email</b> account to{" "}
 					<a
 						href="mailto:notes.helper0@gmail.com"
-						class="text-blue-600 underline"
+						className="text-blue-600 underline"
 					>
 						notes.helper0@gmail.com
 					</a>{" "}

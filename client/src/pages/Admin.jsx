@@ -25,11 +25,18 @@ function Admin() {
 		email: "",
 		password: "",
 	});
+	// Flag to show non-admin notice after Google login
+	const [showNonAdminNotice, setShowNonAdminNotice] = useState(false);
 
 	// Debug log for isLoggedIn state changes
 	useEffect(() => {
 		console.log("🔄 Admin isLoggedIn state changed to:", isLoggedIn);
 	}, [isLoggedIn]);
+
+	// Debug log for showNonAdminNotice state changes
+	useEffect(() => {
+		console.log("🔄 showNonAdminNotice state changed to:", showNonAdminNotice);
+	}, [showNonAdminNotice]);
 
 	useEffect(() => {
 		console.log("🔍 Admin useEffect running, checking login status...");
@@ -72,9 +79,16 @@ function Admin() {
 							console.log(
 								"❌ Admin Google login failed: User lacks admin privileges"
 							);
-							setError(
-								"Access denied. You need admin privileges to access this panel."
-							);
+							// Show friendly non-admin notice
+							setError("");
+							setShowNonAdminNotice(true);
+							console.log("🔍 Setting showNonAdminNotice to true");
+							setTimeout(() => {
+								const el = document.getElementById("non-admin-notice");
+								console.log("🔍 Looking for non-admin-notice element:", el);
+								if (el)
+									el.scrollIntoView({ behavior: "smooth", block: "start" });
+							}, 0);
 						}
 					} else {
 						console.log("❌ Admin Google login failed: Token exchange failed");
@@ -113,6 +127,10 @@ function Admin() {
 					localStorage.setItem("adminToken", userToken);
 					localStorage.setItem("adminUser", JSON.stringify(user));
 					setIsLoggedIn(true);
+				} else {
+					console.log("🔍 User is logged in but not admin, showing notice");
+					// User is logged in but not an admin - show the notice
+					setShowNonAdminNotice(true);
 				}
 			}
 		} catch (e) {
@@ -165,6 +183,10 @@ function Admin() {
 	};
 
 	console.log("🔍 Admin component rendering, isLoggedIn:", isLoggedIn);
+	console.log(
+		"🔍 Admin component rendering, showNonAdminNotice:",
+		showNonAdminNotice
+	);
 
 	if (!isLoggedIn) {
 		// Show forgot password component if requested
@@ -180,6 +202,27 @@ function Admin() {
 					<h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
 						🔐 Admin Login
 					</h2>
+
+					{showNonAdminNotice && (
+						<div
+							id="non-admin-notice"
+							className="mb-4 p-3 rounded border border-yellow-400 bg-yellow-50 text-yellow-800"
+						>
+							You're logged in with Google, but your account doesn't have admin
+							privileges yet.
+							<br />
+							Please apply for moderator access from your user dashboard. After
+							approval, you'll be able to access the admin panel.
+							<div className="mt-2">
+								<a
+									href="/"
+									className="text-teal-600 hover:text-teal-700 font-medium underline"
+								>
+									Go to User Dashboard
+								</a>
+							</div>
+						</div>
+					)}
 
 					{error && (
 						<div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">

@@ -75,6 +75,16 @@ export const exchangeAdminCookieForToken = async () => {
 					"❌ Admin cookie exchange: User lacks admin privileges, role:",
 					data.user.role
 				);
+				// Seed regular user session so the site recognizes user login
+				try {
+					localStorage.setItem("userToken", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
+					window.dispatchEvent(new Event("userLogin"));
+					console.log("ℹ️ Seeded regular user session from admin exchange");
+				} catch (e) {
+					console.warn("⚠️ Failed setting regular user session:", e);
+				}
+				console.log("🔄 Returning false to indicate non-admin user");
 				return false;
 			}
 
