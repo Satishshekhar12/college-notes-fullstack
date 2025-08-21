@@ -12,18 +12,23 @@ router.get(
 	"/auth/google",
 	(req, res, next) => {
 		console.log(
-			"🔍 Google OAuth initiated from:",
+			"🔍 User Google OAuth initiated from:",
 			req.get("origin") || req.get("referer") || "unknown"
 		);
+		console.log("🔍 Request headers:", req.headers);
 		next();
 	},
-	passport.authenticate("google", { scope: ["profile", "email"] })
+	passport.authenticate("google-user", {
+		scope: ["profile", "email"],
+		accessType: "offline",
+		prompt: "consent",
+	})
 );
 
 // OAuth callback -> issue JWT cookie -> redirect
 router.get(
 	"/auth/google/callback",
-	passport.authenticate("google", {
+	passport.authenticate("google-user", {
 		session: false,
 		failureRedirect: "/api/login-failed",
 	}),
@@ -114,13 +119,17 @@ router.get(
 		);
 		next();
 	},
-	passport.authenticate("google", { scope: ["profile", "email"] })
+	passport.authenticate("google-admin", {
+		scope: ["profile", "email"],
+		accessType: "offline",
+		prompt: "consent",
+	})
 );
 
 // Admin OAuth callback -> check role -> issue JWT cookie -> redirect
 router.get(
 	"/auth/google/admin/callback",
-	passport.authenticate("google", {
+	passport.authenticate("google-admin", {
 		session: false,
 		failureRedirect: "/api/admin-login-failed",
 	}),
