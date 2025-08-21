@@ -76,9 +76,7 @@ function Login() {
 										// If admin-capable, mirror to admin storage too
 										const role = prof.data.user.role;
 										if (
-											["admin", "moderator", "senior moderator"].includes(
-												role
-											)
+											["admin", "moderator", "senior moderator"].includes(role)
 										) {
 											localStorage.setItem("adminToken", tokenFromHash);
 											localStorage.setItem(
@@ -90,7 +88,10 @@ function Login() {
 									}
 								}
 							} catch (e) {
-								console.warn("Failed to fetch user profile after hash token", e);
+								console.warn(
+									"Failed to fetch user profile after hash token",
+									e
+								);
 							}
 							ok = true;
 						} catch (e) {

@@ -129,7 +129,7 @@ export const uploadNote = async (req, res) => {
 		// Create note document in MongoDB (metadata only)
 		const newNote = new Note({
 			...noteData,
-			uploadedBy: req.user.id,
+			uploadedBy: req.user?.id || undefined,
 			file: {
 				originalName: req.file.originalname, // Store clean original filename in DB
 				s3Key: s3Result.s3Key,
@@ -143,7 +143,7 @@ export const uploadNote = async (req, res) => {
 				{
 					action: "uploaded",
 					timestamp: new Date(),
-					moderatorId: req.user.id,
+					moderatorId: req.user?.id,
 					reason: "Initial upload",
 				},
 			],
@@ -152,7 +152,9 @@ export const uploadNote = async (req, res) => {
 		const savedNote = await newNote.save();
 
 		// Update user upload statistics
-		await updateUserUploadStats(req.user.id);
+		if (req.user?.id) {
+			await updateUserUploadStats(req.user.id);
+		}
 
 		// Auto-approve if enabled in settings
 		try {
@@ -173,11 +175,11 @@ export const uploadNote = async (req, res) => {
 				if (moveResult.success) {
 					savedNote.file.s3Key = moveResult.newS3Key;
 					savedNote.status = "approved";
-					savedNote.approvedBy = req.user.id;
+					savedNote.approvedBy = req.user?.id;
 					savedNote.moderationHistory.push({
 						action: "auto-approved",
 						timestamp: new Date(),
-						moderatorId: req.user.id,
+						moderatorId: req.user?.id,
 						reason: "Auto-approval enabled",
 					});
 					await savedNote.save();
@@ -188,7 +190,9 @@ export const uploadNote = async (req, res) => {
 		}
 
 		// Populate user details for response
-		await savedNote.populate("uploadedBy", "name email");
+		if (savedNote.uploadedBy) {
+			await savedNote.populate("uploadedBy", "name email");
+		}
 
 		res.status(201).json({
 			success: true,
