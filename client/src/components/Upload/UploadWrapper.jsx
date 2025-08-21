@@ -10,6 +10,11 @@ import { colleges } from "../../data/colleges";
 import { uploadTypes } from "../../data/uploadTypes";
 import bhuCourseStructure from "../../data/bhuCourseStructure.json";
 import nitkCourseStructure from "../../data/nitkCourseStructure.json";
+import {
+	getUploadFavorites,
+	addUploadFavorite,
+	removeUploadFavorite,
+} from "../../utils/favoriteUploadStorage";
 
 const UploadWrapper = () => {
 	const [selectedCollege, setSelectedCollege] = useState("");
@@ -19,6 +24,9 @@ const UploadWrapper = () => {
 	const [selectedSemester, setSelectedSemester] = useState("");
 	const [selectedSubject, setSelectedSubject] = useState("");
 	const [uploadSuccess, setUploadSuccess] = useState(false);
+	const [failedReasons, setFailedReasons] = useState([]);
+	// New: upload favorites state
+	const [favorites, setFavorites] = useState(() => getUploadFavorites());
 
 	// Get available courses for selected college from course structure
 	const getAvailableCourses = () => {
@@ -229,23 +237,77 @@ const UploadWrapper = () => {
 
 		console.log("Upload Data:", { ...uploadData, config: uploadConfig });
 
-		// Check if upload was successful (this is called after the actual upload in EnhancedUploadForm)
-		if (uploadData.success) {
-			// Show success message
-			setUploadSuccess(true);
+		// Collect failure reasons if any
+		const failures = Array.isArray(uploadData.failedUploads)
+			? uploadData.failedUploads
+					.filter((f) => !f.success)
+					.map((f) => `${f.fileName || "Unknown file"}: ${f.error || "Failed"}`)
+			: [];
+		setFailedReasons(failures);
 
-			// Hide success message after 5 seconds
-			setTimeout(() => {
-				setUploadSuccess(false);
-			}, 5000);
+		// Consider success if at least one file uploaded successfully
+		if (uploadData.successCount && uploadData.successCount > 0) {
+			setUploadSuccess(true);
+			setTimeout(() => setUploadSuccess(false), 5000);
 		} else {
-			// Handle upload failure
-			console.error("Upload failed:", uploadData.error);
+			console.error("Upload failed:", failures[0] || uploadData.error);
 		}
+	};
+
+	// New: save current selection as favorite (up to semester/type/subject)
+	const saveAsFavorite = () => {
+		if (!selectedCollege || !selectedCourse) {
+			alert("Please select at least College and Course");
+			return;
+		}
+		const subjectDisplay = selectedSubject
+			? availableSubjects.find((s) => (s.code || s.name) === selectedSubject)
+					?.name || selectedSubject
+			: null;
+		const fav = {
+			college: selectedCollege,
+			courseId: selectedCourse,
+			subcourseId: selectedSubcourse || null,
+			semester: selectedSemester || null,
+			typeId: selectedType || null,
+			subject: selectedSubject || null,
+			label: `${
+				colleges.find((c) => c.id === selectedCollege)?.name || selectedCollege
+			} • ${courseObj?.name || selectedCourse}${
+				selectedSubcourse
+					? ` • ${
+							availableSubcourses.find((s) => s.id === selectedSubcourse)
+								?.name || selectedSubcourse
+					  }`
+					: ""
+			}${selectedType ? ` • ${uploadTypeObj?.name || selectedType}` : ""}${
+				selectedSemester ? ` • Sem ${selectedSemester}` : ""
+			}${subjectDisplay ? ` • ${subjectDisplay}` : ""}`,
+		};
+		const updated = addUploadFavorite(fav);
+		setFavorites(updated);
+	};
+
+	// New: apply favorite selection (sets up to subject)
+	const applyFavorite = (fav) => {
+		setSelectedCollege(fav.college || "");
+		setSelectedCourse(fav.courseId || "");
+		setSelectedSubcourse(fav.subcourseId || "");
+		setSelectedType(fav.typeId || "");
+		setSelectedSemester(fav.semester || "");
+		setSelectedSubject(fav.subject || "");
+		setUploadSuccess(false);
+		setFailedReasons([]);
+	};
+
+	const removeFavorite = (id) => {
+		const updated = removeUploadFavorite(id);
+		setFavorites(updated);
 	};
 
 	return (
 		<>
+			{/* Favorites header */}
 			<div className="mt-20 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-xl text-m">
 				<p>
 					<strong>Note:</strong> Once you upload your notes, they will be sent
@@ -253,6 +315,53 @@ const UploadWrapper = () => {
 					visible on the platform for everyone to access. Thank you for
 					contributing!
 				</p>
+			</div>
+
+			{/* New: Favorites Bar */}
+			<div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
+				<div className="flex items-center justify-between mb-3">
+					<h3 className="text-md font-semibold text-gray-800">⭐ Favorites</h3>
+					<button
+						onClick={saveAsFavorite}
+						className="px-3 py-1 bg-teal-500 text-white rounded hover:bg-teal-600"
+					>
+						Save current selection
+					</button>
+				</div>
+				{favorites.length === 0 ? (
+					<p className="text-sm text-gray-500">
+						No favorites yet. Save a selection to reuse it quickly.
+					</p>
+				) : (
+					<div className="flex flex-wrap gap-2">
+						{favorites.map((f) => (
+							<div
+								key={f.id}
+								className="flex items-center bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm"
+							>
+								<button
+									onClick={() => applyFavorite(f)}
+									className="mr-2 hover:underline"
+									title="Apply favorite"
+								>
+									{f.label ||
+										`${f.college} • ${f.courseId}${
+											f.subcourseId ? ` • ${f.subcourseId}` : ""
+										}${f.typeId ? ` • ${f.typeId}` : ""}${
+											f.semester ? ` • Sem ${f.semester}` : ""
+										}${f.subject ? ` • ${f.subject}` : ""}`}
+								</button>
+								<button
+									onClick={() => removeFavorite(f.id)}
+									className="text-red-500 hover:text-red-600"
+									title="Remove"
+								>
+									×
+								</button>
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 
 			<div className="min-h-screen bg-gray-50 py-8">
@@ -282,6 +391,20 @@ const UploadWrapper = () => {
 									</p>
 								</div>
 							</div>
+						</div>
+					)}
+
+					{/* Failure Reasons */}
+					{failedReasons.length > 0 && (
+						<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+							<h3 className="text-sm font-medium text-red-800 mb-2">
+								Some files failed to upload
+							</h3>
+							<ul className="list-disc pl-5 text-sm text-red-700 space-y-1">
+								{failedReasons.map((msg, idx) => (
+									<li key={idx}>{msg}</li>
+								))}
+							</ul>
 						</div>
 					)}
 

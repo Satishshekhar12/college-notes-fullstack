@@ -22,7 +22,7 @@ export const adminLogin = async (email, password) => {
 		// Check if user has admin privileges
 		if (result.status === "success" && result.token && result.user) {
 			const { user } = result;
-			
+
 			// Verify user has admin/moderator role
 			if (!["admin", "moderator", "senior moderator"].includes(user.role)) {
 				throw new Error("Access denied. Admin privileges required.");
@@ -85,7 +85,7 @@ export const resetPassword = async (token, password, passwordConfirm) => {
 		// Store token and user info if reset is successful
 		if (result.status === "success" && result.token && result.user) {
 			const { user } = result;
-			
+
 			// Verify user has admin privileges
 			if (["admin", "moderator", "senior moderator"].includes(user.role)) {
 				localStorage.setItem("adminToken", result.token);
@@ -117,11 +117,11 @@ export const getStoredAdmin = () => {
 export const isAdminLoggedIn = () => {
 	const token = localStorage.getItem("adminToken");
 	const userData = localStorage.getItem("adminUser");
-	
+
 	if (!token || !userData) {
 		return false;
 	}
-	
+
 	try {
 		const user = JSON.parse(userData);
 		// Check if user has admin/moderator role
@@ -140,7 +140,7 @@ export const getCurrentAdminUser = () => {
 	if (!userData) {
 		return null;
 	}
-	
+
 	try {
 		return JSON.parse(userData);
 	} catch (error) {
@@ -248,4 +248,86 @@ export const getUploadStats = async () => {
 		console.error("Error getting stats:", error);
 		throw error;
 	}
+};
+
+// New: Admin user management services
+export const fetchUsers = async () => {
+	const res = await fetch(`${API_BASE_URL}/users`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch users");
+	return res.json();
+};
+
+export const fetchModerators = async () => {
+	const res = await fetch(`${API_BASE_URL}/moderators`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch moderators");
+	return res.json();
+};
+
+export const updateUserRole = async (userId, role) => {
+	const res = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify({ role }),
+	});
+	if (!res.ok) {
+		let msg = "Failed to update role";
+		try {
+			const err = await res.json();
+			msg = err.message || err.error || msg;
+		} catch {
+			// ignore JSON parse errors
+		}
+		throw new Error(msg);
+	}
+	return res.json();
+};
+
+export const updateUserStatus = async (userId, isActive) => {
+	const res = await fetch(`${API_BASE_URL}/users/${userId}/status`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify({ isActive }),
+	});
+	if (!res.ok) {
+		let msg = "Failed to update status";
+		try {
+			const err = await res.json();
+			msg = err.message || err.error || msg;
+		} catch {
+			// ignore JSON parse errors
+		}
+		throw new Error(msg);
+	}
+	return res.json();
+};
+
+// New: dashboard combined stats
+export const getDashboardStats = async () => {
+	const res = await fetch(`${API_BASE_URL}/dashboard-stats`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+	return res.json();
+};
+
+export const getSettings = async () => {
+	const res = await fetch(`${API_BASE_URL}/settings`, {
+		headers: getAuthHeaders(),
+	});
+	if (!res.ok) throw new Error("Failed to fetch settings");
+	return res.json();
+};
+
+export const updateSettings = async (payload) => {
+	const res = await fetch(`${API_BASE_URL}/settings`, {
+		method: "PATCH",
+		headers: getAuthHeaders(),
+		body: JSON.stringify(payload),
+	});
+	if (!res.ok) throw new Error("Failed to update settings");
+	return res.json();
 };

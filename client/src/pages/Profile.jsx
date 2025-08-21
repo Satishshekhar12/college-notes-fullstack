@@ -8,6 +8,7 @@ import {
 	isUserLoggedIn,
 } from "../services/userService";
 import { useNavigate } from "react-router-dom";
+import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
 
 function Profile() {
 	const navigate = useNavigate();
@@ -17,6 +18,8 @@ function Profile() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [activeTab, setActiveTab] = useState("profile");
+	const [showModeratorRequestForm, setShowModeratorRequestForm] =
+		useState(false);
 
 	// Profile form state
 	const [profileData, setProfileData] = useState({
@@ -389,6 +392,36 @@ function Profile() {
 					</div>
 				)}
 
+				{/* Moderator Request Section */}
+				{user &&
+					!["moderator", "senior moderator", "admin"].includes(user.role) && (
+						<div className="bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-200 rounded-xl p-6 mb-8">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center space-x-4">
+									<div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
+										<span className="text-white text-xl">👥</span>
+									</div>
+									<div>
+										<h3 className="text-teal-800 font-semibold text-lg">
+											Want to Help Moderate Content?
+										</h3>
+										<p className="text-teal-700 text-sm">
+											Apply to become a moderator and help ensure quality
+											educational resources for everyone
+										</p>
+									</div>
+								</div>
+								<button
+									onClick={() => setShowModeratorRequestForm(true)}
+									className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors font-medium flex items-center space-x-2"
+								>
+									<span>🎯</span>
+									<span>Apply for Moderator</span>
+								</button>
+							</div>
+						</div>
+					)}
+
 				{/* Enhanced Tab Navigation */}
 				<div className="bg-white rounded-xl shadow-lg overflow-hidden">
 					<div className="border-b border-gray-200">
@@ -747,6 +780,17 @@ function Profile() {
 					</div>
 				</div>
 			</div>
+
+			{/* Moderator Request Form Modal */}
+			{showModeratorRequestForm && (
+				<ModeratorRequestForm
+					onClose={() => setShowModeratorRequestForm(false)}
+					onSuccess={(message) => {
+						setSuccess(message);
+						setShowModeratorRequestForm(false);
+					}}
+				/>
+			)}
 		</div>
 	);
 }

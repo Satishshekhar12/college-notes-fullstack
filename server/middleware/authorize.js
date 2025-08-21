@@ -61,7 +61,8 @@ export const requireSeniorModeratorOrAbove = async (req, res, next) => {
 			});
 		}
 
-		if (!checkPermission(req.user.role, "senior_moderator")) {
+		// Fix: use correct role key "senior moderator"
+		if (!checkPermission(req.user.role, "senior moderator")) {
 			return res.status(403).json({
 				success: false,
 				message: "Senior moderator access required",
@@ -102,6 +103,9 @@ export const requireAdminOnly = async (req, res, next) => {
 		});
 	}
 };
+
+// Alias for requireAdminOnly
+export const requireAdmin = requireAdminOnly;
 
 // Export the permission checker for use in controllers
 export { checkPermission };

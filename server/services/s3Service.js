@@ -85,6 +85,27 @@ class S3Service {
 	}
 
 	/**
+	 * Get MIME type based on file extension
+	 * @param {string} fileName - File name or S3 key
+	 * @returns {string} - MIME type
+	 */
+	static getMimeTypeFromFileName(fileName) {
+		const extension = fileName.split(".").pop().toLowerCase();
+		const mimeTypes = {
+			pdf: "application/pdf",
+			doc: "application/msword",
+			docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			ppt: "application/vnd.ms-powerpoint",
+			pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			txt: "text/plain",
+			jpg: "image/jpeg",
+			jpeg: "image/jpeg",
+			png: "image/png",
+		};
+		return mimeTypes[extension] || "application/octet-stream";
+	}
+
+	/**
 	 * Generate presigned URL for file access
 	 * @param {string} s3Key - S3 key of the file
 	 * @param {number} expiresIn - URL expiration time in seconds
@@ -98,17 +119,21 @@ class S3Service {
 				expires: expiresIn,
 			});
 
+			// Determine the correct MIME type based on file extension
+			const mimeType = this.getMimeTypeFromFileName(s3Key);
+			console.log(`🎯 Detected MIME type: ${mimeType} for file: ${s3Key}`);
+
 			const params = {
 				Bucket: S3_CONFIG.bucket,
 				Key: s3Key,
 				Expires: expiresIn,
 				ResponseContentDisposition: "inline", // Force inline viewing instead of download
-				ResponseContentType: "application/pdf", // Ensure proper MIME type for PDFs
+				ResponseContentType: mimeType, // Use appropriate MIME type based on file extension
 			};
 
 			const url = s3.getSignedUrl("getObject", params);
 			console.log(
-				"🔗 S3 presigned URL generated successfully with inline disposition"
+				"🔗 S3 presigned URL generated successfully with inline disposition and correct MIME type"
 			);
 			return url;
 		} catch (error) {

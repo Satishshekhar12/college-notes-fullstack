@@ -71,6 +71,11 @@ const userSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		// Account status for admin control
+		isActive: {
+			type: Boolean,
+			default: true,
+		},
 		passwordChangedAt: Date,
 		passwordResetToken: String,
 		passwordResetExpires: Date,

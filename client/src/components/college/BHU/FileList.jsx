@@ -83,9 +83,11 @@ const FileList = ({ files }) => {
 			if (file.key) {
 				const url = await generatePresignedUrl(file.key, 3600); // 1 hour expiry
 				if (url) {
-					SecureViewer.openFileViewer(url, file.fileName || file.displayName);
+					// Open file with SecureViewer
+					const fileName = file.fileName || file.displayName;
+					SecureViewer.openFileViewer(url, fileName);
 					closeToast();
-					Toast.showSuccess("File opened successfully!");
+					Toast.showSuccess("File opened for viewing!");
 				} else {
 					closeToast();
 					Toast.showError("Failed to generate view link");
@@ -93,7 +95,8 @@ const FileList = ({ files }) => {
 			} else {
 				// Demo file handling
 				const demoUrl = `/demo-files/${file.fileName}`;
-				SecureViewer.openFileViewer(demoUrl, file.fileName);
+				const fileName = file.fileName;
+				SecureViewer.openFileViewer(demoUrl, fileName);
 				closeToast();
 				Toast.showSuccess("Demo file opened!");
 			}
