@@ -41,20 +41,39 @@ function Login() {
 	const [availableCourses, setAvailableCourses] = useState([]);
 	const [semesterOptions, setSemesterOptions] = useState([]);
 
-	// If redirected back from Google, exchange cookie for token and update UI
+	// If redirected back from Google, first try URL-hash token, then cookie exchange
 	React.useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (params.get("from") === "google") {
-			(async () => {
+		(async () => {
+			const { hash, pathname, search } = window.location;
+			// Prefer token in URL fragment to avoid third-party cookie issues
+			if (hash && hash.startsWith("#") && hash.includes("google=")) {
+				const token = new URLSearchParams(hash.slice(1)).get("google");
+				if (token) {
+					try {
+						setLoading(true);
+						localStorage.setItem("userToken", token);
+						// Optionally emit event and fetch user profile later
+						window.dispatchEvent(new Event("userLogin"));
+						setSuccess("Logged in with Google.");
+						// Clean hash and query
+						window.history.replaceState({}, "", pathname);
+						return; // Done
+					} finally {
+						setLoading(false);
+					}
+				}
+			}
+
+			// Legacy fallback: query param triggers cookie exchange
+			const params = new URLSearchParams(search);
+			if (params.get("from") === "google") {
 				setLoading(true);
 				setError("");
 				try {
 					const ok = await exchangeCookieForToken();
 					if (ok) {
 						setSuccess("Logged in with Google.");
-						// Clean the URL
-						window.history.replaceState({}, "", window.location.pathname);
-						// Notify navbar to switch Login → Profile immediately
+						window.history.replaceState({}, "", pathname);
 						window.dispatchEvent(new Event("userLogin"));
 					} else {
 						setError("Google login failed. Please try again.");
@@ -62,8 +81,8 @@ function Login() {
 				} finally {
 					setLoading(false);
 				}
-			})();
-		}
+			}
+		})();
 	}, []);
 
 	// Handle college selection change
