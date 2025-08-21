@@ -52,35 +52,43 @@ export const exchangeAdminCookieForToken = async () => {
 	try {
 		console.log("🔄 Attempting to exchange admin cookie for token...");
 		console.log("🔍 Making request to:", `${API_BASE_URL}/api/auth/token`);
-		
+
 		const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
 			credentials: "include",
 		});
-		
+
 		console.log("📊 Admin exchange response status:", res.status);
 		console.log("📊 Admin exchange response ok:", res.ok);
-		
+
 		const data = await res.json();
 		console.log("📊 Admin exchange response data:", data);
-		
+
 		if (res.ok && data.status === "success" && data.token && data.user) {
 			console.log("📊 Token and user received, checking role...");
 			console.log("📊 User role:", data.user.role);
-			
+
 			// Verify user has admin privileges
-			if (!["admin", "moderator", "senior moderator"].includes(data.user.role)) {
-				console.log("❌ Admin cookie exchange: User lacks admin privileges, role:", data.user.role);
+			if (
+				!["admin", "moderator", "senior moderator"].includes(data.user.role)
+			) {
+				console.log(
+					"❌ Admin cookie exchange: User lacks admin privileges, role:",
+					data.user.role
+				);
 				return false;
 			}
-			
+
 			console.log("✅ Role verified, storing token and user data...");
 			localStorage.setItem("adminToken", data.token);
 			localStorage.setItem("adminUser", JSON.stringify(data.user));
-			
+
 			console.log("✅ Admin cookie exchange successful, token stored");
-			console.log("📊 Stored token:", localStorage.getItem("adminToken") ? "exists" : "null");
+			console.log(
+				"📊 Stored token:",
+				localStorage.getItem("adminToken") ? "exists" : "null"
+			);
 			console.log("📊 Stored user:", localStorage.getItem("adminUser"));
-			
+
 			return true;
 		}
 		console.log("❌ Admin cookie exchange failed - invalid response");
@@ -167,7 +175,7 @@ export const getStoredAdmin = () => {
 
 export const isAdminLoggedIn = () => {
 	console.log("🔍 Checking admin login status...");
-	
+
 	const token = localStorage.getItem("adminToken");
 	const userData = localStorage.getItem("adminUser");
 
@@ -183,11 +191,13 @@ export const isAdminLoggedIn = () => {
 		const user = JSON.parse(userData);
 		console.log("📊 Parsed user data:", user);
 		console.log("📊 User role:", user.role);
-		
+
 		// Check if user has admin/moderator role
-		const hasAdminRole = ["admin", "moderator", "senior moderator"].includes(user.role);
+		const hasAdminRole = ["admin", "moderator", "senior moderator"].includes(
+			user.role
+		);
 		console.log("📊 Has admin role:", hasAdminRole);
-		
+
 		return hasAdminRole;
 	} catch (error) {
 		console.error("❌ Error parsing admin user data:", error);

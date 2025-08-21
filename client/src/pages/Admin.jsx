@@ -33,7 +33,7 @@ function Admin() {
 
 	useEffect(() => {
 		console.log("🔍 Admin useEffect running, checking login status...");
-		
+
 		// Check if admin is already logged in
 		if (isAdminLoggedIn()) {
 			console.log("✅ Admin already logged in, setting state");
@@ -46,7 +46,7 @@ function Admin() {
 		const urlParams = new URLSearchParams(window.location.search);
 		const fromGoogle = urlParams.get("from");
 		console.log("🔍 URL params - from:", fromGoogle);
-		
+
 		if (fromGoogle === "google") {
 			console.log("🔄 Handling Google OAuth return...");
 			const handleGoogleLogin = async () => {
@@ -55,36 +55,68 @@ function Admin() {
 					console.log("🔄 Calling exchangeAdminCookieForToken...");
 					const success = await exchangeAdminCookieForToken();
 					console.log("📊 Admin Google login result:", success);
-					
+
 					if (success) {
 						// Check if admin is now logged in
 						console.log("🔍 Checking if admin is now logged in...");
 						const isNowLoggedIn = isAdminLoggedIn();
 						console.log("📊 isAdminLoggedIn result:", isNowLoggedIn);
-						
+
 						if (isNowLoggedIn) {
-							console.log("✅ Admin Google login successful, switching to admin panel");
+							console.log(
+								"✅ Admin Google login successful, switching to admin panel"
+							);
 							setIsLoggedIn(true);
+							setActiveSection("dashboard");
 						} else {
-							console.log("❌ Admin Google login failed: User lacks admin privileges");
-							setError("Access denied. You need admin privileges to access this panel.");
+							console.log(
+								"❌ Admin Google login failed: User lacks admin privileges"
+							);
+							setError(
+								"Access denied. You need admin privileges to access this panel."
+							);
 						}
 					} else {
 						console.log("❌ Admin Google login failed: Token exchange failed");
-						setError("Google login failed. Please try again or check your admin privileges.");
+						setError(
+							"Google login failed. Please try again or check your admin privileges."
+						);
 					}
-					
+
 					// Clean up URL
 					console.log("🔄 Cleaning up URL...");
-					window.history.replaceState({}, document.title, window.location.pathname);
+					window.history.replaceState(
+						{},
+						document.title,
+						window.location.pathname
+					);
 				} catch (error) {
 					console.error("❌ Admin Google login error:", error);
-					setError(
-						error.message || "Google login failed. Please try again."
-					);
+					setError(error.message || "Google login failed. Please try again.");
 				}
 			};
 			handleGoogleLogin();
+		}
+	}, []);
+
+	// Fallback: If user Google flow already stored a token and role is admin, mirror to admin storage
+	useEffect(() => {
+		try {
+			const userToken = localStorage.getItem("userToken");
+			const rawUser = localStorage.getItem("user");
+			if (userToken && rawUser && !localStorage.getItem("adminToken")) {
+				const user = JSON.parse(rawUser);
+				if (["admin", "moderator", "senior moderator"].includes(user?.role)) {
+					console.log(
+						"🔁 Mirroring user token to admin token due to admin role"
+					);
+					localStorage.setItem("adminToken", userToken);
+					localStorage.setItem("adminUser", JSON.stringify(user));
+					setIsLoggedIn(true);
+				}
+			}
+		} catch (e) {
+			console.warn("⚠️ Failed to mirror user token to admin:", e);
 		}
 	}, []);
 
