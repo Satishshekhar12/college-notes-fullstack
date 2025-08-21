@@ -49,61 +49,53 @@ function Admin() {
 			console.log("❌ Admin not logged in");
 		}
 
-		// Handle Google OAuth return
-		const urlParams = new URLSearchParams(window.location.search);
+		// Handle Google OAuth return: prefer URL-hash token then fallback to cookie exchange
+		const { hash, pathname, search } = window.location;
+		const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : "");
+		const hashToken = hashParams.get("google");
+		if (hashToken) {
+			try {
+				localStorage.setItem("adminToken", hashToken);
+				// Also seed user storage so rest of site recognizes login
+				localStorage.setItem("userToken", hashToken);
+				window.dispatchEvent(new Event("adminLogin"));
+				setIsLoggedIn(true);
+				setActiveSection("dashboard");
+			} finally {
+				window.history.replaceState({}, document.title, pathname);
+			}
+			return;
+		}
+
+		const urlParams = new URLSearchParams(search);
 		const fromGoogle = urlParams.get("from");
 		console.log("🔍 URL params - from:", fromGoogle);
 
 		if (fromGoogle === "google") {
-			console.log("🔄 Handling Google OAuth return...");
+			console.log("🔄 Handling Google OAuth return (cookie exchange)...");
 			const handleGoogleLogin = async () => {
 				try {
 					setError("");
-					console.log("🔄 Calling exchangeAdminCookieForToken...");
 					const success = await exchangeAdminCookieForToken();
-					console.log("📊 Admin Google login result:", success);
-
 					if (success) {
-						// Check if admin is now logged in
-						console.log("🔍 Checking if admin is now logged in...");
 						const isNowLoggedIn = isAdminLoggedIn();
-						console.log("📊 isAdminLoggedIn result:", isNowLoggedIn);
-
 						if (isNowLoggedIn) {
-							console.log(
-								"✅ Admin Google login successful, switching to admin panel"
-							);
 							setIsLoggedIn(true);
 							setActiveSection("dashboard");
 						} else {
-							console.log(
-								"❌ Admin Google login failed: User lacks admin privileges"
-							);
-							// Show friendly non-admin notice
 							setError("");
 							setShowNonAdminNotice(true);
-							console.log("🔍 Setting showNonAdminNotice to true");
 							setTimeout(() => {
 								const el = document.getElementById("non-admin-notice");
-								console.log("🔍 Looking for non-admin-notice element:", el);
-								if (el)
-									el.scrollIntoView({ behavior: "smooth", block: "start" });
+								if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 							}, 0);
 						}
 					} else {
-						console.log("❌ Admin Google login failed: Token exchange failed");
 						setError(
 							"Google login failed. Please try again or check your admin privileges."
 						);
 					}
-
-					// Clean up URL
-					console.log("🔄 Cleaning up URL...");
-					window.history.replaceState(
-						{},
-						document.title,
-						window.location.pathname
-					);
+					window.history.replaceState({}, document.title, pathname);
 				} catch (error) {
 					console.error("❌ Admin Google login error:", error);
 					setError(error.message || "Google login failed. Please try again.");

@@ -199,6 +199,10 @@ export const exchangeCookieForToken = async () => {
 	try {
 		console.log("🔄 Attempting to exchange cookie for token...");
 		const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
 			credentials: "include",
 		});
 		console.log("📊 Exchange response status:", res.status);
