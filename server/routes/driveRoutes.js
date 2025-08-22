@@ -93,7 +93,7 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		}
 
 		// Stream content
-		const dlRes = await fetch(
+	const dlRes = await fetch(
 			`https://www.googleapis.com/drive/v3/files/${id}?alt=media&acknowledgeAbuse=true`,
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
@@ -106,6 +106,8 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		const mime = meta.mimeType || "application/octet-stream";
 		res.setHeader("Content-Type", mime);
 		res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+	const dlLen = dlRes.headers.get("content-length");
+	if (dlLen) res.setHeader("Content-Length", dlLen);
 
 		const body = dlRes.body;
 		if (body && typeof body.getReader === "function" && Readable.fromWeb) {
@@ -166,7 +168,7 @@ router.get("/files/:id/view", protect, async (req, res) => {
 		}
 		const meta = await metaRes.json();
 
-		const fileRes = await fetch(
+	const fileRes = await fetch(
 			`https://www.googleapis.com/drive/v3/files/${id}?alt=media&acknowledgeAbuse=true`,
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
@@ -179,6 +181,8 @@ router.get("/files/:id/view", protect, async (req, res) => {
 		const mime = meta.mimeType || "application/octet-stream";
 		res.setHeader("Content-Type", mime);
 		res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+	const viewLen = fileRes.headers.get("content-length");
+	if (viewLen) res.setHeader("Content-Length", viewLen);
 
 		const body = fileRes.body;
 		if (body && typeof body.getReader === "function" && Readable.fromWeb) {

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
 	listPersonalDriveFiles,
-	uploadPersonalDriveFiles,
+	uploadPersonalDriveFilesWithProgress,
 	deletePersonalDriveFile,
 	sharePersonalDriveFile,
 	listDriveSharesSent,
 	listDriveSharesReceived,
-	downloadPersonalDriveFile,
+	downloadPersonalDriveFileWithProgress,
+	viewPersonalDriveFileWithProgress,
 } from "../../services/apiService";
 import { startGoogleLogin } from "../../services/userService";
 
@@ -16,10 +17,19 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [uploading, setUploading] = useState(false);
+	const [progress, setProgress] = useState({ phase: null, percent: 0, loaded: 0, total: 0 });
+	const [processing, setProcessing] = useState(false);
 	const [dragOver, setDragOver] = useState(false);
 	const [sharesSent, setSharesSent] = useState([]);
 	const [sharesReceived, setSharesReceived] = useState([]);
 	const fileInputRef = useRef(null);
+
+	const formatBytes = (bytes) => {
+		if (!bytes && bytes !== 0) return "";
+		const sizes = ["B", "KB", "MB", "GB", "TB"];
+		const i = bytes === 0 ? 0 : Math.floor(Math.log(bytes) / Math.log(1024));
+		return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+	};
 
 	const fetchFiles = async () => {
 		setLoading(true);
@@ -51,7 +61,9 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 		setError("");
 		setSuccess("");
 		setUploading(true);
-		const res = await uploadPersonalDriveFiles(selected);
+		setProcessing(true);
+		setProgress({ phase: "upload", percent: 0, loaded: 0, total: 0 });
+		const res = await uploadPersonalDriveFilesWithProgress(selected, (p) => setProgress(p));
 		if (res.success) {
 			setSuccess("Uploaded successfully");
 			await fetchFiles();
@@ -60,6 +72,7 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 			setError(res.message || "Upload failed");
 		}
 		setUploading(false);
+		setProcessing(false);
 	};
 
 	const onUpload = async (e) => {
@@ -70,8 +83,8 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const onDrop = async (e) => {
 		e.preventDefault();
 		setDragOver(false);
-		const files = Array.from(e.dataTransfer.files || []);
-		await doUpload(files);
+		const dropped = Array.from(e.dataTransfer.files || []);
+		await doUpload(dropped);
 	};
 
 	const onDelete = async (id) => {
@@ -98,7 +111,10 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 
 	const onDownload = async (file) => {
 		setError("");
-		const res = await downloadPersonalDriveFile(file.id, file.name);
+		setProcessing(true);
+		setProgress({ phase: "download", percent: 0, loaded: 0, total: Number(file.size) || 0 });
+		const res = await downloadPersonalDriveFileWithProgress(file.id, file.name, (p) => setProgress(p));
+		setProcessing(false);
 		if (!res.success) setError(res.message || "Failed to download file");
 	};
 
@@ -201,22 +217,13 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 								<button
 									onClick={async () => {
 										setError("");
-										try {
-											const token = localStorage.getItem("userToken");
-											const res = await fetch(`${window.location.origin.includes("http") ? (import.meta.env.DEV ? "http://localhost:5000" : "https://college-notes-fullstack.onrender.com") : ""}/api/drive/files/${f.id}/view`, {
-												headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-											});
-											if (!res.ok) {
-												const data = await res.json().catch(() => ({}));
-												throw new Error(data.message || "Failed to open file");
-											}
-											const blob = await res.blob();
-											const url = URL.createObjectURL(blob);
-											// Open in same tab
-											window.location.href = url;
-										} catch (e) {
-											setError(e.message || "Failed to open file");
-										}
+										setProcessing(true);
+										setProgress({ phase: "open", percent: 0, loaded: 0, total: Number(f.size) || 0 });
+										const r = await viewPersonalDriveFileWithProgress(f.id, (p) => setProgress(p));
+										setProcessing(false);
+										if (!r.success) return setError(r.message || "Failed to open file");
+										const url = URL.createObjectURL(r.blob);
+										window.location.href = url;
 									}}
 									className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
 								>
@@ -266,22 +273,13 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 										<button
 											onClick={async () => {
 												setError("");
-												try {
-													const token = localStorage.getItem("userToken");
-													const base = window.location.origin.includes("http") ? (import.meta.env.DEV ? "http://localhost:5000" : "https://college-notes-fullstack.onrender.com") : "";
-													const res = await fetch(`${base}/api/drive/files/${s.fileId}/view`, {
-														headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-													});
-													if (!res.ok) {
-														const data = await res.json().catch(() => ({}));
-														throw new Error(data.message || "Failed to open file");
-													}
-													const blob = await res.blob();
-													const url = URL.createObjectURL(blob);
-													window.location.href = url;
-												} catch (e) {
-													setError(e.message || "Failed to open file");
-												}
+												setProcessing(true);
+												setProgress({ phase: "open", percent: 0, loaded: 0, total: 0 });
+												const r = await viewPersonalDriveFileWithProgress(s.fileId, (p) => setProgress(p));
+												setProcessing(false);
+												if (!r.success) return setError(r.message || "Failed to open file");
+												const url = URL.createObjectURL(r.blob);
+												window.location.href = url;
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -290,8 +288,15 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 										<button
 											onClick={async () => {
 												setError("");
-												const r = await downloadPersonalDriveFile(s.fileId, s.fileName || `file-${s.fileId}`);
-												if (!r.success) setError(r.message || "Failed to download file");
+																							setProcessing(true);
+																							setProgress({ phase: "download", percent: 0, loaded: 0, total: 0 });
+																							const r = await downloadPersonalDriveFileWithProgress(
+																								s.fileId,
+																								s.fileName || `file-${s.fileId}`,
+																								(p) => setProgress(p)
+																							);
+																							setProcessing(false);
+																							if (!r.success) setError(r.message || "Failed to download file");
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -319,22 +324,13 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 										<button
 											onClick={async () => {
 												setError("");
-												try {
-													const token = localStorage.getItem("userToken");
-													const base = window.location.origin.includes("http") ? (import.meta.env.DEV ? "http://localhost:5000" : "https://college-notes-fullstack.onrender.com") : "";
-													const res = await fetch(`${base}/api/drive/files/${s.fileId}/view`, {
-														headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-													});
-													if (!res.ok) {
-														const data = await res.json().catch(() => ({}));
-														throw new Error(data.message || "Failed to open file");
-													}
-													const blob = await res.blob();
-													const url = URL.createObjectURL(blob);
-													window.location.href = url;
-												} catch (e) {
-													setError(e.message || "Failed to open file");
-												}
+												setProcessing(true);
+												setProgress({ phase: "open", percent: 0, loaded: 0, total: 0 });
+												const r = await viewPersonalDriveFileWithProgress(s.fileId, (p) => setProgress(p));
+												setProcessing(false);
+												if (!r.success) return setError(r.message || "Failed to open file");
+												const url = URL.createObjectURL(r.blob);
+												window.location.href = url;
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -343,7 +339,10 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 										<button
 											onClick={async () => {
 												setError("");
-												const r = await downloadPersonalDriveFile(s.fileId, s.fileName || `file-${s.fileId}`);
+												setProcessing(true);
+												setProgress({ phase: "download", percent: 0, loaded: 0, total: 0 });
+												const r = await downloadPersonalDriveFileWithProgress(s.fileId, s.fileName || `file-${s.fileId}`,(p)=> setProgress(p));
+												setProcessing(false);
 												if (!r.success) setError(r.message || "Failed to download file");
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
@@ -359,6 +358,43 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 					)}
 				</div>
 			</div>
+
+			{/* Processing popup with progress */}
+			{processing && (
+				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+					<div className="bg-white rounded shadow-lg w-[90%] max-w-md p-4">
+						<div className="flex items-center justify-between mb-3">
+							<div className="font-semibold capitalize">
+								{progress.phase === "upload" && "Uploading"}
+								{progress.phase === "download" && "Downloading"}
+								{progress.phase === "open" && "Opening"}
+							</div>
+						</div>
+						<div className="mb-2 text-sm text-gray-600">
+							{progress.total
+								? `${formatBytes(progress.loaded)} / ${formatBytes(progress.total)}${
+									  progress.percent != null ? ` • ${progress.percent}%` : ""
+								  }`
+								: progress.loaded
+								? `${formatBytes(progress.loaded)} downloaded`
+								: "Processing..."}
+						</div>
+						<div className="w-full h-3 bg-gray-200 rounded overflow-hidden">
+							{progress.percent != null ? (
+								<div
+									className="h-full bg-teal-600"
+									style={{ width: `${Math.min(100, Math.max(0, progress.percent))}%` }}
+								/>
+							) : (
+								<div className="h-full w-1/2 bg-teal-600 animate-pulse" />
+							)}
+						</div>
+						<div className="mt-3 text-xs text-gray-500">
+							Don’t close this window while {progress.phase || "processing"}.
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

@@ -369,6 +369,49 @@ export const uploadPersonalDriveFiles = async (files) => {
 	}
 };
 
+// Upload with progress (uses XMLHttpRequest to get upload progress events)
+export const uploadPersonalDriveFilesWithProgress = async (files, onProgress) => {
+	return new Promise((resolve) => {
+		try {
+			const token = localStorage.getItem("userToken");
+			const form = new FormData();
+			for (const f of files) form.append("files", f);
+
+			const xhr = new XMLHttpRequest();
+			xhr.open("POST", `${API_BASE_URL}/api/drive/files`);
+			if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+			xhr.upload.onprogress = (evt) => {
+				if (onProgress) {
+					if (evt.lengthComputable) {
+						const percent = Math.round((evt.loaded / evt.total) * 100);
+						onProgress({ phase: "upload", loaded: evt.loaded, total: evt.total, percent });
+					} else {
+						onProgress({ phase: "upload", loaded: evt.loaded, total: 0, percent: null });
+					}
+				}
+			};
+
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState === 4) {
+					try {
+						const data = JSON.parse(xhr.responseText || "{}");
+						resolve({ success: xhr.status >= 200 && xhr.status < 300, ...data });
+					} catch {
+						resolve({ success: false, message: "Failed to parse response" });
+					}
+				}
+			};
+
+			xhr.onerror = () => resolve({ success: false, message: "Network error" });
+			xhr.send(form);
+		} catch (e) {
+			console.error("Drive upload (progress) error:", e);
+			resolve({ success: false, message: e.message });
+		}
+	});
+};
+
 export const deletePersonalDriveFile = async (fileId) => {
 	try {
 		const token = localStorage.getItem("userToken");
@@ -462,6 +505,64 @@ export const downloadPersonalDriveFile = async (fileId, fileName) => {
 	}
 };
 
+// Download with progress
+export const downloadPersonalDriveFileWithProgress = async (fileId, fileName, onProgress) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/download`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		if (!res.ok) {
+			const data = await res.json().catch(() => ({}));
+			throw new Error(data.message || "Failed to download file");
+		}
+		const total = Number(res.headers.get("content-length")) || 0;
+		const reader = res.body?.getReader ? res.body.getReader() : null;
+		if (!reader) {
+			// Fallback: no streaming, just blob
+			const blob = await res.blob();
+			if (onProgress) onProgress({ phase: "download", loaded: blob.size, total, percent: 100 });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = fileName || `file-${fileId}`;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+			return { success: true };
+		}
+		const chunks = [];
+		let loaded = 0;
+		while (true) {
+			const { value, done } = await reader.read();
+			if (done) break;
+			if (value) {
+				chunks.push(value);
+				loaded += value.length || value.byteLength || 0;
+				if (onProgress) {
+					const percent = total ? Math.round((loaded / total) * 100) : null;
+					onProgress({ phase: "download", loaded, total, percent });
+				}
+			}
+		}
+		const blob = new Blob(chunks);
+		if (onProgress) onProgress({ phase: "download", loaded, total: total || blob.size, percent: 100 });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = fileName || `file-${fileId}`;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+		return { success: true };
+	} catch (e) {
+		console.error("Drive download (progress) error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
 export const viewPersonalDriveFile = async (fileId) => {
 	try {
 		const token = localStorage.getItem("userToken");
@@ -476,6 +577,47 @@ export const viewPersonalDriveFile = async (fileId) => {
 		return { success: true, blob };
 	} catch (e) {
 		console.error("Drive view error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+// View (open inline) with progress, returns a Blob when complete
+export const viewPersonalDriveFileWithProgress = async (fileId, onProgress) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/view`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		if (!res.ok) {
+			const data = await res.json().catch(() => ({}));
+			throw new Error(data.message || "Failed to open file");
+		}
+		const total = Number(res.headers.get("content-length")) || 0;
+		const reader = res.body?.getReader ? res.body.getReader() : null;
+		if (!reader) {
+			const blob = await res.blob();
+			if (onProgress) onProgress({ phase: "open", loaded: blob.size, total, percent: 100 });
+			return { success: true, blob };
+		}
+		const chunks = [];
+		let loaded = 0;
+		while (true) {
+			const { value, done } = await reader.read();
+			if (done) break;
+			if (value) {
+				chunks.push(value);
+				loaded += value.length || value.byteLength || 0;
+				if (onProgress) {
+					const percent = total ? Math.round((loaded / total) * 100) : null;
+					onProgress({ phase: "open", loaded, total, percent });
+				}
+			}
+		}
+		const blob = new Blob(chunks);
+		if (onProgress) onProgress({ phase: "open", loaded, total: total || blob.size, percent: 100 });
+		return { success: true, blob };
+	} catch (e) {
+		console.error("Drive view (progress) error:", e);
 		return { success: false, message: e.message };
 	}
 };
