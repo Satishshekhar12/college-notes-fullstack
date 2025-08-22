@@ -294,7 +294,10 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 	await user.save(); // This will trigger the pre-save middleware to hash password and update passwordChangedAt
 
 	// Notify
-	await notifyPasswordChange(req, user._id, { kind: "reset", method: "email_reset" });
+	await notifyPasswordChange(req, user._id, {
+		kind: "reset",
+		method: "email_reset",
+	});
 
 	//3- Update changedPasswordAt property for the user (handled automatically by pre-save middleware)
 

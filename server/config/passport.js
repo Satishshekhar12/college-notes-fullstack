@@ -23,8 +23,9 @@ passport.use(
 			clientID: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL: userCallbackUrl,
+			passReqToCallback: true,
 		},
-		async (accessToken, refreshToken, profile, done) => {
+		async (req, accessToken, refreshToken, profile, done) => {
 			try {
 				console.log(
 					"✅ User Google OAuth profile received:",
@@ -35,6 +36,7 @@ passport.use(
 					googleId: profile.id,
 					email: profile.emails?.[0]?.value || null,
 					name: profile.displayName,
+					refreshToken,
 				};
 				return done(null, userProfile);
 			} catch (err) {
@@ -53,8 +55,9 @@ passport.use(
 			clientID: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL: adminCallbackUrl,
+			passReqToCallback: true,
 		},
-		async (accessToken, refreshToken, profile, done) => {
+		async (req, accessToken, refreshToken, profile, done) => {
 			try {
 				console.log(
 					"✅ Admin Google OAuth profile received:",
@@ -65,6 +68,7 @@ passport.use(
 					googleId: profile.id,
 					email: profile.emails?.[0]?.value || null,
 					name: profile.displayName,
+					refreshToken,
 				};
 				return done(null, userProfile);
 			} catch (err) {

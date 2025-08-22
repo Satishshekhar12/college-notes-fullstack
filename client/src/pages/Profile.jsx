@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
 import { colleges } from "../data/colleges";
 import { getAllCourses, getCoursesByCollege } from "../utils/courseHelper";
+import PersonalDrive from "../components/Profile/PersonalDrive";
 
 function Profile() {
 	const navigate = useNavigate();
@@ -663,6 +664,19 @@ function Profile() {
 								<span className="text-lg">🔒</span>
 								<span>Change Password</span>
 							</button>
+							{user?.googleId && (
+								<button
+									onClick={() => setActiveTab("drive")}
+									className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center space-x-2 transition duration-200 ${
+										activeTab === "drive"
+											? "border-b-2 border-teal-500 text-teal-600 bg-teal-50"
+											: "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+									}`}
+								>
+									<span className="text-lg">📁</span>
+									<span>Personal Drive</span>
+								</button>
+							)}
 						</nav>
 					</div>
 
@@ -1414,6 +1428,13 @@ function Profile() {
 										</div>
 									</form>
 								)}
+							</div>
+						)}
+
+						{/* Personal Drive Tab */}
+						{activeTab === "drive" && (
+							<div className="max-w-3xl">
+								<PersonalDrive isGoogleLinked={Boolean(user?.googleId)} />
 							</div>
 						)}
 					</div>

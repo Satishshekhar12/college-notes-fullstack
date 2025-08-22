@@ -332,3 +332,150 @@ export const listFilesByCategory = async (params) => {
 		};
 	}
 };
+
+// ===== Google Drive: Personal Files (for Google-linked users) =====
+
+export const listPersonalDriveFiles = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to list Drive files");
+		return data;
+	} catch (e) {
+		console.error("Drive list error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const uploadPersonalDriveFiles = async (files) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const form = new FormData();
+		for (const f of files) form.append("files", f);
+		const res = await fetch(`${API_BASE_URL}/api/drive/files`, {
+			method: "POST",
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			body: form,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to upload to Drive");
+		return data;
+	} catch (e) {
+		console.error("Drive upload error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const deletePersonalDriveFile = async (fileId) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}`, {
+			method: "DELETE",
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json().catch(() => ({}));
+		if (!res.ok) throw new Error(data.message || "Failed to delete file");
+		return { success: true };
+	} catch (e) {
+		console.error("Drive delete error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const sharePersonalDriveFile = async (fileId, { username, role = "reader" }) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/share`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
+			},
+			body: JSON.stringify({ username, role }),
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to share file");
+		return data;
+	} catch (e) {
+		console.error("Drive share error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const listDriveSharesSent = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/shares/sent`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to list sent shares");
+		return data;
+	} catch (e) {
+		console.error("Drive list sent shares error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const listDriveSharesReceived = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/shares/received`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to list received shares");
+		return data;
+	} catch (e) {
+		console.error("Drive list received shares error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const downloadPersonalDriveFile = async (fileId, fileName) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/download`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		if (!res.ok) {
+			const data = await res.json().catch(() => ({}));
+			throw new Error(data.message || "Failed to download file");
+		}
+		// Stream to blob then trigger download
+		const blob = await res.blob();
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = fileName || `file-${fileId}`;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+		return { success: true };
+	} catch (e) {
+		console.error("Drive download error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const viewPersonalDriveFile = async (fileId) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/view`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		if (!res.ok) {
+			const data = await res.json().catch(() => ({}));
+			throw new Error(data.message || "Failed to open file");
+		}
+		const blob = await res.blob();
+		return { success: true, blob };
+	} catch (e) {
+		console.error("Drive view error:", e);
+		return { success: false, message: e.message };
+	}
+};

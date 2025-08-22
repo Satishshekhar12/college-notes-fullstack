@@ -84,6 +84,16 @@ const userSchema = new mongoose.Schema(
 			index: true,
 			unique: false,
 		},
+		// Google OAuth refresh token (for Drive access on behalf of user)
+		googleRefreshToken: {
+			type: String,
+			select: false,
+		},
+		// Personal Drive folder created by app for this user
+		googleDriveFolderId: {
+			type: String,
+			default: "",
+		},
 		// Upload statistics
 		totalUploads: {
 			type: Number,
