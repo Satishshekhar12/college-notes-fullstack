@@ -14,11 +14,8 @@ export const uploadFilesToServer = async (files, uploadConfig, onProgress) => {
 		const totalFiles = filesArray.length;
 		const allResults = [];
 
-		// Get authentication token
+		// Get authentication token if available (guest uploads allowed when setting is off)
 		const token = localStorage.getItem("userToken");
-		if (!token) {
-			throw new Error("Please login to upload files");
-		}
 
 		// Initial progress update
 		if (onProgress) {
@@ -65,9 +62,8 @@ export const uploadFilesToServer = async (files, uploadConfig, onProgress) => {
 
 				const response = await fetch(`${API_BASE_URL}/api/notes/upload`, {
 					method: "POST",
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
+					// Only send Authorization header when a token exists
+					headers: token ? { Authorization: `Bearer ${token}` } : undefined,
 					body: formData,
 				});
 

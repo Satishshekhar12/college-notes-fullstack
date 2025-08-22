@@ -98,8 +98,9 @@ export const Toast = {
 	/**
 	 * Show a success toast
 	 * @param {string} message - The success message
+	 * @param {number} [durationMs=3000] - Duration to show the toast
 	 */
-	showSuccess: (message) => {
+	showSuccess: (message, durationMs = 3000) => {
 		const closeLoading = Toast.showLoading("");
 		closeLoading(); // Close any loading toasts
 
@@ -120,7 +121,7 @@ export const Toast = {
 		toast.textContent = message;
 		document.body.appendChild(toast);
 
-		// Auto remove after 3 seconds
+		// Auto remove after provided duration
 		setTimeout(() => {
 			if (toast.parentNode) {
 				toast.style.animation = "slideOut 0.3s ease-in";
@@ -130,7 +131,7 @@ export const Toast = {
 					}
 				}, 300);
 			}
-		}, 3000);
+		}, durationMs);
 	},
 
 	/**
