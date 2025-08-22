@@ -20,7 +20,11 @@ router.get(
 		next();
 	},
 	passport.authenticate("google-user", {
-		scope: ["profile", "email"],
+		scope: [
+				"profile",
+				"email",
+				"https://www.googleapis.com/auth/drive.file",
+			],
 		accessType: "offline",
 		prompt: "consent",
 	})
@@ -76,7 +80,7 @@ router.get(
 		console.log("🎯 Google OAuth callback received");
 		console.log("👤 User profile:", req.user);
 		try {
-			const { googleId, email, name } = req.user;
+			const { googleId, email, name, refreshToken } = req.user;
 
 			// Find existing user by googleId or email; if none, create minimal user
 			let user = await User.findOne({ $or: [{ googleId }, { email }] });
@@ -114,6 +118,12 @@ router.get(
 				});
 			} else if (!user.googleId) {
 				user.googleId = googleId;
+				await user.save({ validateBeforeSave: false });
+			}
+
+			// Persist refresh token if provided (only on first consent or token refresh events)
+			if (refreshToken) {
+				user.googleRefreshToken = refreshToken;
 				await user.save({ validateBeforeSave: false });
 			}
 
@@ -197,7 +207,7 @@ router.get(
 		console.log("🎯 Admin Google OAuth callback received");
 		console.log("👤 User profile:", req.user);
 		try {
-			const { googleId, email, name } = req.user;
+			const { googleId, email, name, refreshToken } = req.user;
 
 			// Find existing user by googleId or email
 			let user = await User.findOne({ $or: [{ googleId }, { email }] });
@@ -220,6 +230,10 @@ router.get(
 			// Update googleId if not set
 			if (!user.googleId) {
 				user.googleId = googleId;
+				await user.save({ validateBeforeSave: false });
+			}
+			if (refreshToken) {
+				user.googleRefreshToken = refreshToken;
 				await user.save({ validateBeforeSave: false });
 			}
 
