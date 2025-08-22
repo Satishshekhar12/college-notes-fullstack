@@ -29,12 +29,10 @@ router.get("/files", protect, async (req, res) => {
 		res.json({ success: true, data: { files } });
 	} catch (err) {
 		console.error("Drive list error:", err);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: err.message || "Failed to list Drive files",
-			});
+		res.status(500).json({
+			success: false,
+			message: err.message || "Failed to list Drive files",
+		});
 	}
 });
 
@@ -45,9 +43,13 @@ router.get("/files/:id/download", protect, async (req, res) => {
 			"googleRefreshToken googleDriveFolderId"
 		);
 		if (!user)
-			return res.status(404).json({ success: false, message: "User not found" });
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
 		if (!user.googleRefreshToken)
-			return res.status(400).json({ success: false, message: "Google not connected" });
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
 
 		const { id } = req.params;
 
@@ -59,14 +61,29 @@ router.get("/files/:id/download", protect, async (req, res) => {
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
 		if (!metaRes.ok) {
-			const share = await DriveShare.findOne({ recipientUser: user._id, fileId: id });
+			const share = await DriveShare.findOne({
+				recipientUser: user._id,
+				fileId: id,
+			});
 			if (!share) {
 				const text = await metaRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to download: ${text}` });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: `Not allowed to download: ${text}`,
+					});
 			}
-			const owner = await User.findById(share.ownerUser).select("googleRefreshToken googleDriveFolderId");
+			const owner = await User.findById(share.ownerUser).select(
+				"googleRefreshToken googleDriveFolderId"
+			);
 			if (!owner?.googleRefreshToken) {
-				return res.status(403).json({ success: false, message: "Owner cannot grant access at this time." });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: "Owner cannot grant access at this time.",
+					});
 			}
 			tokenOwner = owner;
 			accessToken = await DriveService.getAccessToken(tokenOwner);
@@ -76,7 +93,12 @@ router.get("/files/:id/download", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to download: ${text}` });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: `Not allowed to download: ${text}`,
+					});
 			}
 		}
 		const meta = await metaRes.json();
@@ -85,29 +107,43 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		if (String(tokenOwner._id) === String(user._id)) {
 			const parents = meta.parents || [];
 			if (!parents.includes(user.googleDriveFolderId)) {
-				const share = await DriveShare.findOne({ recipientUser: user._id, fileId: id });
+				const share = await DriveShare.findOne({
+					recipientUser: user._id,
+					fileId: id,
+				});
 				if (!share) {
-					return res.status(403).json({ success: false, message: "You can only download files uploaded via this app or ones shared with you via this app." });
+					return res
+						.status(403)
+						.json({
+							success: false,
+							message:
+								"You can only download files uploaded via this app or ones shared with you via this app.",
+						});
 				}
 			}
 		}
 
 		// Stream content
-	const dlRes = await fetch(
+		const dlRes = await fetch(
 			`https://www.googleapis.com/drive/v3/files/${id}?alt=media&acknowledgeAbuse=true`,
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
 		if (!dlRes.ok) {
 			const text = await dlRes.text();
-			return res.status(dlRes.status).json({ success: false, message: text || "Failed to download" });
+			return res
+				.status(dlRes.status)
+				.json({ success: false, message: text || "Failed to download" });
 		}
 
 		const fileName = meta.name || `file-${id}`;
 		const mime = meta.mimeType || "application/octet-stream";
 		res.setHeader("Content-Type", mime);
-		res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
-	const dlLen = dlRes.headers.get("content-length");
-	if (dlLen) res.setHeader("Content-Length", dlLen);
+		res.setHeader(
+			"Content-Disposition",
+			`attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
+		);
+		const dlLen = dlRes.headers.get("content-length");
+		if (dlLen) res.setHeader("Content-Length", dlLen);
 
 		const body = dlRes.body;
 		if (body && typeof body.getReader === "function" && Readable.fromWeb) {
@@ -121,7 +157,12 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		}
 	} catch (err) {
 		console.error("Drive download error:", err);
-		res.status(500).json({ success: false, message: err.message || "Failed to download file" });
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to download file",
+			});
 	}
 });
 
@@ -132,9 +173,13 @@ router.get("/files/:id/view", protect, async (req, res) => {
 			"googleRefreshToken googleDriveFolderId"
 		);
 		if (!user)
-			return res.status(404).json({ success: false, message: "User not found" });
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
 		if (!user.googleRefreshToken)
-			return res.status(400).json({ success: false, message: "Google not connected" });
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
 
 		const { id } = req.params;
 
@@ -146,14 +191,26 @@ router.get("/files/:id/view", protect, async (req, res) => {
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
 		if (!metaRes.ok) {
-			const share = await DriveShare.findOne({ recipientUser: user._id, fileId: id });
+			const share = await DriveShare.findOne({
+				recipientUser: user._id,
+				fileId: id,
+			});
 			if (!share) {
 				const text = await metaRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to view: ${text}` });
+				return res
+					.status(403)
+					.json({ success: false, message: `Not allowed to view: ${text}` });
 			}
-			const owner = await User.findById(share.ownerUser).select("googleRefreshToken googleDriveFolderId");
+			const owner = await User.findById(share.ownerUser).select(
+				"googleRefreshToken googleDriveFolderId"
+			);
 			if (!owner?.googleRefreshToken) {
-				return res.status(403).json({ success: false, message: "Owner cannot grant access at this time." });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: "Owner cannot grant access at this time.",
+					});
 			}
 			tokenOwner = owner;
 			accessToken = await DriveService.getAccessToken(tokenOwner);
@@ -163,26 +220,33 @@ router.get("/files/:id/view", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to view: ${text}` });
+				return res
+					.status(403)
+					.json({ success: false, message: `Not allowed to view: ${text}` });
 			}
 		}
 		const meta = await metaRes.json();
 
-	const fileRes = await fetch(
+		const fileRes = await fetch(
 			`https://www.googleapis.com/drive/v3/files/${id}?alt=media&acknowledgeAbuse=true`,
 			{ headers: { Authorization: `Bearer ${accessToken}` } }
 		);
 		if (!fileRes.ok) {
 			const text = await fileRes.text();
-			return res.status(fileRes.status).json({ success: false, message: text || "Failed to view" });
+			return res
+				.status(fileRes.status)
+				.json({ success: false, message: text || "Failed to view" });
 		}
 
 		const fileName = meta.name || `file-${id}`;
 		const mime = meta.mimeType || "application/octet-stream";
 		res.setHeader("Content-Type", mime);
-		res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`);
-	const viewLen = fileRes.headers.get("content-length");
-	if (viewLen) res.setHeader("Content-Length", viewLen);
+		res.setHeader(
+			"Content-Disposition",
+			`inline; filename*=UTF-8''${encodeURIComponent(fileName)}`
+		);
+		const viewLen = fileRes.headers.get("content-length");
+		if (viewLen) res.setHeader("Content-Length", viewLen);
 
 		const body = fileRes.body;
 		if (body && typeof body.getReader === "function" && Readable.fromWeb) {
@@ -196,7 +260,9 @@ router.get("/files/:id/view", protect, async (req, res) => {
 		}
 	} catch (err) {
 		console.error("Drive view error:", err);
-		res.status(500).json({ success: false, message: err.message || "Failed to view file" });
+		res
+			.status(500)
+			.json({ success: false, message: err.message || "Failed to view file" });
 	}
 });
 
@@ -246,12 +312,10 @@ router.post(
 			res.json({ success: true, data: { results } });
 		} catch (err) {
 			console.error("Drive upload error:", err);
-			res
-				.status(500)
-				.json({
-					success: false,
-					message: err.message || "Failed to upload files to Drive",
-				});
+			res.status(500).json({
+				success: false,
+				message: err.message || "Failed to upload files to Drive",
+			});
 		}
 	},
 	handleMulterError
@@ -283,27 +347,40 @@ router.delete("/files/:id", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to delete this file: ${text}` });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: `Not allowed to delete this file: ${text}`,
+					});
 			}
 			const meta = await metaRes.json();
 			const parents = meta.parents || [];
 			if (!parents.includes(user.googleDriveFolderId)) {
-				return res.status(403).json({ success: false, message: "You can only delete files uploaded via this app." });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: "You can only delete files uploaded via this app.",
+					});
 			}
 		} catch (e) {
-			return res.status(403).json({ success: false, message: "You can only delete files uploaded via this app." });
+			return res
+				.status(403)
+				.json({
+					success: false,
+					message: "You can only delete files uploaded via this app.",
+				});
 		}
 
 		await DriveService.deleteFile(user, id);
 		res.json({ success: true });
 	} catch (err) {
 		console.error("Drive delete error:", err);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: err.message || "Failed to delete file",
-			});
+		res.status(500).json({
+			success: false,
+			message: err.message || "Failed to delete file",
+		});
 	}
 });
 
@@ -313,23 +390,33 @@ router.post("/files/:id/share", protect, async (req, res) => {
 		const { id } = req.params;
 		const { username, role } = req.body || {};
 		if (!username)
-			return res.status(400).json({ success: false, message: "Recipient username is required" });
+			return res
+				.status(400)
+				.json({ success: false, message: "Recipient username is required" });
 
 		const owner = await User.findById(req.user._id).select(
 			"googleRefreshToken googleDriveFolderId username email name"
 		);
 		if (!owner)
-			return res.status(404).json({ success: false, message: "User not found" });
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
 		if (!owner.googleRefreshToken)
-			return res.status(400).json({ success: false, message: "Google not connected" });
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
 
-		const recipient = await User.findOne({ username: username.toLowerCase() }).select(
-			"_id username email"
-		);
+		const recipient = await User.findOne({
+			username: username.toLowerCase(),
+		}).select("_id username email");
 		if (!recipient)
-			return res.status(404).json({ success: false, message: "Recipient not found" });
+			return res
+				.status(404)
+				.json({ success: false, message: "Recipient not found" });
 		if (String(recipient._id) === String(owner._id))
-			return res.status(400).json({ success: false, message: "Cannot share with yourself" });
+			return res
+				.status(400)
+				.json({ success: false, message: "Cannot share with yourself" });
 
 		// Verify the file belongs to the owner's app folder (privacy)
 		try {
@@ -340,15 +427,30 @@ router.post("/files/:id/share", protect, async (req, res) => {
 			);
 			if (!parentsRes.ok) {
 				const text = await parentsRes.text();
-				return res.status(403).json({ success: false, message: `Not allowed to share this file: ${text}` });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: `Not allowed to share this file: ${text}`,
+					});
 			}
 			const parentsMeta = await parentsRes.json();
 			const parents = parentsMeta.parents || [];
 			if (!parents.includes(owner.googleDriveFolderId)) {
-				return res.status(403).json({ success: false, message: "You can only share files uploaded via this app." });
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: "You can only share files uploaded via this app.",
+					});
 			}
 		} catch (e) {
-			return res.status(403).json({ success: false, message: "You can only share files uploaded via this app." });
+			return res
+				.status(403)
+				.json({
+					success: false,
+					message: "You can only share files uploaded via this app.",
+				});
 		}
 
 		// Fetch file metadata to store alongside share record
@@ -369,9 +471,12 @@ router.post("/files/:id/share", protect, async (req, res) => {
 			const params = new URLSearchParams({
 				fields: "id,name,mimeType,size,webViewLink",
 			});
-			const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?${params.toString()}`, {
-				headers: { Authorization: `Bearer ${accessToken}` },
-			});
+			const metaRes = await fetch(
+				`https://www.googleapis.com/drive/v3/files/${id}?${params.toString()}`,
+				{
+					headers: { Authorization: `Bearer ${accessToken}` },
+				}
+			);
 			if (metaRes.ok) {
 				const meta = await metaRes.json();
 				fileName = meta.name || fileName;
@@ -394,7 +499,9 @@ router.post("/files/:id/share", protect, async (req, res) => {
 				ownerUsername: owner.username || "",
 				recipientUser: recipient._id,
 				recipientUsername: recipient.username || "",
-				role: ["reader", "commenter", "writer"].includes(role) ? role : "reader",
+				role: ["reader", "commenter", "writer"].includes(role)
+					? role
+					: "reader",
 				sharedAt: new Date(),
 			},
 			{ new: true, upsert: true, setDefaultsOnInsert: true }
@@ -403,7 +510,9 @@ router.post("/files/:id/share", protect, async (req, res) => {
 		return res.json({ success: true, data: { share: record } });
 	} catch (err) {
 		console.error("Drive share error:", err);
-		res.status(500).json({ success: false, message: err.message || "Failed to share file" });
+		res
+			.status(500)
+			.json({ success: false, message: err.message || "Failed to share file" });
 	}
 });
 
@@ -416,7 +525,12 @@ router.get("/shares/sent", protect, async (req, res) => {
 		res.json({ success: true, data: { shares } });
 	} catch (err) {
 		console.error("Drive list sent shares error:", err);
-		res.status(500).json({ success: false, message: err.message || "Failed to list shares" });
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to list shares",
+			});
 	}
 });
 
@@ -429,7 +543,12 @@ router.get("/shares/received", protect, async (req, res) => {
 		res.json({ success: true, data: { shares } });
 	} catch (err) {
 		console.error("Drive list received shares error:", err);
-		res.status(500).json({ success: false, message: err.message || "Failed to list shares" });
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to list shares",
+			});
 	}
 });
 

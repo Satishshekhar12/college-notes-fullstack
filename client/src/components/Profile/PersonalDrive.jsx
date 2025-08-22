@@ -17,7 +17,12 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [uploading, setUploading] = useState(false);
-	const [progress, setProgress] = useState({ phase: null, percent: 0, loaded: 0, total: 0 });
+	const [progress, setProgress] = useState({
+		phase: null,
+		percent: 0,
+		loaded: 0,
+		total: 0,
+	});
 	const [processing, setProcessing] = useState(false);
 	const [dragOver, setDragOver] = useState(false);
 	const [sharesSent, setSharesSent] = useState([]);
@@ -63,7 +68,9 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 		setUploading(true);
 		setProcessing(true);
 		setProgress({ phase: "upload", percent: 0, loaded: 0, total: 0 });
-		const res = await uploadPersonalDriveFilesWithProgress(selected, (p) => setProgress(p));
+		const res = await uploadPersonalDriveFilesWithProgress(selected, (p) =>
+			setProgress(p)
+		);
 		if (res.success) {
 			setSuccess("Uploaded successfully");
 			await fetchFiles();
@@ -112,8 +119,17 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const onDownload = async (file) => {
 		setError("");
 		setProcessing(true);
-		setProgress({ phase: "download", percent: 0, loaded: 0, total: Number(file.size) || 0 });
-		const res = await downloadPersonalDriveFileWithProgress(file.id, file.name, (p) => setProgress(p));
+		setProgress({
+			phase: "download",
+			percent: 0,
+			loaded: 0,
+			total: Number(file.size) || 0,
+		});
+		const res = await downloadPersonalDriveFileWithProgress(
+			file.id,
+			file.name,
+			(p) => setProgress(p)
+		);
 		setProcessing(false);
 		if (!res.success) setError(res.message || "Failed to download file");
 	};
@@ -193,7 +209,18 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 
 			{error && (
 				<div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded">
-					{error}
+					<div className="mb-2">{error}</div>
+					{String(error).includes("Drive access") || String(error).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT") ? (
+						<div className="flex items-center gap-2">
+							<button
+								onClick={startGoogleLogin}
+								className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+							>
+								Reconnect Google
+							</button>
+							<span className="text-sm text-red-700">Grant Google Drive access when prompted.</span>
+						</div>
+					) : null}
 				</div>
 			)}
 			{success && (
@@ -218,10 +245,19 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 									onClick={async () => {
 										setError("");
 										setProcessing(true);
-										setProgress({ phase: "open", percent: 0, loaded: 0, total: Number(f.size) || 0 });
-										const r = await viewPersonalDriveFileWithProgress(f.id, (p) => setProgress(p));
+										setProgress({
+											phase: "open",
+											percent: 0,
+											loaded: 0,
+											total: Number(f.size) || 0,
+										});
+										const r = await viewPersonalDriveFileWithProgress(
+											f.id,
+											(p) => setProgress(p)
+										);
 										setProcessing(false);
-										if (!r.success) return setError(r.message || "Failed to open file");
+										if (!r.success)
+											return setError(r.message || "Failed to open file");
 										const url = URL.createObjectURL(r.blob);
 										window.location.href = url;
 									}}
@@ -264,20 +300,37 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 					{sharesSent.length ? (
 						<ul className="space-y-2">
 							{sharesSent.map((s) => (
-								<li key={`${s.fileId}-${s.recipientUser}`} className="text-sm flex items-center justify-between">
+								<li
+									key={`${s.fileId}-${s.recipientUser}`}
+									className="text-sm flex items-center justify-between"
+								>
 									<div className="truncate">
-										<div className="font-medium truncate">{s.fileName || s.fileId}</div>
-										<div className="text-gray-600">to @{s.recipientUsername} • {new Date(s.sharedAt).toLocaleString()}</div>
+										<div className="font-medium truncate">
+											{s.fileName || s.fileId}
+										</div>
+										<div className="text-gray-600">
+											to @{s.recipientUsername} •{" "}
+											{new Date(s.sharedAt).toLocaleString()}
+										</div>
 									</div>
 									<div className="flex items-center gap-2">
 										<button
 											onClick={async () => {
 												setError("");
 												setProcessing(true);
-												setProgress({ phase: "open", percent: 0, loaded: 0, total: 0 });
-												const r = await viewPersonalDriveFileWithProgress(s.fileId, (p) => setProgress(p));
+												setProgress({
+													phase: "open",
+													percent: 0,
+													loaded: 0,
+													total: 0,
+												});
+												const r = await viewPersonalDriveFileWithProgress(
+													s.fileId,
+													(p) => setProgress(p)
+												);
 												setProcessing(false);
-												if (!r.success) return setError(r.message || "Failed to open file");
+												if (!r.success)
+													return setError(r.message || "Failed to open file");
 												const url = URL.createObjectURL(r.blob);
 												window.location.href = url;
 											}}
@@ -288,15 +341,21 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 										<button
 											onClick={async () => {
 												setError("");
-																							setProcessing(true);
-																							setProgress({ phase: "download", percent: 0, loaded: 0, total: 0 });
-																							const r = await downloadPersonalDriveFileWithProgress(
-																								s.fileId,
-																								s.fileName || `file-${s.fileId}`,
-																								(p) => setProgress(p)
-																							);
-																							setProcessing(false);
-																							if (!r.success) setError(r.message || "Failed to download file");
+												setProcessing(true);
+												setProgress({
+													phase: "download",
+													percent: 0,
+													loaded: 0,
+													total: 0,
+												});
+												const r = await downloadPersonalDriveFileWithProgress(
+													s.fileId,
+													s.fileName || `file-${s.fileId}`,
+													(p) => setProgress(p)
+												);
+												setProcessing(false);
+												if (!r.success)
+													setError(r.message || "Failed to download file");
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -315,20 +374,37 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 					{sharesReceived.length ? (
 						<ul className="space-y-2">
 							{sharesReceived.map((s) => (
-								<li key={`${s.fileId}-${s.ownerUser}`} className="text-sm flex items-center justify-between">
+								<li
+									key={`${s.fileId}-${s.ownerUser}`}
+									className="text-sm flex items-center justify-between"
+								>
 									<div className="truncate">
-										<div className="font-medium truncate">{s.fileName || s.fileId}</div>
-										<div className="text-gray-600">from @{s.ownerUsername} • {new Date(s.sharedAt).toLocaleString()}</div>
+										<div className="font-medium truncate">
+											{s.fileName || s.fileId}
+										</div>
+										<div className="text-gray-600">
+											from @{s.ownerUsername} •{" "}
+											{new Date(s.sharedAt).toLocaleString()}
+										</div>
 									</div>
 									<div className="flex items-center gap-2">
 										<button
 											onClick={async () => {
 												setError("");
 												setProcessing(true);
-												setProgress({ phase: "open", percent: 0, loaded: 0, total: 0 });
-												const r = await viewPersonalDriveFileWithProgress(s.fileId, (p) => setProgress(p));
+												setProgress({
+													phase: "open",
+													percent: 0,
+													loaded: 0,
+													total: 0,
+												});
+												const r = await viewPersonalDriveFileWithProgress(
+													s.fileId,
+													(p) => setProgress(p)
+												);
 												setProcessing(false);
-												if (!r.success) return setError(r.message || "Failed to open file");
+												if (!r.success)
+													return setError(r.message || "Failed to open file");
 												const url = URL.createObjectURL(r.blob);
 												window.location.href = url;
 											}}
@@ -340,10 +416,20 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 											onClick={async () => {
 												setError("");
 												setProcessing(true);
-												setProgress({ phase: "download", percent: 0, loaded: 0, total: 0 });
-												const r = await downloadPersonalDriveFileWithProgress(s.fileId, s.fileName || `file-${s.fileId}`,(p)=> setProgress(p));
+												setProgress({
+													phase: "download",
+													percent: 0,
+													loaded: 0,
+													total: 0,
+												});
+												const r = await downloadPersonalDriveFileWithProgress(
+													s.fileId,
+													s.fileName || `file-${s.fileId}`,
+													(p) => setProgress(p)
+												);
 												setProcessing(false);
-												if (!r.success) setError(r.message || "Failed to download file");
+												if (!r.success)
+													setError(r.message || "Failed to download file");
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -354,7 +440,9 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 							))}
 						</ul>
 					) : (
-						<div className="text-sm text-gray-600">No files shared with you yet.</div>
+						<div className="text-sm text-gray-600">
+							No files shared with you yet.
+						</div>
 					)}
 				</div>
 			</div>
@@ -372,8 +460,10 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 						</div>
 						<div className="mb-2 text-sm text-gray-600">
 							{progress.total
-								? `${formatBytes(progress.loaded)} / ${formatBytes(progress.total)}${
-									  progress.percent != null ? ` • ${progress.percent}%` : ""
+								? `${formatBytes(progress.loaded)} / ${formatBytes(
+										progress.total
+								  )}${
+										progress.percent != null ? ` • ${progress.percent}%` : ""
 								  }`
 								: progress.loaded
 								? `${formatBytes(progress.loaded)} downloaded`
@@ -383,7 +473,9 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 							{progress.percent != null ? (
 								<div
 									className="h-full bg-teal-600"
-									style={{ width: `${Math.min(100, Math.max(0, progress.percent))}%` }}
+									style={{
+										width: `${Math.min(100, Math.max(0, progress.percent))}%`,
+									}}
 								/>
 							) : (
 								<div className="h-full w-1/2 bg-teal-600 animate-pulse" />
