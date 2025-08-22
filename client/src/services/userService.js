@@ -1,14 +1,14 @@
 import { API_BASE_URL } from "../config/api";
 
 // User Authentication (for regular users, not admin)
-export const userLogin = async (email, password) => {
+export const userLogin = async (identifier, password) => {
 	try {
 		const response = await fetch(`${API_BASE_URL}/login`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ email, password }),
+			body: JSON.stringify({ identifier, password }),
 		});
 
 		if (!response.ok) {
@@ -199,10 +199,6 @@ export const exchangeCookieForToken = async () => {
 	try {
 		console.log("🔄 Attempting to exchange cookie for token...");
 		const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
 			credentials: "include",
 		});
 		console.log("📊 Exchange response status:", res.status);
@@ -339,3 +335,43 @@ export const syncUserStats = async () => {
 		throw error;
 	}
 };
+
+// Set initial password for Google-auth users (no current password)
+export const setInitialPassword = async (password, passwordConfirm) => {
+	try {
+		const response = await fetch(`${API_BASE_URL}/setInitialPassword`, {
+			method: "PATCH",
+			headers: getUserAuthHeaders(),
+			body: JSON.stringify({ password, passwordConfirm }),
+		});
+		const result = await response.json();
+		if (!response.ok)
+			throw new Error(result.message || "Failed to set password");
+		if (result?.token) localStorage.setItem("userToken", result.token);
+		return result;
+	} catch (error) {
+		console.error("❌ Set initial password failed:", error);
+		throw error;
+	}
+};
+
+// Update username
+export const updateUsername = async (username) => {
+	try {
+		const response = await fetch(`${API_BASE_URL}/updateMe`, {
+			method: "PATCH",
+			headers: getUserAuthHeaders(),
+			body: JSON.stringify({ username }),
+		});
+		const result = await response.json();
+		if (!response.ok)
+			throw new Error(result.message || "Failed to update username");
+		return result;
+	} catch (error) {
+		console.error("❌ Update username failed:", error);
+		throw error;
+	}
+};
+
+// Start Google re-auth flow (to verify identity for password reset)
+// Note: Google re-auth flow removed; Google-linked users can change password directly

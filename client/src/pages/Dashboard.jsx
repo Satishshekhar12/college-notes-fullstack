@@ -9,7 +9,7 @@ const Dashboard = () => {
 		const exchange = async () => {
 			try {
 				const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
-					method: "POST",
+					method: "GET",
 					credentials: "include",
 					headers: { "Content-Type": "application/json" },
 				});

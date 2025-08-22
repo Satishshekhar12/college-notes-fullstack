@@ -6,6 +6,7 @@ import {
 	forgotPassword,
 	resetPassword,
 	updatePassword,
+	setInitialPassword,
 	getMe,
 	updateMe,
 	updateUploadStats,
@@ -40,6 +41,7 @@ router.patch("/resetPassword/:token", resetPassword);
 
 // Protected auth routes
 router.patch("/updatePassword", protect, updatePassword);
+router.patch("/setInitialPassword", protect, setInitialPassword);
 router.get("/me", protect, getMe);
 router.patch("/updateMe", protect, updateMe);
 router.get("/profile", protect, getUserProfile);

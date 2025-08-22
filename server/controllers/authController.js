@@ -6,11 +6,55 @@ import { errorHandler } from "../middleware/errorHandler.js";
 import sendEmail from "../utils/email.js";
 import crypto from "crypto";
 import Settings from "../models/settingsModel.js";
+import { createNotification } from "./notificationController.js";
 
-const signToken = (id) => {
-	return jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (id, am = "password") => {
+	return jwt.sign({ id, am }, process.env.JWT_SECRET, {
 		expiresIn: process.env.JWT_EXPIRES_IN,
 	});
+};
+
+// Helper: collect client info for notifications
+const getClientInfo = (req) => {
+	const forwarded = req.headers["x-forwarded-for"]; // may be comma-separated
+	const ip = Array.isArray(forwarded)
+		? forwarded[0]
+		: (forwarded || "").split(",")[0].trim() || req.ip || "unknown";
+	const userAgent = req.headers["user-agent"] || "unknown";
+	return { ip, userAgent };
+};
+
+// Helper: fire a password-related notification
+const notifyPasswordChange = async (req, userId, { kind, method }) => {
+	try {
+		const when = new Date();
+		const whenIso = when.toISOString();
+		const { ip, userAgent } = getClientInfo(req);
+		const title =
+			kind === "initial_set"
+				? "Password set"
+				: kind === "reset"
+				? "Password reset"
+				: "Password changed";
+		const message = `${title} on ${when.toUTCString()} from ${ip}. If this wasn't you, please secure your account.`;
+		await createNotification({
+			user: userId,
+			title,
+			message,
+			type: "security_password_change",
+			link: "/profile",
+			metadata: {
+				when: whenIso,
+				ip,
+				userAgent,
+				method, // password | google | email_reset | google_reauth | initial_set
+				kind, // changed | reset | initial_set
+			},
+		});
+	} catch (e) {
+		// Non-fatal
+		console.warn("Password change notification failed:", e?.message);
+	}
 };
 
 // Implement signup logic here
@@ -36,9 +80,7 @@ export const signup = catchAsync(async (req, res, next) => {
 		studentType: req.body.studentType,
 	});
 
-	const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_EXPIRES_IN,
-	});
+	const token = signToken(newUser._id, "password");
 	res.status(201).json({
 		status: "success",
 		token,
@@ -50,17 +92,24 @@ export const signup = catchAsync(async (req, res, next) => {
 
 export const login = catchAsync(async (req, res, next) => {
 	// Implement login logic here
-	const { email, password } = req.body;
+	const identifier = req.body.identifier || req.body.email || req.body.username;
+	const { password } = req.body;
 	// Validate user credentials, generate JWT token, and send response
 	//1- check email and password exist
-	if (!email || !password) {
+	if (!identifier || !password) {
 		next({
 			statusCode: 400,
-			message: "Please provide email and password",
+			message: "Please provide email/username and password",
 		});
 	}
 	//2- check if user exists && password is correct
-	const user = await User.findOne({ email }).select("+password");
+	const query = {
+		$or: [
+			{ email: identifier },
+			{ username: String(identifier).toLowerCase() },
+		],
+	};
+	const user = await User.findOne(query).select("+password");
 	if (!user || !(await user.correctPassword(password, user.password))) {
 		return next({
 			statusCode: 401,
@@ -69,7 +118,7 @@ export const login = catchAsync(async (req, res, next) => {
 	}
 
 	//3- if everything is ok, send token to client
-	const token = signToken(user._id);
+	const token = signToken(user._id, "password");
 	//4- send response with user info
 	res.status(200).json({
 		status: "success",
@@ -119,6 +168,9 @@ export const protect = catchAsync(async (req, res, next) => {
 				message: "The user belonging to this token does no longer exist.",
 			});
 		}
+
+		// Attach auth method from token
+		req.authMethod = decoded.am || decoded.authMethod || "password";
 
 		// Check if user changed password after token was issued
 		if (currentUser.changedPasswordAfter(decoded.iat)) {
@@ -241,10 +293,13 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
 	await user.save(); // This will trigger the pre-save middleware to hash password and update passwordChangedAt
 
+	// Notify
+	await notifyPasswordChange(req, user._id, { kind: "reset", method: "email_reset" });
+
 	//3- Update changedPasswordAt property for the user (handled automatically by pre-save middleware)
 
 	//4- Log the user in, send JWT
-	const token = signToken(user._id);
+	const token = signToken(user._id, "password");
 
 	res.status(200).json({
 		status: "success",
@@ -255,27 +310,135 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
 export const updatePassword = catchAsync(async (req, res, next) => {
 	//1- Get user from collection
-	const user = await User.findById(req.user.id).select("+password");
+	const user = await User.findById(req.user.id).select("+password googleId");
 
-	//2- Check if posted current password is correct
-	if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+	const { passwordCurrent, password, passwordConfirm } = req.body || {};
+	if (!password || !passwordConfirm) {
 		return next({
-			statusCode: 401,
-			message: "Your current password is wrong.",
+			statusCode: 400,
+			message: "Password and passwordConfirm are required",
 		});
 	}
 
-	//3- If so, update password
-	user.password = req.body.password;
-	user.passwordConfirm = req.body.passwordConfirm;
-	await user.save(); // This will trigger the pre-save middleware to hash password and update passwordChangedAt
+	//2- Rules based on account and session method
+	const isGoogleLinked = !!user.googleId;
+	const isGoogleSession = req.authMethod === "google";
+
+	if (isGoogleLinked) {
+		// If account is Google-linked, only allow change when logged in via Google
+		if (!isGoogleSession) {
+			return next({
+				statusCode: 403,
+				message: "Please login with Google to change your password.",
+			});
+		}
+		// When verified via Google, do not require current password
+	} else {
+		if (!passwordCurrent) {
+			return next({
+				statusCode: 400,
+				message: "Please provide your current password",
+			});
+		}
+		const ok = await user.correctPassword(passwordCurrent, user.password);
+		if (!ok) {
+			return next({
+				statusCode: 401,
+				message: "Your current password is wrong.",
+			});
+		}
+	}
+
+	//3- Update password (no current password required if Google-linked)
+	user.password = password;
+	user.passwordConfirm = passwordConfirm;
+	user.isPasswordSet = true; // ensure flag is set once they create a real password
+	await user.save(); // triggers hashing and passwordChangedAt
+
+	// Notify
+	await notifyPasswordChange(req, user._id, {
+		kind: "changed",
+		method: isGoogleLinked ? "google" : "password",
+	});
 
 	//4- Log user in, send JWT
-	const token = signToken(user._id);
-	res.status(200).json({
-		status: "success",
-		token,
+	const token = signToken(user._id, isGoogleLinked ? "google" : "password");
+	res.status(200).json({ status: "success", token });
+});
+
+// Reset password with a short-lived Google reauth token (no current password)
+export const resetPasswordWithGoogle = catchAsync(async (req, res, next) => {
+	const { reauthToken, password, passwordConfirm } = req.body || {};
+	if (!reauthToken)
+		return next({ statusCode: 400, message: "Missing reauth token" });
+	if (!password || !passwordConfirm)
+		return next({
+			statusCode: 400,
+			message: "Password and confirmation required",
+		});
+	let payload;
+	try {
+		payload = jwt.verify(reauthToken, process.env.JWT_SECRET);
+	} catch (e) {
+		return next({
+			statusCode: 401,
+			message: "Invalid or expired verification token",
+		});
+	}
+	if (payload.purpose !== "googleReauth" || !payload.id) {
+		return next({ statusCode: 400, message: "Invalid verification token" });
+	}
+	const user = await User.findById(payload.id).select(
+		"+password isPasswordSet"
+	);
+	if (!user) return next({ statusCode: 404, message: "User not found" });
+	// Set new password without current password check
+	user.password = password;
+	user.passwordConfirm = passwordConfirm;
+	user.isPasswordSet = true;
+	await user.save();
+	await notifyPasswordChange(req, user._id, {
+		kind: "reset",
+		method: "google_reauth",
 	});
+	const token = signToken(user._id);
+	res.status(200).json({ status: "success", token });
+});
+
+// Set initial password for OAuth-created users who haven't set one yet
+export const setInitialPassword = catchAsync(async (req, res, next) => {
+	const user = await User.findById(req.user.id).select(
+		"+password isPasswordSet"
+	);
+	if (!user) {
+		return next({ statusCode: 404, message: "User not found" });
+	}
+	if (user.isPasswordSet) {
+		return next({
+			statusCode: 400,
+			message: "Password already set. Use updatePassword instead.",
+		});
+	}
+	const { password, passwordConfirm } = req.body || {};
+	if (!password || !passwordConfirm) {
+		return next({
+			statusCode: 400,
+			message: "Password and passwordConfirm are required",
+		});
+	}
+	user.password = password;
+	user.passwordConfirm = passwordConfirm;
+	user.isPasswordSet = true;
+	await user.save();
+
+	// Notify
+	await notifyPasswordChange(req, user._id, {
+		kind: "initial_set",
+		method: req.authMethod || "initial_set",
+	});
+
+	const token = signToken(user._id);
+	res.status(200).json({ status: "success", token });
 });
 
 // Get current user profile
@@ -307,6 +470,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
 	const allowedFields = [
 		"name",
 		"email",
+		"username",
 		"collegeName",
 		"course",
 		"semester",
@@ -323,6 +487,18 @@ export const updateMe = catchAsync(async (req, res, next) => {
 	});
 
 	// 3- Update user document
+	// If username provided, ensure it's unique
+	if (filteredBody.username) {
+		const exists = await User.findOne({
+			_username: undefined,
+			username: filteredBody.username.toLowerCase(),
+			_id: { $ne: req.user.id },
+		});
+		if (exists) {
+			return next({ statusCode: 400, message: "Username already taken" });
+		}
+	}
+
 	const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
 		new: true,
 		runValidators: true,

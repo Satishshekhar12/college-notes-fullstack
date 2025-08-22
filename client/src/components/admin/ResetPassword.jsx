@@ -31,8 +31,8 @@ function ResetPassword() {
 			return;
 		}
 
-		if (formData.password.length < 8) {
-			setError("Password must be at least 8 characters long!");
+		if (formData.password.length < 5) {
+			setError("Password must be at least 5 characters long!");
 			setLoading(false);
 			return;
 		}
@@ -106,11 +106,11 @@ function ResetPassword() {
 							type="password"
 							name="password"
 							required
-							minLength="8"
+							minLength="5"
 							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
 							value={formData.password}
 							onChange={handleChange}
-							placeholder="Enter new password (min 8 characters)"
+							placeholder="Enter new password (min 5 characters)"
 						/>
 					</div>
 
@@ -122,7 +122,7 @@ function ResetPassword() {
 							type="password"
 							name="passwordConfirm"
 							required
-							minLength="8"
+							minLength="5"
 							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
 							value={formData.passwordConfirm}
 							onChange={handleChange}

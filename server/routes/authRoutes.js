@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import "../config/passport.js";
 import { protect } from "../controllers/authController.js";
+import { resetPasswordWithGoogle } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -23,6 +24,45 @@ router.get(
 		accessType: "offline",
 		prompt: "consent",
 	})
+);
+
+// Google Re-Auth to verify identity for password reset
+router.get(
+	"/auth/google/reauth",
+	passport.authenticate("google-user", {
+		scope: ["profile", "email"],
+		prompt: "consent",
+	})
+);
+
+router.get(
+	"/auth/google/reauth/callback",
+	passport.authenticate("google-user", {
+		session: false,
+		failureRedirect: "/api/login-failed",
+	}),
+	async (req, res) => {
+		try {
+			const { googleId, email } = req.user;
+			const user = await User.findOne({ $or: [{ googleId }, { email }] });
+			if (!user) return res.redirect("/api/login-failed");
+			// Issue short-lived reauth token
+			const reauthToken = jwt.sign(
+				{ id: user._id, purpose: "googleReauth" },
+				process.env.JWT_SECRET,
+				{ expiresIn: "10m" }
+			);
+			const clientUrl =
+				process.env.CLIENT_URL || "https://clg-notes.netlify.app";
+			const baseUrl = clientUrl.endsWith("/")
+				? clientUrl.slice(0, -1)
+				: clientUrl;
+			return res.redirect(`${baseUrl}/profile#reauth=${reauthToken}`);
+		} catch (err) {
+			console.error("Google reauth callback error:", err);
+			return res.redirect("/api/login-failed");
+		}
+	}
 );
 
 // OAuth callback -> issue JWT cookie -> redirect
@@ -46,11 +86,26 @@ router.get(
 				const placeholderPwd =
 					jwt.sign({ sub: googleId }, process.env.JWT_SECRET).slice(0, 12) +
 					"A1#";
+				// Build a default username from name/email and ensure uniqueness
+				const base = (name || email || `user_${googleId}`)
+					.split(/[\s@.]+/)
+					.filter(Boolean)[0]
+					.toLowerCase()
+					.replace(/[^a-z0-9._-]/g, "");
+				let candidate = base && base.length >= 3 ? base : `user${Date.now()}`;
+				let suffix = 0;
+				// Try a few suffixes to avoid collision
+				while (await User.findOne({ username: candidate })) {
+					suffix += 1;
+					candidate = `${base || "user"}${suffix}`;
+				}
 				user = await User.create({
+					username: candidate,
 					name: name || "Google User",
 					email: email || `${googleId}@placeholder.local`,
 					password: placeholderPwd,
 					passwordConfirm: placeholderPwd,
+					isPasswordSet: false,
 					collegeName: "Not Provided",
 					course: "Not Provided",
 					semester: 1,
@@ -62,9 +117,13 @@ router.get(
 				await user.save({ validateBeforeSave: false });
 			}
 
-			const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-				expiresIn: process.env.JWT_EXPIRES_IN,
-			});
+			const token = jwt.sign(
+				{ id: user._id, am: "google" },
+				process.env.JWT_SECRET,
+				{
+					expiresIn: process.env.JWT_EXPIRES_IN,
+				}
+			);
 
 			const isProd = process.env.NODE_ENV === "production";
 			res.cookie("jwt", token, {
@@ -164,9 +223,13 @@ router.get(
 				await user.save({ validateBeforeSave: false });
 			}
 
-			const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-				expiresIn: process.env.JWT_EXPIRES_IN,
-			});
+			const token = jwt.sign(
+				{ id: user._id, am: "google" },
+				process.env.JWT_SECRET,
+				{
+					expiresIn: process.env.JWT_EXPIRES_IN,
+				}
+			);
 
 			const isProd = process.env.NODE_ENV === "production";
 			res.cookie("jwt", token, {
@@ -204,5 +267,8 @@ router.get("/admin-login-failed", (_req, res) => {
 router.get("/login-failed", (_req, res) => {
 	res.status(401).json({ success: false, message: "Google login failed" });
 });
+
+// API to reset password using short-lived Google verification token
+router.post("/auth/google/reset-password", resetPasswordWithGoogle);
 
 export default router;
