@@ -29,6 +29,21 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.get("/", getAllNotes); // Get approved notes for public viewing
 
+// Upload can optionally bypass auth based on settings
+const requireAuthIfConfigured = async (req, res, next) => {
+	try {
+		const settings = (await Settings.findOne()) || {};
+		const requireLogin = settings.requireLoginForUpload !== false; // default true
+		if (!requireLogin) return next();
+		return protect(req, res, next);
+	} catch (e) {
+		return protect(req, res, next);
+	}
+};
+
+// Place upload route before global protect so toggle works
+router.post("/upload", requireAuthIfConfigured, uploadMiddleware, uploadNote);
+
 // Default: protect routes below
 router.use(protect);
 
@@ -65,19 +80,6 @@ router.post(
 ); // reject
 
 // User routes (authenticated users)
-// Special case: allow upload without auth when toggled off
-const requireAuthIfConfigured = async (req, res, next) => {
-	try {
-		const settings = (await Settings.findOne()) || {};
-		const requireLogin = settings.requireLoginForUpload !== false; // default true
-		if (!requireLogin) return next();
-		return protect(req, res, next);
-	} catch (e) {
-		return protect(req, res, next);
-	}
-};
-
-router.post("/upload", requireAuthIfConfigured, uploadMiddleware, uploadNote); // Upload new note
 router.get("/user/my-notes", getUserNotes); // Get user's own notes
 
 // Note-specific routes (these must come after admin routes to avoid conflicts)

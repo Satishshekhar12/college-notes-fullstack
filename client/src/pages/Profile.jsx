@@ -5,7 +5,8 @@ import {
 	updateUserProfile,
 	updateUserPassword,
 	userLogout,
-	isUserLoggedIn,
+	setInitialPassword as setInitialPasswordApi,
+	updateUsername as updateUsernameApi,
 } from "../services/userService";
 import { useNavigate } from "react-router-dom";
 import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
@@ -58,13 +59,16 @@ function Profile() {
 		passwordConfirm: "",
 	});
 
-	useEffect(() => {
-		// Check if user is logged in
-		if (!isUserLoggedIn()) {
-			navigate("/login");
-			return;
-		}
+	// Username & initial password
+	const [username, setUsername] = useState("");
+	const [initialPasswordData, setInitialPasswordData] = useState({
+		password: "",
+		passwordConfirm: "",
+	});
 
+	// No reauth state needed anymore
+
+	useEffect(() => {
 		console.log("🔄 Profile component mounting, fetching user data...");
 		const fetchData = async () => {
 			try {
@@ -73,6 +77,7 @@ function Profile() {
 				if (response.status === "success") {
 					console.log("👤 User profile loaded:", response.data.user);
 					setUser(response.data.user);
+					setUsername(response.data.user.username || "");
 					setProfileData({
 						name: response.data.user.name || "",
 						email: response.data.user.email || "",
@@ -336,6 +341,48 @@ function Profile() {
 		}
 	};
 
+	const handleUsernameUpdate = async (e) => {
+		e.preventDefault();
+		setError("");
+		setSuccess("");
+		try {
+			const res = await updateUsernameApi(username.trim());
+			if (res.status === "success") {
+				setUser(res.data.user);
+				setSuccess("Username updated!");
+			}
+		} catch (err) {
+			setError(err.message || "Failed to update username");
+		}
+	};
+
+	// Removed Google reauth handlers
+
+	const handleSetInitialPassword = async (e) => {
+		e.preventDefault();
+		setError("");
+		setSuccess("");
+		if (initialPasswordData.password !== initialPasswordData.passwordConfirm) {
+			setError("Passwords do not match!");
+			return;
+		}
+		try {
+			const res = await setInitialPasswordApi(
+				initialPasswordData.password,
+				initialPasswordData.passwordConfirm
+			);
+			if (res.status === "success") {
+				setSuccess("Password set successfully!");
+				setInitialPasswordData({ password: "", passwordConfirm: "" });
+				// After setting password, fetch fresh profile
+				const refreshed = await getUserProfile();
+				if (refreshed.status === "success") setUser(refreshed.data.user);
+			}
+		} catch (err) {
+			setError(err.message || "Failed to set password");
+		}
+	};
+
 	const handleLogout = () => {
 		userLogout();
 		navigate("/");
@@ -374,7 +421,7 @@ function Profile() {
 									{user?.name || "User"}
 								</h1>
 								<p className="text-gray-600 text-lg mb-3">{user?.email}</p>
-								<div className="flex items-center justify-center md:justify-start space-x-4">
+								<div className="flex items-center justify-center md:justify-start space-x-4 flex-wrap">
 									<span
 										className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
 											user?.role === "admin"
@@ -386,6 +433,11 @@ function Profile() {
 									>
 										🎯 {user?.role?.toUpperCase() || "USER"}
 									</span>
+									{user?.username && (
+										<span className="inline-block px-4 py-2 rounded-full text-sm bg-gray-100 text-gray-800 border border-gray-200">
+											@ {user.username}
+										</span>
+									)}
 									<span className="text-sm text-gray-500">
 										📅 Member since{" "}
 										{user?.createdAt
@@ -639,6 +691,35 @@ function Profile() {
 									<p className="text-gray-600">
 										Update your account details and personal information.
 									</p>
+								</div>
+
+								{/* Username section */}
+								<div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+									<h3 className="text-lg font-semibold mb-4">Username</h3>
+									<form onSubmit={handleUsernameUpdate} className="space-y-4">
+										<div>
+											<label className="block text-sm text-gray-700 mb-1">
+												Choose your username
+											</label>
+											<input
+												type="text"
+												value={username}
+												onChange={(e) => setUsername(e.target.value)}
+												placeholder="your.username"
+												className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+											/>
+											<p className="text-xs text-gray-500 mt-1">
+												3-20 chars, lowercase letters, numbers, dot, underscore,
+												or hyphen.
+											</p>
+										</div>
+										<button
+											type="submit"
+											className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
+										>
+											Save Username
+										</button>
+									</form>
 								</div>
 
 								<form onSubmit={handleProfileUpdate} className="space-y-8">
@@ -1122,151 +1203,217 @@ function Profile() {
 									</p>
 								</div>
 
-								<form onSubmit={handlePasswordUpdate} className="space-y-8">
-									<div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200 mb-6">
-										<div className="flex items-center space-x-3">
-											<span className="text-2xl">🔐</span>
+								{/* If user hasn't set a password (e.g., Google sign-in), show initial password form */}
+								{user && user.isPasswordSet === false ? (
+									<form
+										onSubmit={handleSetInitialPassword}
+										className="space-y-8"
+									>
+										<div className="bg-blue-50 p-6 rounded-xl border border-blue-200 mb-6">
+											<div className="flex items-center space-x-3">
+												<span className="text-2xl">🆕</span>
+												<div>
+													<h3 className="font-semibold text-blue-800">
+														Set your password
+													</h3>
+													<p className="text-blue-700 text-sm">
+														You signed up with Google. Set a password to enable
+														email + password login.
+													</p>
+												</div>
+											</div>
+										</div>
+
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 											<div>
-												<h3 className="font-semibold text-yellow-800">
-													Password Requirements
-												</h3>
-												<p className="text-yellow-700 text-sm">
-													Your password must be at least 8 characters long and
-													contain a mix of letters, numbers, and symbols.
-												</p>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🔒</span>
+														<span>New Password</span>
+													</span>
+												</label>
+												<input
+													type="password"
+													required
+													minLength="5"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+													value={initialPasswordData.password}
+													onChange={(e) =>
+														setInitialPasswordData({
+															...initialPasswordData,
+															password: e.target.value,
+														})
+													}
+													placeholder="Enter new password (min 5 characters)"
+												/>
+											</div>
+
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🔒</span>
+														<span>Confirm New Password</span>
+													</span>
+												</label>
+												<input
+													type="password"
+													required
+													minLength="5"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+													value={initialPasswordData.passwordConfirm}
+													onChange={(e) =>
+														setInitialPasswordData({
+															...initialPasswordData,
+															passwordConfirm: e.target.value,
+														})
+													}
+													placeholder="Confirm new password"
+												/>
 											</div>
 										</div>
-									</div>
 
-									<div>
-										<label className="block text-sm font-semibold text-gray-700 mb-3">
-											<span className="flex items-center space-x-2">
-												<span>🔓</span>
-												<span>Current Password</span>
-											</span>
-										</label>
-										<input
-											type="password"
-											required
-											className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
-											value={passwordData.passwordCurrent}
-											onChange={(e) =>
-												setPasswordData({
-													...passwordData,
-													passwordCurrent: e.target.value,
-												})
-											}
-											placeholder="Enter your current password"
-										/>
-									</div>
-
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-										<div>
-											<label className="block text-sm font-semibold text-gray-700 mb-3">
-												<span className="flex items-center space-x-2">
-													<span>🔒</span>
-													<span>New Password</span>
-												</span>
-											</label>
-											<input
-												type="password"
-												required
-												minLength="8"
-												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
-												value={passwordData.password}
-												onChange={(e) =>
-													setPasswordData({
-														...passwordData,
-														password: e.target.value,
-													})
-												}
-												placeholder="Enter new password (min 8 characters)"
-											/>
+										<div className="flex justify-end">
+											<button
+												type="submit"
+												className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-8 py-3 rounded-xl hover:from-teal-600 hover:to-teal-700 transition duration-300 shadow-md hover:shadow-lg font-medium flex items-center space-x-2"
+											>
+												<span>✅</span>
+												<span>Set Password</span>
+											</button>
 										</div>
-
-										<div>
-											<label className="block text-sm font-semibold text-gray-700 mb-3">
-												<span className="flex items-center space-x-2">
-													<span>🔒</span>
-													<span>Confirm New Password</span>
-												</span>
-											</label>
-											<input
-												type="password"
-												required
-												minLength="8"
-												className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
-												value={passwordData.passwordConfirm}
-												onChange={(e) =>
-													setPasswordData({
-														...passwordData,
-														passwordConfirm: e.target.value,
-													})
-												}
-												placeholder="Confirm new password"
-											/>
-										</div>
-									</div>
-
-									{/* Password Strength Indicator */}
-									{passwordData.password && (
-										<div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-											<h4 className="text-sm font-semibold text-gray-700 mb-2">
-												Password Strength:
-											</h4>
-											<div className="space-y-2">
-												<div
-													className={`flex items-center space-x-2 ${
-														passwordData.password.length >= 8
-															? "text-green-600"
-															: "text-gray-400"
-													}`}
-												>
-													<span>
-														{passwordData.password.length >= 8 ? "✅" : "⭕"}
-													</span>
-													<span className="text-sm">At least 8 characters</span>
-												</div>
-												<div
-													className={`flex items-center space-x-2 ${
-														/[A-Z]/.test(passwordData.password)
-															? "text-green-600"
-															: "text-gray-400"
-													}`}
-												>
-													<span>
-														{/[A-Z]/.test(passwordData.password) ? "✅" : "⭕"}
-													</span>
-													<span className="text-sm">
-														Contains uppercase letter
-													</span>
-												</div>
-												<div
-													className={`flex items-center space-x-2 ${
-														/[0-9]/.test(passwordData.password)
-															? "text-green-600"
-															: "text-gray-400"
-													}`}
-												>
-													<span>
-														{/[0-9]/.test(passwordData.password) ? "✅" : "⭕"}
-													</span>
-													<span className="text-sm">Contains number</span>
+									</form>
+								) : (
+									<form onSubmit={handlePasswordUpdate} className="space-y-8">
+										<div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200 mb-6">
+											<div className="flex items-center space-x-3">
+												<span className="text-2xl">🔐</span>
+												<div>
+													<h3 className="font-semibold text-yellow-800">
+														Password Tips
+													</h3>
+													<p className="text-yellow-700 text-sm">
+														Minimum 5 characters. Longer is stronger.
+													</p>
 												</div>
 											</div>
 										</div>
-									)}
 
-									<div className="flex justify-end">
-										<button
-											type="submit"
-											className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-8 py-3 rounded-xl hover:from-teal-600 hover:to-teal-700 transition duration-300 shadow-md hover:shadow-lg font-medium flex items-center space-x-2"
-										>
-											<span>🔐</span>
-											<span>Update Password</span>
-										</button>
-									</div>
-								</form>
+										{/* Messaging explaining the rule */}
+										{user?.googleId ? (
+											<div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4 text-blue-800 text-sm">
+												You linked Google to this account. To change your
+												password, log in using Google.
+											</div>
+										) : (
+											<div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4 text-blue-800 text-sm">
+												Provide your current password to change it.
+											</div>
+										)}
+
+										{!user?.googleId && (
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🔓</span>
+														<span>Current Password</span>
+													</span>
+												</label>
+												<input
+													type="password"
+													required
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+													value={passwordData.passwordCurrent}
+													onChange={(e) =>
+														setPasswordData({
+															...passwordData,
+															passwordCurrent: e.target.value,
+														})
+													}
+													placeholder="Enter your current password"
+												/>
+											</div>
+										)}
+
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🔒</span>
+														<span>New Password</span>
+													</span>
+												</label>
+												<input
+													type="password"
+													required
+													minLength="5"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+													value={passwordData.password}
+													onChange={(e) =>
+														setPasswordData({
+															...passwordData,
+															password: e.target.value,
+														})
+													}
+													placeholder="Enter new password (min 5 characters)"
+												/>
+											</div>
+
+											<div>
+												<label className="block text-sm font-semibold text-gray-700 mb-3">
+													<span className="flex items-center space-x-2">
+														<span>🔒</span>
+														<span>Confirm New Password</span>
+													</span>
+												</label>
+												<input
+													type="password"
+													required
+													minLength="5"
+													className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-gray-50 hover:bg-white"
+													value={passwordData.passwordConfirm}
+													onChange={(e) =>
+														setPasswordData({
+															...passwordData,
+															passwordConfirm: e.target.value,
+														})
+													}
+													placeholder="Confirm new password"
+												/>
+											</div>
+										</div>
+
+										{/* Password Strength Indicator (min 5 chars) */}
+										{passwordData.password && (
+											<div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+												<h4 className="text-sm font-semibold text-gray-700 mb-2">
+													Password Check:
+												</h4>
+												<div
+													className={`flex items-center space-x-2 ${
+														passwordData.password.length >= 5
+															? "text-green-600"
+															: "text-gray-400"
+													}`}
+												>
+													<span>
+														{passwordData.password.length >= 5 ? "✅" : "⭕"}
+													</span>
+													<span className="text-sm">At least 5 characters</span>
+												</div>
+											</div>
+										)}
+
+										<div className="flex justify-end">
+											<button
+												type="submit"
+												className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-8 py-3 rounded-xl hover:from-teal-600 hover:to-teal-700 transition duration-300 shadow-md hover:shadow-lg font-medium flex items-center space-x-2"
+											>
+												<span>🔐</span>
+												<span>Update Password</span>
+											</button>
+										</div>
+									</form>
+								)}
 							</div>
 						)}
 					</div>

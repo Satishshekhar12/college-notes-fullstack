@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Toast } from "../../utils/toast";
 import CollegeSelector from "./CollegeSelector.jsx";
 import CourseSelector from "./CourseSelector.jsx";
 import UploadTypeSelector from "./UploadTypeSelector.jsx";
@@ -248,6 +249,12 @@ const UploadWrapper = () => {
 		// Consider success if at least one file uploaded successfully
 		if (uploadData.successCount && uploadData.successCount > 0) {
 			setUploadSuccess(true);
+			// Show a brief success popup for 2 seconds
+			try {
+				Toast.showSuccess("Upload successful!", 2000);
+			} catch {
+				// no-op
+			}
 			setTimeout(() => setUploadSuccess(false), 5000);
 		} else {
 			console.error("Upload failed:", failures[0] || uploadData.error);

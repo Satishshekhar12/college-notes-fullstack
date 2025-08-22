@@ -5,6 +5,21 @@ import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
 	{
+		username: {
+			type: String,
+			unique: true,
+			trim: true,
+			lowercase: true,
+			index: true,
+			validate: {
+				validator: function (v) {
+					if (!v) return true; // optional on legacy docs
+					return /^[a-z0-9._-]{3,20}$/.test(v);
+				},
+				message:
+					"Username must be 3-20 characters, lowercase letters, numbers, dots, underscores or hyphens.",
+			},
+		},
 		name: {
 			type: String,
 			required: [true, "please tell us your name !,"],
@@ -24,7 +39,7 @@ const userSchema = new mongoose.Schema(
 		password: {
 			type: String,
 			required: [true, "Please provide a password"],
-			minlength: [8, "Password must be at least 8 characters long"],
+			minlength: [5, "Password must be at least 5 characters long"],
 			select: false, // Ensures password is not returned in queries
 		},
 		passwordConfirm: {
@@ -37,6 +52,11 @@ const userSchema = new mongoose.Schema(
 				},
 				message: "Passwords are not the same!",
 			},
+		},
+		// Track if the user has explicitly set their own password
+		isPasswordSet: {
+			type: Boolean,
+			default: true,
 		},
 		// New academic profile fields
 		collegeName: {

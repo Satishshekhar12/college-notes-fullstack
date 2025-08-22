@@ -22,7 +22,7 @@ function Login() {
 	const [success, setSuccess] = useState("");
 
 	const [loginData, setLoginData] = useState({
-		email: "",
+		identifier: "",
 		password: "",
 	});
 
@@ -153,7 +153,7 @@ function Login() {
 		setError("");
 
 		try {
-			const result = await userLogin(loginData.email, loginData.password);
+			const result = await userLogin(loginData.identifier, loginData.password);
 			if (result.status === "success") {
 				// Give a small delay to ensure token is stored, then trigger update
 				setTimeout(() => {
@@ -358,17 +358,17 @@ function Login() {
 						<form onSubmit={handleLogin} className="space-y-4">
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Email
+									Email or Username
 								</label>
 								<input
-									type="email"
+									type="text"
 									required
 									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-									value={loginData.email}
+									value={loginData.identifier}
 									onChange={(e) =>
-										setLoginData({ ...loginData, email: e.target.value })
+										setLoginData({ ...loginData, identifier: e.target.value })
 									}
-									placeholder="your.email@example.com"
+									placeholder="your.email@example.com or your.username"
 								/>
 							</div>
 							<div>
@@ -463,13 +463,13 @@ function Login() {
 								<input
 									type="password"
 									required
-									minLength="8"
+									minLength="5"
 									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
 									value={signupData.password}
 									onChange={(e) =>
 										setSignupData({ ...signupData, password: e.target.value })
 									}
-									placeholder="Enter password (min 8 characters)"
+									placeholder="Enter password (min 5 characters)"
 								/>
 							</div>
 							<div>
@@ -479,7 +479,7 @@ function Login() {
 								<input
 									type="password"
 									required
-									minLength="8"
+									minLength="5"
 									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
 									value={signupData.passwordConfirm}
 									onChange={(e) =>
