@@ -74,6 +74,19 @@ class DriveService {
 
 		if (!res.ok) {
 			const text = await res.text();
+			// Give a clearer hint when the Google token doesn't have drive.file scope
+			try {
+				const j = JSON.parse(text);
+				const reason = j?.error?.details?.[0]?.reason || j?.error?.errors?.[0]?.reason;
+				const msg = j?.error?.message || "Insufficient permissions";
+				if (res.status === 403 && String(reason).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT")) {
+					throw new Error(
+						`Google Drive access not granted for this account. Please reconnect Google from your Profile to grant Drive access (drive.file). If this still fails for non-developer accounts, ask the app owner to add you as a Test user in the Google OAuth consent screen or publish the app. Original: ${msg}`
+					);
+				}
+			} catch (_) {
+				// fall through to generic message
+			}
 			throw new Error(`Failed to create Drive folder: ${res.status} ${text}`);
 		}
 

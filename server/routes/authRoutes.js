@@ -20,13 +20,10 @@ router.get(
 		next();
 	},
 	passport.authenticate("google-user", {
-		scope: [
-				"profile",
-				"email",
-				"https://www.googleapis.com/auth/drive.file",
-			],
+		scope: ["profile", "email", "https://www.googleapis.com/auth/drive.file"],
 		accessType: "offline",
 		prompt: "consent",
+		includeGrantedScopes: true,
 	})
 );
 
@@ -157,6 +154,20 @@ router.get(
 		}
 	}
 );
+
+// Allow user to unlink Google Drive (clears refresh token so next login requests consent again)
+router.post("/auth/google/unlink", protect, async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select("googleRefreshToken googleDriveFolderId");
+		if (!user) return res.status(404).json({ status: "fail", message: "User not found" });
+		user.googleRefreshToken = undefined;
+		// Keep folder id; we'll re-detect/create on next use
+		await user.save({ validateBeforeSave: false });
+		res.json({ status: "success", message: "Google disconnected. Please connect again to grant Drive access." });
+	} catch (e) {
+		res.status(500).json({ status: "error", message: e.message || "Failed to unlink Google" });
+	}
+});
 
 // Exchange httpOnly cookie for a bearer token the SPA can store
 router.get("/auth/token", protect, async (req, res) => {

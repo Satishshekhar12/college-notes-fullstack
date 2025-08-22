@@ -370,7 +370,10 @@ export const uploadPersonalDriveFiles = async (files) => {
 };
 
 // Upload with progress (uses XMLHttpRequest to get upload progress events)
-export const uploadPersonalDriveFilesWithProgress = async (files, onProgress) => {
+export const uploadPersonalDriveFilesWithProgress = async (
+	files,
+	onProgress
+) => {
 	return new Promise((resolve) => {
 		try {
 			const token = localStorage.getItem("userToken");
@@ -385,9 +388,19 @@ export const uploadPersonalDriveFilesWithProgress = async (files, onProgress) =>
 				if (onProgress) {
 					if (evt.lengthComputable) {
 						const percent = Math.round((evt.loaded / evt.total) * 100);
-						onProgress({ phase: "upload", loaded: evt.loaded, total: evt.total, percent });
+						onProgress({
+							phase: "upload",
+							loaded: evt.loaded,
+							total: evt.total,
+							percent,
+						});
 					} else {
-						onProgress({ phase: "upload", loaded: evt.loaded, total: 0, percent: null });
+						onProgress({
+							phase: "upload",
+							loaded: evt.loaded,
+							total: 0,
+							percent: null,
+						});
 					}
 				}
 			};
@@ -396,7 +409,10 @@ export const uploadPersonalDriveFilesWithProgress = async (files, onProgress) =>
 				if (xhr.readyState === 4) {
 					try {
 						const data = JSON.parse(xhr.responseText || "{}");
-						resolve({ success: xhr.status >= 200 && xhr.status < 300, ...data });
+						resolve({
+							success: xhr.status >= 200 && xhr.status < 300,
+							...data,
+						});
 					} catch {
 						resolve({ success: false, message: "Failed to parse response" });
 					}
@@ -428,7 +444,10 @@ export const deletePersonalDriveFile = async (fileId) => {
 	}
 };
 
-export const sharePersonalDriveFile = async (fileId, { username, role = "reader" }) => {
+export const sharePersonalDriveFile = async (
+	fileId,
+	{ username, role = "reader" }
+) => {
 	try {
 		const token = localStorage.getItem("userToken");
 		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/share`, {
@@ -470,7 +489,8 @@ export const listDriveSharesReceived = async () => {
 			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
 		});
 		const data = await res.json();
-		if (!res.ok) throw new Error(data.message || "Failed to list received shares");
+		if (!res.ok)
+			throw new Error(data.message || "Failed to list received shares");
 		return data;
 	} catch (e) {
 		console.error("Drive list received shares error:", e);
@@ -481,9 +501,12 @@ export const listDriveSharesReceived = async () => {
 export const downloadPersonalDriveFile = async (fileId, fileName) => {
 	try {
 		const token = localStorage.getItem("userToken");
-		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/download`, {
-			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-		});
+		const res = await fetch(
+			`${API_BASE_URL}/api/drive/files/${fileId}/download`,
+			{
+				headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			}
+		);
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
 			throw new Error(data.message || "Failed to download file");
@@ -506,12 +529,19 @@ export const downloadPersonalDriveFile = async (fileId, fileName) => {
 };
 
 // Download with progress
-export const downloadPersonalDriveFileWithProgress = async (fileId, fileName, onProgress) => {
+export const downloadPersonalDriveFileWithProgress = async (
+	fileId,
+	fileName,
+	onProgress
+) => {
 	try {
 		const token = localStorage.getItem("userToken");
-		const res = await fetch(`${API_BASE_URL}/api/drive/files/${fileId}/download`, {
-			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-		});
+		const res = await fetch(
+			`${API_BASE_URL}/api/drive/files/${fileId}/download`,
+			{
+				headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			}
+		);
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
 			throw new Error(data.message || "Failed to download file");
@@ -521,7 +551,13 @@ export const downloadPersonalDriveFileWithProgress = async (fileId, fileName, on
 		if (!reader) {
 			// Fallback: no streaming, just blob
 			const blob = await res.blob();
-			if (onProgress) onProgress({ phase: "download", loaded: blob.size, total, percent: 100 });
+			if (onProgress)
+				onProgress({
+					phase: "download",
+					loaded: blob.size,
+					total,
+					percent: 100,
+				});
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
@@ -547,7 +583,13 @@ export const downloadPersonalDriveFileWithProgress = async (fileId, fileName, on
 			}
 		}
 		const blob = new Blob(chunks);
-		if (onProgress) onProgress({ phase: "download", loaded, total: total || blob.size, percent: 100 });
+		if (onProgress)
+			onProgress({
+				phase: "download",
+				loaded,
+				total: total || blob.size,
+				percent: 100,
+			});
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -596,7 +638,8 @@ export const viewPersonalDriveFileWithProgress = async (fileId, onProgress) => {
 		const reader = res.body?.getReader ? res.body.getReader() : null;
 		if (!reader) {
 			const blob = await res.blob();
-			if (onProgress) onProgress({ phase: "open", loaded: blob.size, total, percent: 100 });
+			if (onProgress)
+				onProgress({ phase: "open", loaded: blob.size, total, percent: 100 });
 			return { success: true, blob };
 		}
 		const chunks = [];
@@ -614,7 +657,13 @@ export const viewPersonalDriveFileWithProgress = async (fileId, onProgress) => {
 			}
 		}
 		const blob = new Blob(chunks);
-		if (onProgress) onProgress({ phase: "open", loaded, total: total || blob.size, percent: 100 });
+		if (onProgress)
+			onProgress({
+				phase: "open",
+				loaded,
+				total: total || blob.size,
+				percent: 100,
+			});
 		return { success: true, blob };
 	} catch (e) {
 		console.error("Drive view (progress) error:", e);
