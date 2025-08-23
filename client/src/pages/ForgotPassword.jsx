@@ -43,10 +43,18 @@ const ForgotPassword = () => {
 				body: JSON.stringify({ email }),
 			});
 
-			const data = await response.json();
+			let data;
+			try {
+				data = await response.json();
+			} catch {
+				// If JSON parsing fails, try to get text content
+				const text = await response.text();
+				console.error("Failed to parse JSON response:", text);
+				throw new Error("Server returned invalid response format");
+			}
 
 			if (!response.ok) {
-				throw new Error(data.message || "Failed to send reset email");
+				throw new Error(data.message || data.error || "Failed to send reset email");
 			}
 
 			setStatus({ loading: false, sent: true, error: null });
