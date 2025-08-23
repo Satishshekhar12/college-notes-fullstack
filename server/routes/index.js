@@ -7,6 +7,7 @@ import moderatorRequestRoutes from "./moderatorRequestRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
 import authRoutes from "./authRoutes.js";
 import driveRoutes from "./driveRoutes.js";
+import contactRoutes from "./contactRoutes.js";
 
 const router = express.Router();
 
@@ -33,6 +34,9 @@ router.use("/api", authRoutes);
 
 // Google Drive personal files routes
 router.use("/api/drive", driveRoutes);
+
+// Contact form routes
+router.use("/api", contactRoutes);
 
 // Express route to check server health
 router.get("/ping", (req, res) => {

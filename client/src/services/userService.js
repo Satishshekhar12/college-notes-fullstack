@@ -161,7 +161,7 @@ export const updateUserPassword = async (
 // Forgot Password for regular users
 export const userForgotPassword = async (email) => {
 	try {
-		const response = await fetch(`${API_BASE_URL}/forgotPassword`, {
+		const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -197,13 +197,10 @@ export const startGoogleLogin = () => {
 // Exchange httpOnly cookie for token (used on /dashboard)
 export const exchangeCookieForToken = async () => {
 	try {
-		console.log("🔄 Attempting to exchange cookie for token...");
 		const res = await fetch(`${API_BASE_URL}/api/auth/token`, {
 			credentials: "include",
 		});
-		console.log("📊 Exchange response status:", res.status);
 		const data = await res.json();
-		console.log("📊 Exchange response data:", data);
 		if (res.ok && data.status === "success" && data.token) {
 			// Always store user token
 			localStorage.setItem("userToken", data.token);
@@ -233,10 +230,8 @@ export const exchangeCookieForToken = async () => {
 
 			// Notify regular user login listeners
 			window.dispatchEvent(new Event("userLogin"));
-			console.log("✅ Cookie exchange successful, token stored");
 			return true;
 		}
-		console.log("❌ Cookie exchange failed");
 		return false;
 	} catch (error) {
 		console.error("❌ Cookie exchange error:", error);
@@ -246,32 +241,23 @@ export const exchangeCookieForToken = async () => {
 export const isUserLoggedIn = () => {
 	const token = localStorage.getItem("userToken");
 	if (!token) {
-		console.log("No token found");
 		return false;
 	}
-
-	console.log("Token found:", token.substring(0, 20) + "...");
 
 	// Basic token validation - check if it's not expired
 	try {
 		const tokenPayload = JSON.parse(atob(token.split(".")[1]));
 		const currentTime = Date.now() / 1000;
 
-		console.log("Token payload:", tokenPayload);
-		console.log("Token exp:", tokenPayload.exp, "Current time:", currentTime);
-
 		if (tokenPayload.exp && tokenPayload.exp < currentTime) {
 			// Token is expired, remove it
-			console.log("Token expired, removing");
 			localStorage.removeItem("userToken");
 			return false;
 		}
 
-		console.log("Token is valid");
 		return true;
 	} catch {
 		// If token is malformed, remove it
-		console.log("Token malformed, removing");
 		localStorage.removeItem("userToken");
 		return false;
 	}

@@ -92,7 +92,6 @@ function Admin() {
 								);
 							}
 							success = true;
-							console.log("✅ Token obtained from URL hash for admin");
 						} catch (e) {
 							console.warn("⚠️ Failed to store admin token from hash", e);
 						}
@@ -100,14 +99,11 @@ function Admin() {
 
 					// Fallback 2: cookie exchange
 					if (!success) {
-						console.log("🔄 Calling exchangeAdminCookieForToken...");
 						success = await exchangeAdminCookieForToken();
 					}
-					console.log("📊 Admin Google login result:", success);
 
 					if (success) {
 						// Check if admin is now logged in
-						console.log("🔍 Checking if admin is now logged in...");
 						const isNowLoggedIn = isAdminLoggedIn();
 						console.log("📊 isAdminLoggedIn result:", isNowLoggedIn);
 
@@ -127,20 +123,17 @@ function Admin() {
 							console.log("🔍 Setting showNonAdminNotice to true");
 							setTimeout(() => {
 								const el = document.getElementById("non-admin-notice");
-								console.log("🔍 Looking for non-admin-notice element:", el);
 								if (el)
 									el.scrollIntoView({ behavior: "smooth", block: "start" });
 							}, 0);
 						}
 					} else {
-						console.log("❌ Admin Google login failed: Token exchange failed");
 						setError(
 							"Google login failed. Please try again or check your admin privileges."
 						);
 					}
 
 					// Clean up URL
-					console.log("🔄 Cleaning up URL...");
 					window.history.replaceState(
 						{},
 						document.title,

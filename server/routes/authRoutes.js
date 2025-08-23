@@ -4,7 +4,11 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import "../config/passport.js";
 import { protect } from "../controllers/authController.js";
-import { resetPasswordWithGoogle } from "../controllers/authController.js";
+import {
+	resetPasswordWithGoogle,
+	forgotPasswordViaEmail,
+	resetPasswordViaEmail,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -158,14 +162,28 @@ router.get(
 // Allow user to unlink Google Drive (clears refresh token so next login requests consent again)
 router.post("/auth/google/unlink", protect, async (req, res) => {
 	try {
-		const user = await User.findById(req.user._id).select("googleRefreshToken googleDriveFolderId");
-		if (!user) return res.status(404).json({ status: "fail", message: "User not found" });
+		const user = await User.findById(req.user._id).select(
+			"googleRefreshToken googleDriveFolderId"
+		);
+		if (!user)
+			return res
+				.status(404)
+				.json({ status: "fail", message: "User not found" });
 		user.googleRefreshToken = undefined;
 		// Keep folder id; we'll re-detect/create on next use
 		await user.save({ validateBeforeSave: false });
-		res.json({ status: "success", message: "Google disconnected. Please connect again to grant Drive access." });
+		res.json({
+			status: "success",
+			message:
+				"Google disconnected. Please connect again to grant Drive access.",
+		});
 	} catch (e) {
-		res.status(500).json({ status: "error", message: e.message || "Failed to unlink Google" });
+		res
+			.status(500)
+			.json({
+				status: "error",
+				message: e.message || "Failed to unlink Google",
+			});
 	}
 });
 
@@ -295,5 +313,11 @@ router.get("/login-failed", (_req, res) => {
 
 // API to reset password using short-lived Google verification token
 router.post("/auth/google/reset-password", resetPasswordWithGoogle);
+
+// Forgot Password - Send reset email
+router.post("/auth/forgot-password", forgotPasswordViaEmail);
+
+// Reset Password - Update password with token
+router.patch("/auth/reset-password/:token", resetPasswordViaEmail);
 
 export default router;

@@ -157,7 +157,6 @@ export const protect = catchAsync(async (req, res, next) => {
 	try {
 		//2- verify token
 		const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-		console.log("Decoded token:", decoded);
 
 		//3- check if user still exists
 		const currentUser = await User.findById(decoded.id);
@@ -629,4 +628,174 @@ export const syncUserStats = catchAsync(async (req, res, next) => {
 			message: "Failed to sync user statistics",
 		});
 	}
+});
+
+// Forgot Password - Generate reset token and send email
+export const forgotPasswordViaEmail = catchAsync(async (req, res, next) => {
+	// 1) Get user based on POSTed email
+	const user = await User.findOne({ email: req.body.email });
+	if (!user) {
+		return next({
+			statusCode: 404,
+			message: "There is no user with that email address.",
+		});
+	}
+
+	console.log("🔍 Forgot Password Debug:");
+	console.log("- Requested email:", req.body.email);
+	console.log("- Found user:", `${user.name} (${user.email})`);
+
+	// 2) Generate the random reset token
+	const resetToken = user.createPasswordResetToken();
+	await user.save({ validateBeforeSave: false });
+
+	// 3) Send it to user's email
+	try {
+		const resetURL = `${
+			process.env.CLIENT_URL || "http://localhost:5173"
+		}/reset-password/${resetToken}`;
+
+		// For development, also log the reset URL
+		console.log("🔗 Password Reset URL:", resetURL);
+
+		const message = `
+			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+				<div style="text-align: center; margin-bottom: 30px;">
+					<h1 style="color: #1F9FA3; font-size: 28px; margin: 0;">🔒 Password Reset</h1>
+					<p style="color: #666; font-size: 16px; margin: 10px 0;">College Notes Platform</p>
+				</div>
+				
+				<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+					<h2 style="color: #333; margin: 0 0 15px 0;">Hi ${user.name},</h2>
+					<p style="color: #555; line-height: 1.6; margin: 0 0 15px 0;">
+						We received a request to reset your password for your College Notes account.
+					</p>
+					<p style="color: #555; line-height: 1.6; margin: 0;">
+						Click the button below to reset your password. This link will expire in 10 minutes.
+					</p>
+				</div>
+				
+				<div style="text-align: center; margin: 30px 0;">
+					<a href="${resetURL}" 
+						style="display: inline-block; background: linear-gradient(135deg, #62BDBD, #1F9FA3); 
+							color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; 
+							font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(31, 159, 163, 0.3);">
+						🔄 Reset My Password
+					</a>
+				</div>
+				
+				<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+					<p style="color: #856404; margin: 0; font-size: 14px;">
+						<strong>⚠️ Security Notice:</strong><br>
+						• This link expires in 10 minutes<br>
+						• If you didn't request this reset, please ignore this email<br>
+						• Your password will remain unchanged until you click the link above
+					</p>
+				</div>
+				
+				<div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; text-align: center;">
+					<p style="color: #999; font-size: 12px; margin: 0;">
+						If the button doesn't work, copy and paste this link into your browser:<br>
+						<a href="${resetURL}" style="color: #1F9FA3; word-break: break-all;">${resetURL}</a>
+					</p>
+					<p style="color: #999; font-size: 12px; margin: 15px 0 0 0;">
+						College Notes Platform | Secure Password Reset
+					</p>
+				</div>
+			</div>
+		`;
+
+		// Create a custom function for password reset emails
+		const sendPasswordResetEmail = async (email, subject, html) => {
+			const nodemailer = await import("nodemailer");
+			const transporter = nodemailer.default.createTransport({
+				service: "gmail",
+				auth: {
+					user: process.env.GMAIL_USER,
+					pass: process.env.GMAIL_PASS,
+				},
+			});
+
+			await transporter.sendMail({
+				from: process.env.GMAIL_USER,
+				to: email,
+				subject: subject,
+				html: html,
+			});
+		};
+
+		await sendPasswordResetEmail(
+			user.email,
+			"🔒 Password Reset Request - College Notes",
+			message
+		);
+
+		res.status(200).json({
+			status: "success",
+			message: "Password reset link sent to your email address!",
+		});
+	} catch (err) {
+		user.passwordResetToken = undefined;
+		user.passwordResetExpires = undefined;
+		await user.save({ validateBeforeSave: false });
+
+		console.error("Email sending error:", err);
+		return next({
+			statusCode: 500,
+			message: "There was an error sending the email. Try again later.",
+		});
+	}
+});
+
+// Reset Password - Verify token and update password
+export const resetPasswordViaEmail = catchAsync(async (req, res, next) => {
+	// 1) Get user based on the token
+	const hashedToken = crypto
+		.createHash("sha256")
+		.update(req.params.token)
+		.digest("hex");
+
+	const user = await User.findOne({
+		passwordResetToken: hashedToken,
+		passwordResetExpires: { $gt: Date.now() },
+	});
+
+	// 2) If token has not expired, and there is user, set the new password
+	if (!user) {
+		return next({
+			statusCode: 400,
+			message: "Token is invalid or has expired",
+		});
+	}
+
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+	user.passwordResetToken = undefined;
+	user.passwordResetExpires = undefined;
+	await user.save();
+
+	// 3) Update changedPasswordAt property for the user (done in userModel pre-save middleware)
+
+	// 4) Send notification about password change
+	await notifyPasswordChange(req, user._id, {
+		kind: "reset",
+		method: "email_reset",
+	});
+
+	// 5) Log the user in, send JWT
+	const token = signToken(user._id, "password");
+
+	res.status(200).json({
+		status: "success",
+		token,
+		message: "Password has been reset successfully!",
+		data: {
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+			},
+		},
+	});
 });

@@ -1,32 +1,5 @@
 import React, { useState } from "react";
 
-/*
- * To implement real email functionality, you can use EmailJS:
- *
- * 1. Install EmailJS: npm install @emailjs/browser
- * 2. Create an account at https://www.emailjs.com/
- * 3. Set up an email service and template
- * 4. Replace the sendEmail function below with actual EmailJS implementation:
- *
- * import emailjs from '@emailjs/browser';
- *
- * const sendEmail = async (formData) => {
- *   const templateParams = {
- *     from_name: formData.name,
- *     from_email: formData.email,
- *     message: formData.message,
- *     to_email: "notes.helper0@gmail.com",
- *   };
- *
- *   return emailjs.send(
- *     'YOUR_SERVICE_ID',
- *     'YOUR_TEMPLATE_ID',
- *     templateParams,
- *     'YOUR_PUBLIC_KEY'
- *   );
- * };
- */
-
 const Contact = () => {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -88,32 +61,35 @@ const Contact = () => {
 	};
 
 	const sendEmail = async (formData) => {
-		// Since we don't have a backend, we'll simulate sending an email
-		// In a real application, you would send this to your backend API
+		try {
+			const response = await fetch("/api/contact", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					name: formData.name,
+					email: formData.email,
+					message: formData.message,
+				}),
+			});
 
-		// For demonstration, let's use EmailJS or a similar service
-		// Here's a mock implementation:
+			const data = await response.json();
 
-		console.log("Sending email with data:", {
-			to_email: "notes.helper0@gmail.com",
-			from_name: formData.name,
-			from_email: formData.email,
-			message: formData.message,
-			subject: `New Contact Form Message from ${formData.name}`,
-		});
+			if (!response.ok) {
+				throw new Error(data.message || "Failed to send message");
+			}
 
-		// Simulate API call delay
-		return new Promise((resolve, reject) => {
-			setTimeout(() => {
-				// Simulate random success/failure for demo
-				const success = Math.random() > 0.1; // 90% success rate
-				if (success) {
-					resolve({ status: "success", message: "Email sent successfully!" });
-				} else {
-					reject(new Error("Failed to send email. Please try again."));
-				}
-			}, 2000);
-		});
+			return {
+				status: "success",
+				message: data.message || "Message sent successfully!",
+			};
+		} catch (error) {
+			console.error("Contact form submission error:", error);
+			throw new Error(
+				error.message || "Failed to send message. Please try again later."
+			);
+		}
 	};
 
 	const handleSubmit = async (e) => {
@@ -158,9 +134,7 @@ const Contact = () => {
 			<div className="max-w-6xl mx-auto">
 				<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 					<div className="p-8 text-center bg-gradient-to-r from-[#62BDBD] to-[#1F9FA3]">
-						<h1 className="text-4xl font-bold text-white mb-4">
-							Under development
-						</h1>
+						<h1 className="text-4xl font-bold text-white mb-4">Contact Us</h1>
 						<p className="text-blue-100 text-lg max-w-2xl mx-auto">
 							We'd love to hear from you. Send us a message and we'll respond as
 							soon as possible.
@@ -238,10 +212,15 @@ const Contact = () => {
 							{formStatus.isSubmitted && (
 								<div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
 									<span className="text-green-500 text-xl">✅</span>
-									<p className="text-green-800 font-medium">
-										Thank you! Your message has been sent successfully. We'll
-										get back to you soon!
-									</p>
+									<div>
+										<p className="text-green-800 font-medium mb-2">
+											Thank you! Your message has been sent successfully.
+										</p>
+										<p className="text-green-700 text-sm">
+											📧 You'll receive a confirmation email shortly, and we'll
+											get back to you within 24 hours!
+										</p>
+									</div>
 								</div>
 							)}
 
