@@ -150,8 +150,12 @@ function UserRequests() {
 		setFeedback("");
 	};
 
-	const pendingRequests = requests.filter((req) => req.status === "pending");
-	const processedRequests = requests.filter((req) => req.status !== "pending");
+	const pendingRequests = requests.filter(
+		(req) => req.status === "pending" && req.applicant
+	);
+	const processedRequests = requests.filter(
+		(req) => req.status !== "pending" && req.applicant
+	);
 
 	const formatDate = (dateString) => {
 		return new Date(dateString).toLocaleDateString("en-US", {
@@ -486,7 +490,7 @@ function UserRequests() {
 			</div>
 
 			{/* Review Modal */}
-			{selectedRequest && (
+			{selectedRequest && selectedRequest.applicant && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 					<div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
 						<h3 className="text-xl font-bold mb-4">

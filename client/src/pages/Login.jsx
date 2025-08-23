@@ -410,15 +410,24 @@ function Login() {
 								</button>
 							</div>
 
-							{/* Forgot Password Link */}
-							<div className="text-center">
-								<button
+							{/* Forgot Password Links */}
+							<div className="text-center space-y-2">
+								{/* <button
 									type="button"
 									onClick={() => setShowForgotPassword(true)}
-									className="text-teal-500 hover:text-teal-600 text-sm font-medium"
+									className="text-teal-500 hover:text-teal-600 text-sm font-medium block w-full"
 								>
 									Forgot your password?
-								</button>
+								</button> */}
+								<p className="text-xs text-gray-500">
+									or{" "}
+									<Link
+										to="/forgot-password"
+										className="text-teal-500 hover:text-teal-600 font-medium"
+									>
+										Forgot your password?
+									</Link>
+								</p>
 							</div>
 						</form>
 					)}

@@ -213,8 +213,6 @@ userSchema.methods.createPasswordResetToken = function () {
 		.update(resetToken)
 		.digest("hex");
 
-	console.log({ resetToken }, this.passwordResetToken);
-
 	this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // Token valid for 30 minutes
 	return resetToken; // Return the plain text token for sending via email
 };

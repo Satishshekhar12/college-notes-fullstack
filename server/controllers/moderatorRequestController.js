@@ -98,7 +98,9 @@ export const submitModeratorRequest = catchAsync(async (req, res, next) => {
 export const getMyModeratorRequest = catchAsync(async (req, res, next) => {
 	const request = await ModeratorRequest.findOne({
 		applicant: req.user.id,
-	}).sort({ createdAt: -1 });
+	})
+		.populate("reviewedBy", "name email")
+		.sort({ createdAt: -1 });
 
 	res.json({
 		success: true,
@@ -134,6 +136,11 @@ export const getAllModeratorRequests = catchAsync(async (req, res, next) => {
 	const skip = (page - 1) * limit;
 
 	const requests = await ModeratorRequest.find(query)
+		.populate(
+			"applicant",
+			"name email createdAt totalUploads approvedUploads rejectedUploads"
+		)
+		.populate("reviewedBy", "name email")
 		.sort(sort)
 		.skip(skip)
 		.limit(parseInt(limit));
@@ -307,7 +314,12 @@ export const deleteModeratorRequest = catchAsync(async (req, res, next) => {
 export const getModeratorRequestById = catchAsync(async (req, res, next) => {
 	const { id } = req.params;
 
-	const request = await ModeratorRequest.findById(id);
+	const request = await ModeratorRequest.findById(id)
+		.populate(
+			"applicant",
+			"name email createdAt totalUploads approvedUploads rejectedUploads"
+		)
+		.populate("reviewedBy", "name email");
 
 	if (!request) {
 		return res.status(404).json({

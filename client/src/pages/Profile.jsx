@@ -641,40 +641,40 @@ function Profile() {
 				{/* Enhanced Tab Navigation */}
 				<div className="bg-white rounded-xl shadow-lg overflow-hidden">
 					<div className="border-b border-gray-200">
-						<nav className="flex">
+						<nav className="flex overflow-x-auto scrollbar-hide">
 							<button
 								onClick={() => setActiveTab("profile")}
-								className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center space-x-2 transition duration-200 ${
+								className={`flex-1 min-w-0 py-2 px-1 sm:py-3 sm:px-3 md:px-6 text-xs sm:text-sm font-medium flex flex-col items-center justify-center space-y-0.5 transition duration-200 ${
 									activeTab === "profile"
 										? "border-b-2 border-teal-500 text-teal-600 bg-teal-50"
 										: "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
 								}`}
 							>
-								<span className="text-lg">👤</span>
-								<span>Profile Information</span>
+								<span className="text-sm sm:text-base md:text-lg">👤</span>
+								<span className="text-xs leading-tight">Profile</span>
 							</button>
 							<button
 								onClick={() => setActiveTab("password")}
-								className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center space-x-2 transition duration-200 ${
+								className={`flex-1 min-w-0 py-2 px-1 sm:py-3 sm:px-3 md:px-6 text-xs sm:text-sm font-medium flex flex-col items-center justify-center space-y-0.5 transition duration-200 ${
 									activeTab === "password"
 										? "border-b-2 border-teal-500 text-teal-600 bg-teal-50"
 										: "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
 								}`}
 							>
-								<span className="text-lg">🔒</span>
-								<span>Change Password</span>
+								<span className="text-sm sm:text-base md:text-lg">🔒</span>
+								<span className="text-xs leading-tight">Password</span>
 							</button>
 							{user?.googleId && (
 								<button
 									onClick={() => setActiveTab("drive")}
-									className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center space-x-2 transition duration-200 ${
+									className={`flex-1 min-w-0 py-2 px-1 sm:py-3 sm:px-3 md:px-6 text-xs sm:text-sm font-medium flex flex-col items-center justify-center space-y-0.5 transition duration-200 ${
 										activeTab === "drive"
 											? "border-b-2 border-teal-500 text-teal-600 bg-teal-50"
 											: "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
 									}`}
 								>
-									<span className="text-lg">📁</span>
-									<span>Personal Drive</span>
+									<span className="text-sm sm:text-base md:text-lg">📁</span>
+									<span className="text-xs leading-tight">Drive</span>
 								</button>
 							)}
 						</nav>
