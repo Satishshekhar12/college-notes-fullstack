@@ -215,6 +215,43 @@ export const restrictTo = (...roles) => {
 	};
 };
 
+// Optional auth: attach req.user when a valid token is present; otherwise continue without error
+export const optionalProtect = async (req, res, next) => {
+	try {
+		let token;
+		if (
+			req.headers.authorization &&
+			req.headers.authorization.startsWith("Bearer")
+		) {
+			token = req.headers.authorization.split(" ")[1];
+		} else if (req.cookies && req.cookies.jwt) {
+			token = req.cookies.jwt;
+		}
+
+		if (!token) return next();
+
+		// Verify token but do not error out; on any failure, proceed as guest
+		let decoded;
+		try {
+			decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+		} catch (e) {
+			return next();
+		}
+
+		const currentUser = await User.findById(decoded.id);
+		if (!currentUser) return next();
+
+		if (currentUser.changedPasswordAfter(decoded.iat)) return next();
+
+		req.user = currentUser;
+		req.authMethod = decoded.am || decoded.authMethod || "password";
+		return next();
+	} catch (e) {
+		// On any unexpected failure, continue without user
+		return next();
+	}
+};
+
 export const forgotPassword = catchAsync(async (req, res, next) => {
 	//1- Get user based on posted email
 	const user = await User.findOne({ email: req.body.email });

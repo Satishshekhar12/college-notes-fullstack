@@ -3,7 +3,7 @@ import { generatePresignedUrl } from "../../../services/apiService";
 import SecureViewer from "../../common/SecureViewer";
 import { Toast } from "../../../utils/toast";
 
-const FileList = ({ files }) => {
+const FileList = ({ files, renderMeta }) => {
 	const [loadingFiles, setLoadingFiles] = useState(new Set());
 	const getFileIcon = () => {
 		return (
@@ -159,6 +159,11 @@ const FileList = ({ files }) => {
 							<p className="text-sm text-gray-800 truncate font-medium">
 								{getDisplayName(file)}
 							</p>
+							{renderMeta && (
+								<div className="text-[11px] text-gray-500 truncate mt-0.5">
+									{renderMeta(file)}
+								</div>
+							)}
 							<div className="flex items-center space-x-2 text-xs text-gray-500">
 								<span>{formatFileSize(file.size)}</span>
 								<span>•</span>
@@ -206,7 +211,7 @@ const FileList = ({ files }) => {
 									Loading...
 								</>
 							) : (
-								"👁️ View Only"
+								"View"
 							)}
 						</button>
 						{/* DOWNLOAD BUTTON - CURRENTLY DISABLED */}

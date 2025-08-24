@@ -10,6 +10,8 @@ import {
 	viewPersonalDriveFileWithProgress,
 } from "../../services/apiService";
 import { startGoogleLogin } from "../../services/userService";
+import { API_BASE_URL } from "../../config/api";
+import { listFriends as listFriendsApi } from "../../services/friendService";
 
 const PersonalDrive = ({ isGoogleLinked }) => {
 	const [files, setFiles] = useState([]);
@@ -27,7 +29,12 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const [dragOver, setDragOver] = useState(false);
 	const [sharesSent, setSharesSent] = useState([]);
 	const [sharesReceived, setSharesReceived] = useState([]);
+	const [friends, setFriends] = useState([]);
+	const [showFriendPicker, setShowFriendPicker] = useState(false);
+	const [shareTargetFile, setShareTargetFile] = useState(null);
+	const [typedUsername, setTypedUsername] = useState("");
 	const fileInputRef = useRef(null);
+	const sseRef = useRef(null);
 
 	const formatBytes = (bytes) => {
 		if (!bytes && bytes !== 0) return "";
@@ -54,10 +61,70 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 		if (received.success) setSharesReceived(received.data.shares || []);
 	};
 
+	const fetchFriends = async () => {
+		try {
+			const list = await listFriendsApi();
+			setFriends(list);
+		} catch {
+			// ignore
+		}
+	};
+
 	useEffect(() => {
 		if (isGoogleLinked) {
 			fetchFiles();
 			fetchShares();
+			fetchFriends();
+		}
+	}, [isGoogleLinked]);
+
+	// Background refresh so shares auto-update without user actions
+	useEffect(() => {
+		if (!isGoogleLinked) return;
+		const interval = setInterval(() => {
+			fetchShares();
+		}, 12000); // 12s cadence keeps UI fresh without much load
+		return () => clearInterval(interval);
+	}, [isGoogleLinked]);
+
+	// Real-time updates via SSE
+	useEffect(() => {
+		if (!isGoogleLinked) return;
+		try {
+			const token = localStorage.getItem("userToken");
+			const url = new URL("/api/events", API_BASE_URL);
+			// Attach token as query param since EventSource can't set headers
+			if (token) url.searchParams.set("token", token);
+			// Create a small wrapper to include auth using fetch-based polyfill if needed
+			// Native EventSource can't send headers; we support token via query param on server protect middleware is header-based.
+			// As a quick workaround, we fall back to unauth if no token.
+			const es = new EventSource(url.toString());
+			sseRef.current = es;
+			const onAny = () => {
+				// For share changes, refresh lists promptly
+				fetchShares();
+			};
+			es.addEventListener("drive:newShare", onAny);
+			es.addEventListener("drive:sharesUpdated", onAny);
+			es.addEventListener("drive:shareRemoved", onAny);
+			es.onerror = () => {
+				// auto-close on error; next mount or action will refetch
+				try {
+					es.close();
+				} catch {
+					/* ignore */
+				}
+			};
+			return () => {
+				try {
+					es.close();
+				} catch {
+					/* ignore */
+				}
+				sseRef.current = null;
+			};
+		} catch {
+			// ignore
 		}
 	}, [isGoogleLinked]);
 
@@ -101,19 +168,36 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 			setError(res.message || "Failed to delete file");
 		} else {
 			await fetchFiles();
+			await fetchShares();
 		}
 	};
 
 	const onShare = async (file) => {
-		const username = window.prompt("Enter username to share with:");
-		if (!username) return;
-		const res = await sharePersonalDriveFile(file.id, { username });
+		setShareTargetFile(file);
+		setShowFriendPicker(true);
+	};
+
+	const shareWithFriend = async (friendUsername) => {
+		if (!shareTargetFile) return;
+		setError("");
+		const res = await sharePersonalDriveFile(shareTargetFile.id, {
+			username: friendUsername,
+		});
 		if (!res.success) setError(res.message || "Failed to share file");
 		else {
-			setSuccess(`Shared '${file.name}' with ${username}`);
+			setSuccess(`Shared '${shareTargetFile.name}' with ${friendUsername}`);
 			setTimeout(() => setSuccess(""), 1500);
 			await fetchShares();
 		}
+		setShowFriendPicker(false);
+		setShareTargetFile(null);
+	};
+
+	const onShareTyped = async () => {
+		const u = (typedUsername || "").trim().toLowerCase();
+		if (!u) return;
+		await shareWithFriend(u);
+		setTypedUsername("");
 	};
 
 	const onDownload = async (file) => {
@@ -210,7 +294,8 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 			{error && (
 				<div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded">
 					<div className="mb-2">{error}</div>
-					{String(error).includes("Drive access") || String(error).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT") ? (
+					{String(error).includes("Drive access") ||
+					String(error).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT") ? (
 						<div className="flex items-center gap-2">
 							<button
 								onClick={startGoogleLogin}
@@ -218,7 +303,9 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 							>
 								Reconnect Google
 							</button>
-							<span className="text-sm text-red-700">Grant Google Drive access when prompted.</span>
+							<span className="text-sm text-red-700">
+								Grant Google Drive access when prompted.
+							</span>
 						</div>
 					) : null}
 				</div>
@@ -256,8 +343,16 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 											(p) => setProgress(p)
 										);
 										setProcessing(false);
-										if (!r.success)
+										if (!r.success) {
+											if (
+												String(r.message || "")
+													.toLowerCase()
+													.includes("file not found")
+											) {
+												fetchShares();
+											}
 											return setError(r.message || "Failed to open file");
+										}
 										const url = URL.createObjectURL(r.blob);
 										window.location.href = url;
 									}}
@@ -354,8 +449,16 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 													(p) => setProgress(p)
 												);
 												setProcessing(false);
-												if (!r.success)
+												if (!r.success) {
+													if (
+														String(r.message || "")
+															.toLowerCase()
+															.includes("file not found")
+													) {
+														fetchShares();
+													}
 													setError(r.message || "Failed to download file");
+												}
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -403,8 +506,16 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 													(p) => setProgress(p)
 												);
 												setProcessing(false);
-												if (!r.success)
+												if (!r.success) {
+													if (
+														String(r.message || "")
+															.toLowerCase()
+															.includes("file not found")
+													) {
+														fetchShares();
+													}
 													return setError(r.message || "Failed to open file");
+												}
 												const url = URL.createObjectURL(r.blob);
 												window.location.href = url;
 											}}
@@ -428,8 +539,16 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 													(p) => setProgress(p)
 												);
 												setProcessing(false);
-												if (!r.success)
+												if (!r.success) {
+													if (
+														String(r.message || "")
+															.toLowerCase()
+															.includes("file not found")
+													) {
+														fetchShares();
+													}
 													setError(r.message || "Failed to download file");
+												}
 											}}
 											className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
 										>
@@ -483,6 +602,75 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 						</div>
 						<div className="mt-3 text-xs text-gray-500">
 							Don’t close this window while {progress.phase || "processing"}.
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Friend picker modal */}
+			{showFriendPicker && (
+				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+					<div className="bg-white rounded-xl p-4 w-80 max-h-[70vh] overflow-auto">
+						<div className="font-semibold mb-2">Share file</div>
+						<div className="space-y-2 mb-3">
+							<label className="block text-sm text-gray-600">
+								Type username
+							</label>
+							<div className="flex items-center gap-2">
+								<input
+									type="text"
+									value={typedUsername}
+									onChange={(e) => setTypedUsername(e.target.value)}
+									placeholder="e.g. john_doe"
+									className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+								/>
+								<button
+									onClick={onShareTyped}
+									disabled={!typedUsername.trim()}
+									className={`px-3 py-2 rounded text-white ${
+										typedUsername.trim()
+											? "bg-teal-600 hover:bg-teal-700"
+											: "bg-teal-300 cursor-not-allowed"
+									}`}
+								>
+									Share
+								</button>
+							</div>
+							<div className="text-xs text-gray-500">
+								You can also pick from your friends below.
+							</div>
+						</div>
+
+						<div className="font-semibold mb-2">Or select a friend</div>
+						{friends.length ? (
+							<ul className="space-y-2">
+								{friends.map((f) => (
+									<li key={f.id}>
+										<button
+											onClick={() => shareWithFriend(f.username)}
+											className="w-full text-left px-3 py-2 border rounded hover:bg-teal-50"
+										>
+											@{f.username} {f.name ? `• ${f.name}` : ""}
+										</button>
+									</li>
+								))}
+							</ul>
+						) : (
+							<div className="text-sm text-gray-600">
+								No friends yet. Add some from your profile.
+							</div>
+						)}
+						<div className="mt-3 text-right">
+							<button
+								className="px-3 py-1 bg-gray-100 rounded"
+								onClick={() => {
+									setShowFriendPicker(false);
+									setShareTargetFile(null);
+									setTypedUsername("");
+								}}
+							>
+								Close
+							</button>
 						</div>
 					</div>
 				</div>

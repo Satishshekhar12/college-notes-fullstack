@@ -5,6 +5,7 @@ import { upload, handleMulterError } from "../middleware/upload.js";
 import DriveService from "../services/driveService.js";
 import User from "../models/userModel.js";
 import DriveShare from "../models/driveShareModel.js";
+import eventBus from "../utils/eventBus.js";
 
 const router = express.Router();
 
@@ -67,23 +68,19 @@ router.get("/files/:id/download", protect, async (req, res) => {
 			});
 			if (!share) {
 				const text = await metaRes.text();
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: `Not allowed to download: ${text}`,
-					});
+				return res.status(403).json({
+					success: false,
+					message: `Not allowed to download: ${text}`,
+				});
 			}
 			const owner = await User.findById(share.ownerUser).select(
 				"googleRefreshToken googleDriveFolderId"
 			);
 			if (!owner?.googleRefreshToken) {
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: "Owner cannot grant access at this time.",
-					});
+				return res.status(403).json({
+					success: false,
+					message: "Owner cannot grant access at this time.",
+				});
 			}
 			tokenOwner = owner;
 			accessToken = await DriveService.getAccessToken(tokenOwner);
@@ -93,12 +90,18 @@ router.get("/files/:id/download", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
-				return res
-					.status(403)
-					.json({
+				if (metaRes.status === 404) {
+					await DriveShare.deleteOne({ _id: share._id });
+					return res.status(404).json({
 						success: false,
-						message: `Not allowed to download: ${text}`,
+						message:
+							"File not found. The owner may have removed the file. This share has been cleaned.",
 					});
+				}
+				return res.status(403).json({
+					success: false,
+					message: `Not allowed to download: ${text}`,
+				});
 			}
 		}
 		const meta = await metaRes.json();
@@ -112,13 +115,11 @@ router.get("/files/:id/download", protect, async (req, res) => {
 					fileId: id,
 				});
 				if (!share) {
-					return res
-						.status(403)
-						.json({
-							success: false,
-							message:
-								"You can only download files uploaded via this app or ones shared with you via this app.",
-						});
+					return res.status(403).json({
+						success: false,
+						message:
+							"You can only download files uploaded via this app or ones shared with you via this app.",
+					});
 				}
 			}
 		}
@@ -130,6 +131,10 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		);
 		if (!dlRes.ok) {
 			const text = await dlRes.text();
+			if (dlRes.status === 404) {
+				// Clean any share record for this file from this owner (if exists)
+				await DriveShare.deleteMany({ ownerUser: tokenOwner._id, fileId: id });
+			}
 			return res
 				.status(dlRes.status)
 				.json({ success: false, message: text || "Failed to download" });
@@ -157,12 +162,10 @@ router.get("/files/:id/download", protect, async (req, res) => {
 		}
 	} catch (err) {
 		console.error("Drive download error:", err);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: err.message || "Failed to download file",
-			});
+		res.status(500).json({
+			success: false,
+			message: err.message || "Failed to download file",
+		});
 	}
 });
 
@@ -205,12 +208,10 @@ router.get("/files/:id/view", protect, async (req, res) => {
 				"googleRefreshToken googleDriveFolderId"
 			);
 			if (!owner?.googleRefreshToken) {
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: "Owner cannot grant access at this time.",
-					});
+				return res.status(403).json({
+					success: false,
+					message: "Owner cannot grant access at this time.",
+				});
 			}
 			tokenOwner = owner;
 			accessToken = await DriveService.getAccessToken(tokenOwner);
@@ -220,6 +221,14 @@ router.get("/files/:id/view", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
+				if (metaRes.status === 404) {
+					await DriveShare.deleteOne({ _id: share._id });
+					return res.status(404).json({
+						success: false,
+						message:
+							"File not found. The owner may have removed the file. This share has been cleaned.",
+					});
+				}
 				return res
 					.status(403)
 					.json({ success: false, message: `Not allowed to view: ${text}` });
@@ -233,6 +242,9 @@ router.get("/files/:id/view", protect, async (req, res) => {
 		);
 		if (!fileRes.ok) {
 			const text = await fileRes.text();
+			if (fileRes.status === 404) {
+				await DriveShare.deleteMany({ ownerUser: tokenOwner._id, fileId: id });
+			}
 			return res
 				.status(fileRes.status)
 				.json({ success: false, message: text || "Failed to view" });
@@ -347,34 +359,61 @@ router.delete("/files/:id", protect, async (req, res) => {
 			);
 			if (!metaRes.ok) {
 				const text = await metaRes.text();
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: `Not allowed to delete this file: ${text}`,
-					});
+				return res.status(403).json({
+					success: false,
+					message: `Not allowed to delete this file: ${text}`,
+				});
 			}
 			const meta = await metaRes.json();
 			const parents = meta.parents || [];
 			if (!parents.includes(user.googleDriveFolderId)) {
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: "You can only delete files uploaded via this app.",
-					});
-			}
-		} catch (e) {
-			return res
-				.status(403)
-				.json({
+				return res.status(403).json({
 					success: false,
 					message: "You can only delete files uploaded via this app.",
 				});
+			}
+		} catch (e) {
+			return res.status(403).json({
+				success: false,
+				message: "You can only delete files uploaded via this app.",
+			});
 		}
 
 		await DriveService.deleteFile(user, id);
-		res.json({ success: true });
+
+		// Also remove any share records for this file (so it disappears from both owner and recipients lists)
+		let sharesDeleted = 0;
+		try {
+			// Collect recipients first to notify them after delete
+			const toNotify = await DriveShare.find({
+				ownerUser: user._id,
+				fileId: id,
+			}).select("recipientUser fileId fileName");
+
+			const del = await DriveShare.deleteMany({
+				ownerUser: user._id,
+				fileId: id,
+			});
+			sharesDeleted = del?.deletedCount || 0;
+
+			// Notify recipients and owner via SSE to refresh their share lists immediately
+			const recipientIds = toNotify.map((s) => String(s.recipientUser));
+			eventBus.sendToUsers(recipientIds, "drive:shareRemoved", {
+				type: "share_removed",
+				fileId: id,
+				ownerUser: String(user._id),
+				reason: "owner_deleted",
+			});
+			eventBus.sendToUser(String(user._id), "drive:sharesUpdated", {
+				type: "shares_updated",
+				fileId: id,
+				sharesDeleted,
+			});
+		} catch (e) {
+			console.warn("DriveShare cleanup failed for file", id, e?.message);
+		}
+
+		res.json({ success: true, data: { sharesDeleted } });
 	} catch (err) {
 		console.error("Drive delete error:", err);
 		res.status(500).json({
@@ -427,39 +466,62 @@ router.post("/files/:id/share", protect, async (req, res) => {
 			);
 			if (!parentsRes.ok) {
 				const text = await parentsRes.text();
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: `Not allowed to share this file: ${text}`,
-					});
+				return res.status(403).json({
+					success: false,
+					message: `Not allowed to share this file: ${text}`,
+				});
 			}
 			const parentsMeta = await parentsRes.json();
 			const parents = parentsMeta.parents || [];
 			if (!parents.includes(owner.googleDriveFolderId)) {
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: "You can only share files uploaded via this app.",
-					});
-			}
-		} catch (e) {
-			return res
-				.status(403)
-				.json({
+				return res.status(403).json({
 					success: false,
 					message: "You can only share files uploaded via this app.",
 				});
+			}
+		} catch (e) {
+			return res.status(403).json({
+				success: false,
+				message: "You can only share files uploaded via this app.",
+			});
 		}
 
-		// Fetch file metadata to store alongside share record
 		// Ensure owner has access token and then call Drive permissions API
-		await DriveService.shareFile(owner, {
-			fileId: id,
-			recipientEmail: recipient.email,
-			role: ["reader", "commenter", "writer"].includes(role) ? role : "reader",
-		});
+		try {
+			await DriveService.shareFile(owner, {
+				fileId: id,
+				recipientEmail: recipient.email,
+				role: ["reader", "commenter", "writer"].includes(role)
+					? role
+					: "reader",
+			});
+		} catch (e) {
+			// Map specific Google Drive errors to cleaner client messages
+			let status = 500;
+			let message = e?.message || "Failed to share file";
+			// Try to extract JSON from message like: "Failed to share file: 400 { ... }"
+			const jsonStart = message.indexOf("{\n");
+			if (jsonStart !== -1) {
+				try {
+					const jsonStr = message.slice(jsonStart);
+					const g = JSON.parse(jsonStr);
+					status = Number(g?.error?.code) || 500;
+					const reason =
+						g?.error?.errors?.[0]?.reason || g?.error?.status || "";
+					const userMsg = g?.error?.message || "";
+					if (String(reason).includes("abusiveContentRestriction")) {
+						status = 400;
+						message =
+							"Google blocked sharing this file (abusiveContentRestriction). You cannot share this item because it may be flagged as inappropriate by Google. Please try another file or modify and re-upload.";
+					} else if (userMsg) {
+						message = userMsg;
+					}
+				} catch (_) {
+					// ignore JSON parse failure, fall back to raw message
+				}
+			}
+			return res.status(status).json({ success: false, message });
+		}
 
 		// Optionally get file name
 		let fileName = "";
@@ -507,6 +569,20 @@ router.post("/files/:id/share", protect, async (req, res) => {
 			{ new: true, upsert: true, setDefaultsOnInsert: true }
 		);
 
+		// Notify owner and recipient to refresh their lists
+		eventBus.sendToUser(String(owner._id), "drive:sharesUpdated", {
+			type: "shares_updated",
+			action: "shared",
+			fileId: id,
+			recipientUser: String(recipient._id),
+		});
+		eventBus.sendToUser(String(recipient._id), "drive:newShare", {
+			type: "new_share",
+			fileId: id,
+			ownerUser: String(owner._id),
+			fileName,
+		});
+
 		return res.json({ success: true, data: { share: record } });
 	} catch (err) {
 		console.error("Drive share error:", err);
@@ -519,36 +595,92 @@ router.post("/files/:id/share", protect, async (req, res) => {
 // List shares sent by me
 router.get("/shares/sent", protect, async (req, res) => {
 	try {
-		const shares = await DriveShare.find({ ownerUser: req.user._id })
+		let shares = await DriveShare.find({ ownerUser: req.user._id })
 			.sort({ sharedAt: -1 })
 			.lean();
+
+		// Best-effort cleanup: remove entries whose files are gone in Drive
+		try {
+			const owner = await User.findById(req.user._id).select(
+				"googleRefreshToken googleDriveFolderId"
+			);
+			if (owner?.googleRefreshToken) {
+				const accessToken = await DriveService.getAccessToken(owner);
+				const cleaned = [];
+				for (const s of shares) {
+					try {
+						const meta = await fetch(
+							`https://www.googleapis.com/drive/v3/files/${s.fileId}?fields=id`,
+							{ headers: { Authorization: `Bearer ${accessToken}` } }
+						);
+						if (meta.ok) {
+							cleaned.push(s);
+						} else if (meta.status === 404) {
+							await DriveShare.deleteOne({ _id: s._id });
+						} else {
+							// keep if transient error
+							cleaned.push(s);
+						}
+					} catch {
+						cleaned.push(s);
+					}
+				}
+				shares = cleaned;
+			}
+		} catch (e) {
+			console.warn("shares/sent cleanup skipped:", e?.message);
+		}
+
 		res.json({ success: true, data: { shares } });
 	} catch (err) {
 		console.error("Drive list sent shares error:", err);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: err.message || "Failed to list shares",
-			});
+		res.status(500).json({
+			success: false,
+			message: err.message || "Failed to list shares",
+		});
 	}
 });
 
 // List shares shared with me
 router.get("/shares/received", protect, async (req, res) => {
 	try {
-		const shares = await DriveShare.find({ recipientUser: req.user._id })
+		let shares = await DriveShare.find({ recipientUser: req.user._id })
 			.sort({ sharedAt: -1 })
 			.lean();
+
+		// Best-effort cleanup: remove entries if owner's file no longer exists
+		const cleaned = [];
+		for (const s of shares) {
+			try {
+				const owner = await User.findById(s.ownerUser).select(
+					"googleRefreshToken"
+				);
+				if (!owner?.googleRefreshToken) {
+					cleaned.push(s);
+					continue;
+				}
+				const accessToken = await DriveService.getAccessToken(owner);
+				const meta = await fetch(
+					`https://www.googleapis.com/drive/v3/files/${s.fileId}?fields=id`,
+					{ headers: { Authorization: `Bearer ${accessToken}` } }
+				);
+				if (meta.ok) cleaned.push(s);
+				else if (meta.status === 404)
+					await DriveShare.deleteOne({ _id: s._id });
+				else cleaned.push(s);
+			} catch {
+				cleaned.push(s);
+			}
+		}
+		shares = cleaned;
+
 		res.json({ success: true, data: { shares } });
 	} catch (err) {
 		console.error("Drive list received shares error:", err);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: err.message || "Failed to list shares",
-			});
+		res.status(500).json({
+			success: false,
+			message: err.message || "Failed to list shares",
+		});
 	}
 });
 

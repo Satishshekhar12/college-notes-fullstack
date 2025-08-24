@@ -266,6 +266,8 @@ class FileController {
 					uploadType: note.uploadType,
 					subject: note.subject,
 					semester: note.semester,
+					professor: note.professor || "",
+					year: note.year || "",
 					uploadedBy: note.uploadedBy,
 					createdAt: note.createdAt,
 					downloadCount: note.downloadCount || 0,

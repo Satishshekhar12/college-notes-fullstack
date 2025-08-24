@@ -577,7 +577,8 @@ const UploadWrapper = () => {
 											uploadType: uploadTypeObj?.id || selectedType,
 											semester: selectedSemester,
 											subject: selectedSubject,
-											description: "", // Add default description
+											description: "", // default description
+											// professor and year will come from form and be merged before upload
 										}}
 									/>
 								</div>

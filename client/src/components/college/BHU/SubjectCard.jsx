@@ -4,6 +4,9 @@ import { listFilesByCategory } from "../../../services/apiService";
 
 const SubjectCard = ({ subject, courseId, semester }) => {
 	const [activeTab, setActiveTab] = useState("notes");
+	// Optional sort helpers
+	const [professorQuery, setProfessorQuery] = useState("");
+	const [yearQuery, setYearQuery] = useState("");
 	const [files, setFiles] = useState({
 		notes: [],
 		pyqs: [],
@@ -138,6 +141,91 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 		fetchFiles();
 	}, [subject.name, courseId, semester]);
 
+	// Helpers to extract meta from a filename-like string
+	const extractYear = (name) => {
+		if (!name) return null;
+		const m = String(name).match(/\b(19|20)\d{2}\b/);
+		return m ? parseInt(m[0], 10) : null;
+	};
+
+	const textIncludes = (hay, needle) => {
+		if (!needle) return false;
+		return String(hay || "")
+			.toLowerCase()
+			.includes(String(needle).toLowerCase());
+	};
+
+	const getName = (item) => {
+		if (typeof item === "string") return item;
+		return (
+			item?.displayName ||
+			item?.fileName ||
+			item?.originalName ||
+			item?.title ||
+			""
+		);
+	};
+
+	// Helper to get professor/year for display
+	const getMeta = (item) => {
+		if (typeof item !== "object" || !item) return { professor: "", year: "" };
+		return {
+			professor: item.professor || "",
+			year: item.year || "",
+		};
+	};
+
+	// Compute a sorted list based on professor/year hints (only when provided)
+	const getSorted = (arr) => {
+		const profQ = (professorQuery || "").trim();
+		const yearQ = (yearQuery || "").toString().trim();
+		if (!profQ && !yearQ) return arr;
+		return [...arr].sort((a, b) => {
+			const an = getName(a);
+			const bn = getName(b);
+			const ameta = getMeta(a);
+			const bmeta = getMeta(b);
+
+			// Prefer explicit professor/year fields if present
+			const aProfMatch = profQ
+				? textIncludes(ameta.professor, profQ) || textIncludes(an, profQ)
+				: false;
+			const bProfMatch = profQ
+				? textIncludes(bmeta.professor, profQ) || textIncludes(bn, profQ)
+				: false;
+			const aYearMatch = yearQ
+				? textIncludes(ameta.year, yearQ) || textIncludes(an, yearQ)
+				: false;
+			const bYearMatch = yearQ
+				? textIncludes(bmeta.year, yearQ) || textIncludes(bn, yearQ)
+				: false;
+
+			// Tiers (higher first) based on provided queries only
+			let aTier = 0;
+			let bTier = 0;
+			if (profQ && yearQ) {
+				aTier = aProfMatch && aYearMatch ? 2 : aProfMatch || aYearMatch ? 1 : 0;
+				bTier = bProfMatch && bYearMatch ? 2 : bProfMatch || bYearMatch ? 1 : 0;
+			} else if (profQ) {
+				aTier = aProfMatch ? 1 : 0;
+				bTier = bProfMatch ? 1 : 0;
+			} else if (yearQ) {
+				aTier = aYearMatch ? 1 : 0;
+				bTier = bYearMatch ? 1 : 0;
+			}
+
+			if (aTier !== bTier) return bTier - aTier; // higher tier first
+
+			// When year query is present, within same tier prefer newer year
+			const ay = ameta.year ? parseInt(ameta.year, 10) : extractYear(an);
+			const by = bmeta.year ? parseInt(bmeta.year, 10) : extractYear(bn);
+			if (yearQ && ay != null && by != null && ay !== by) return by - ay;
+
+			// Fallback: alphabetical by name
+			return an.localeCompare(bn);
+		});
+	};
+
 	// Generate subject code based on course and subject name
 	const generateSubjectCode = () => {
 		const courseCode = courseId.substring(0, 3).toUpperCase();
@@ -164,6 +252,24 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 						{courseId.toUpperCase()}
 					</span>
 				</div>
+			</div>
+
+			{/* Optional sort/filter inputs */}
+			<div className="mb-4 flex flex-col md:flex-row gap-2">
+				<input
+					type="text"
+					value={professorQuery}
+					onChange={(e) => setProfessorQuery(e.target.value)}
+					placeholder="Professor/Teacher name (optional)"
+					className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+				<input
+					type="text"
+					value={yearQuery}
+					onChange={(e) => setYearQuery(e.target.value.replace(/[^0-9]/g, ""))}
+					placeholder="Year e.g. 2024 (optional)"
+					className="w-full md:w-48 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
 			</div>
 
 			{/* Tabs */}
@@ -345,7 +451,19 @@ const SubjectCard = ({ subject, courseId, semester }) => {
 				</div>
 			)}
 
-			<FileList files={files[activeTab]} />
+			<FileList
+				files={getSorted(files[activeTab])}
+				renderMeta={(item) => {
+					const meta = getMeta(item);
+					return meta.professor || meta.year ? (
+						<span className="text-xs text-gray-500 ml-2">
+							{meta.professor && <span>Prof: {meta.professor}</span>}
+							{meta.professor && meta.year && <span> • </span>}
+							{meta.year && <span>Year: {meta.year}</span>}
+						</span>
+					) : null;
+				}}
+			/>
 		</div>
 	);
 };

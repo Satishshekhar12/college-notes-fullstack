@@ -59,6 +59,13 @@ export const uploadFilesToServer = async (files, uploadConfig, onProgress) => {
 					"tags",
 					uploadConfig.tags ? uploadConfig.tags.join(",") : ""
 				);
+				// Optional metadata
+				if (uploadConfig.professor) {
+					formData.append("professor", String(uploadConfig.professor));
+				}
+				if (uploadConfig.year) {
+					formData.append("year", String(uploadConfig.year));
+				}
 
 				const response = await fetch(`${API_BASE_URL}/api/notes/upload`, {
 					method: "POST",

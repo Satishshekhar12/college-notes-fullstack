@@ -3,7 +3,7 @@ import { generatePresignedUrl } from "../../../services/apiService";
 import SecureViewer from "../../common/SecureViewer";
 import { Toast } from "../../../utils/toast";
 
-const FileList = ({ files }) => {
+const FileList = ({ files, renderMeta }) => {
 	const [loadingFiles, setLoadingFiles] = useState(new Set());
 	const getFileIcon = (fileName) => {
 		if (fileName.toLowerCase().includes("pdf")) {
@@ -161,6 +161,11 @@ const FileList = ({ files }) => {
 									<p className="text-sm text-gray-800 truncate font-medium">
 										{displayName}
 									</p>
+									{renderMeta && (
+										<div className="text-[11px] text-gray-500 truncate mt-0.5">
+											{renderMeta(file)}
+										</div>
+									)}
 									<p className="text-xs text-gray-500">{getFileSize()}</p>
 								</div>
 							</div>

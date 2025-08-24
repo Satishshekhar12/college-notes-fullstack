@@ -142,6 +142,42 @@ const SubjectCard = ({ subject, college = "NITK", course, semester }) => {
 		return files[tabName]?.length || 0;
 	};
 
+	// Group/sort helper: group by professor (non-empty first), then year desc, then name
+	const getSorted = (arr = []) => {
+		return [...arr].sort((a, b) => {
+			const ap = (a.professor || "").trim().toLowerCase();
+			const bp = (b.professor || "").trim().toLowerCase();
+			const ahas = ap ? 1 : 0;
+			const bhas = bp ? 1 : 0;
+			if (ahas !== bhas) return bhas - ahas; // items with professor first
+
+			if (ap !== bp) return ap.localeCompare(bp);
+
+			const ay = parseInt(a.year, 10);
+			const by = parseInt(b.year, 10);
+			const ayValid = !isNaN(ay);
+			const byValid = !isNaN(by);
+			if (ayValid && byValid && ay !== by) return by - ay; // newer first
+			if (ayValid !== byValid) return byValid ? 1 : -1; // items with year first
+
+			const an = (
+				a.displayName ||
+				a.fileName ||
+				a.originalName ||
+				a.title ||
+				""
+			).toLowerCase();
+			const bn = (
+				b.displayName ||
+				b.fileName ||
+				b.originalName ||
+				b.title ||
+				""
+			).toLowerCase();
+			return an.localeCompare(bn);
+		});
+	};
+
 	return (
 		<div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 md:p-6">
 			{/* Subject Header */}
@@ -276,7 +312,20 @@ const SubjectCard = ({ subject, college = "NITK", course, semester }) => {
 			)}
 
 			{/* File List */}
-			{!loading && !error && <FileList files={files[activeTab] || []} />}
+			{!loading && !error && (
+				<FileList
+					files={getSorted(files[activeTab] || [])}
+					renderMeta={(item) =>
+						item.professor || item.year ? (
+							<span className="text-xs text-gray-500 ml-2">
+								{item.professor && <span>Prof: {item.professor}</span>}
+								{item.professor && item.year && <span> • </span>}
+								{item.year && <span>Year: {item.year}</span>}
+							</span>
+						) : null
+					}
+				/>
+			)}
 
 			{/* Empty State */}
 			{!loading &&
