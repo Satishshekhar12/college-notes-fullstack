@@ -63,6 +63,18 @@ const noteSchema = new mongoose.Schema(
 			],
 		},
 
+		// New: Professor and Year metadata
+		professor: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+		year: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+
 		// File information (S3 references only - no file storage in MongoDB)
 		file: {
 			originalName: {

@@ -149,6 +149,10 @@ const userSchema = new mongoose.Schema(
 			default: "",
 			maxlength: [300, "Skills cannot exceed 300 characters"],
 		},
+		// Social: mutual friends (bidirectional links maintained in controller)
+		friends: [
+			{ type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
+		],
 		// Account status for admin control
 		isActive: {
 			type: Boolean,

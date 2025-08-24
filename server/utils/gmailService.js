@@ -8,24 +8,35 @@ const requireEnv = (name) => {
 };
 
 // Create a robust Gmail transporter with fallback between 465 and 587
-const createTransport = (opts) => nodemailer.createTransport({
-	pool: true,
-	...opts,
-	auth: {
-		user: requireEnv("GMAIL_USER"),
-		pass: requireEnv("GMAIL_PASS"),
-	},
-	// Reasonable timeouts to avoid hanging in PaaS
-	connectionTimeout: 10_000,
-	greetingTimeout: 10_000,
-	socketTimeout: 15_000,
-});
+const createTransport = (opts) =>
+	nodemailer.createTransport({
+		pool: true,
+		...opts,
+		auth: {
+			user: requireEnv("GMAIL_USER"),
+			pass: requireEnv("GMAIL_PASS"),
+		},
+		// Reasonable timeouts to avoid hanging in PaaS
+		connectionTimeout: 10_000,
+		greetingTimeout: 10_000,
+		socketTimeout: 15_000,
+	});
 
 const getGmailTransporter = async () => {
 	// Try SSL first (465), then TLS upgrade (587)
 	const configs = [
-		{ host: "smtp.gmail.com", port: 465, secure: true, tls: { servername: "smtp.gmail.com" } },
-		{ host: "smtp.gmail.com", port: 587, secure: false, tls: { ciphers: "TLSv1.2", servername: "smtp.gmail.com" } },
+		{
+			host: "smtp.gmail.com",
+			port: 465,
+			secure: true,
+			tls: { servername: "smtp.gmail.com" },
+		},
+		{
+			host: "smtp.gmail.com",
+			port: 587,
+			secure: false,
+			tls: { ciphers: "TLSv1.2", servername: "smtp.gmail.com" },
+		},
 	];
 	let lastErr;
 	for (const cfg of configs) {
@@ -37,7 +48,10 @@ const getGmailTransporter = async () => {
 			lastErr = err;
 		}
 	}
-	const maskedUser = (process.env.GMAIL_USER || "").replace(/(.{2}).+(@.*)/, "$1***$2");
+	const maskedUser = (process.env.GMAIL_USER || "").replace(
+		/(.{2}).+(@.*)/,
+		"$1***$2"
+	);
 	const err = new Error(
 		`SMTP connect failed for ${maskedUser}. Ensure App Password is valid and outbound SMTP to ports 465/587 is allowed.`
 	);
@@ -58,7 +72,7 @@ export const sendContactEmail = async (contactData) => {
 
 	// Email to you (the admin)
 	const adminMailOptions = {
-	to: process.env.GMAIL_USER, // Send to yourself
+		to: process.env.GMAIL_USER, // Send to yourself
 		subject: `New Contact Form Message from ${name}`,
 		html: `
 			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
@@ -89,7 +103,7 @@ export const sendContactEmail = async (contactData) => {
 				</footer>
 			</div>
 		`,
-	replyTo: email, // This allows you to reply directly to the sender
+		replyTo: email, // This allows you to reply directly to the sender
 	};
 
 	// Confirmation email to the sender

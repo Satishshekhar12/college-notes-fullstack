@@ -10,6 +10,9 @@ const EnhancedUploadForm = ({ onUpload, uploadConfig }) => {
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [tags, setTags] = useState("");
+	// New optional metadata
+	const [professor, setProfessor] = useState("");
+	const [year, setYear] = useState("");
 	const [dragActive, setDragActive] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(null);
@@ -80,9 +83,23 @@ const EnhancedUploadForm = ({ onUpload, uploadConfig }) => {
 
 		try {
 			// Upload files to server
+			const mergedConfig = {
+				...uploadConfig,
+				// pass form fields so server can store them per-note
+				description: description.trim(),
+				tags: tags
+					.trim()
+					.split(",")
+					.map((t) => t.trim())
+					.filter(Boolean),
+				professor: professor.trim(),
+				year: year.trim(),
+				// keep existing behavior for title per-file (filename), do not override here
+			};
+
 			const uploadResult = await uploadFilesToServer(
 				files,
-				uploadConfig,
+				mergedConfig,
 				setUploadProgress
 			);
 
@@ -148,6 +165,8 @@ const EnhancedUploadForm = ({ onUpload, uploadConfig }) => {
 					.split(",")
 					.map((tag) => tag.trim())
 					.filter((tag) => tag),
+				professor: professor.trim() || undefined,
+				year: year.trim() || undefined,
 				files: successfulUploads.map((result) => result.data),
 				failedUploads: failedUploads,
 				uploadConfig,
@@ -167,6 +186,8 @@ const EnhancedUploadForm = ({ onUpload, uploadConfig }) => {
 			setTags("");
 			setValidationErrors([]);
 			setUploadProgress(null);
+			setProfessor("");
+			setYear("");
 		} catch (error) {
 			console.error("Upload error:", error);
 			const errorMessage =
@@ -740,6 +761,62 @@ const EnhancedUploadForm = ({ onUpload, uploadConfig }) => {
 							</svg>
 							Add relevant tags to help others discover your uploads
 						</p>
+					</div>
+
+					{/* Professor (optional) */}
+					<div className="group">
+						<label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+							<svg
+								className="w-4 h-4 mr-2 text-amber-500"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+								/>
+							</svg>
+							Professor (optional)
+						</label>
+						<input
+							type="text"
+							value={professor}
+							onChange={(e) => setProfessor(e.target.value)}
+							placeholder="Enter professor/teacher name (optional)"
+							className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 bg-white/50 backdrop-blur-sm group-hover:bg-white"
+							disabled={uploading}
+						/>
+					</div>
+
+					{/* Year (optional) */}
+					<div className="group">
+						<label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+							<svg
+								className="w-4 h-4 mr-2 text-indigo-500"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M8 7V3m8 4V3M5 11h14M5 19h14M5 11a2 2 0 012-2h10a2 2 0 012 2M5 19a2 2 0 002 2h10a2 2 0 002-2"
+								/>
+							</svg>
+							Year (optional)
+						</label>
+						<input
+							type="text"
+							value={year}
+							onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, ""))}
+							placeholder="e.g. 2024"
+							className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white/50 backdrop-blur-sm group-hover:bg-white"
+							disabled={uploading}
+						/>
 					</div>
 
 					<div className="group lg:col-span-2">

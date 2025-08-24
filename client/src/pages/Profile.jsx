@@ -8,6 +8,11 @@ import {
 	setInitialPassword as setInitialPasswordApi,
 	updateUsername as updateUsernameApi,
 } from "../services/userService";
+import {
+	addFriend as addFriendApi,
+	listFriends as listFriendsApi,
+	removeFriend as removeFriendApi,
+} from "../services/friendService";
 import { useNavigate } from "react-router-dom";
 import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
 import { colleges } from "../data/colleges";
@@ -69,6 +74,19 @@ function Profile() {
 
 	// No reauth state needed anymore
 
+	// Friends state
+	const [friends, setFriends] = useState([]);
+	const [friendUsername, setFriendUsername] = useState("");
+
+	const fetchFriends = async () => {
+		try {
+			const list = await listFriendsApi();
+			setFriends(list);
+		} catch {
+			// ignore
+		}
+	};
+
 	useEffect(() => {
 		console.log("🔄 Profile component mounting, fetching user data...");
 		const fetchData = async () => {
@@ -117,6 +135,7 @@ function Profile() {
 					}
 					// Fetch user statistics
 					await fetchUserStats();
+					await fetchFriends();
 				}
 			} catch (err) {
 				setError(err.message || "Failed to fetch profile");
@@ -126,6 +145,20 @@ function Profile() {
 		};
 
 		fetchData();
+	}, [navigate]);
+
+	// Fetch friends on mount
+	useEffect(() => {
+		const fetchFriends = async () => {
+			try {
+				const list = await listFriendsApi();
+				setFriends(list);
+			} catch {
+				// ignore
+			}
+		};
+
+		fetchFriends();
 	}, [navigate]);
 
 	// Handle clicking outside college suggestions
@@ -387,6 +420,36 @@ function Profile() {
 	const handleLogout = () => {
 		userLogout();
 		navigate("/");
+	};
+
+	// Add friend handler
+	const handleAddFriend = async (e) => {
+		e.preventDefault();
+		setError("");
+		setSuccess("");
+		const uname = friendUsername.trim().toLowerCase();
+		if (!uname) return;
+		try {
+			const res = await addFriendApi(uname);
+			setSuccess(res.message || "Friend added");
+			setFriendUsername("");
+			await fetchFriends();
+		} catch (err) {
+			setError(err.message || "Failed to add friend");
+		}
+	};
+
+	// Remove friend handler
+	const handleRemoveFriend = async (username) => {
+		setError("");
+		setSuccess("");
+		try {
+			const res = await removeFriendApi(username);
+			setSuccess(res.message || "Friend removed");
+			await fetchFriends();
+		} catch (err) {
+			setError(err.message || "Failed to remove friend");
+		}
 	};
 
 	if (loading) {
@@ -677,6 +740,17 @@ function Profile() {
 									<span className="text-xs leading-tight">Drive</span>
 								</button>
 							)}
+							<button
+								onClick={() => setActiveTab("friends")}
+								className={`flex-1 min-w-0 py-2 px-1 sm:py-3 sm:px-3 md:px-6 text-xs sm:text-sm font-medium flex flex-col items-center justify-center space-y-0.5 transition duration-200 ${
+									activeTab === "friends"
+										? "border-b-2 border-teal-500 text-teal-600 bg-teal-50"
+										: "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+								}`}
+							>
+								<span className="text-sm sm:text-base md:text-lg">👥</span>
+								<span className="text-xs leading-tight">Friends</span>
+							</button>
 						</nav>
 					</div>
 
@@ -1435,6 +1509,99 @@ function Profile() {
 						{activeTab === "drive" && (
 							<div className="max-w-3xl">
 								<PersonalDrive isGoogleLinked={Boolean(user?.googleId)} />
+							</div>
+						)}
+
+						{/* Friends List Tab */}
+						{activeTab === "friends" && (
+							<div className="max-w-2xl">
+								<div className="mb-8">
+									<h2 className="text-2xl font-bold text-gray-800 mb-2">
+										Friends List
+									</h2>
+									<p className="text-gray-600">
+										Manage your friends and connections.
+									</p>
+								</div>
+
+								{/* Add Friend Form */}
+								<div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+									<h3 className="text-lg font-semibold mb-4">Add a Friend</h3>
+									<form onSubmit={handleAddFriend} className="flex space-x-4">
+										<div className="flex-1 min-w-0">
+											<label className="block text-sm text-gray-700 mb-1">
+												Friend's Username
+											</label>
+											<input
+												type="text"
+												value={friendUsername}
+												onChange={(e) => setFriendUsername(e.target.value)}
+												placeholder="Enter username"
+												className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+											/>
+										</div>
+										<button
+											type="submit"
+											className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
+										>
+											Add Friend
+										</button>
+									</form>
+								</div>
+
+								{/* Friends List Table */}
+								<div className="bg-white rounded-xl border border-gray-200 p-6">
+									<h3 className="text-lg font-semibold mb-4">Your Friends</h3>
+									{friends.length === 0 ? (
+										<p className="text-gray-500 text-sm">
+											No friends added yet. Start by adding some friends!
+										</p>
+									) : (
+										<table className="min-w-full divide-y divide-gray-200">
+											<thead className="bg-gray-50">
+												<tr>
+													<th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+														Username
+													</th>
+													<th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+														Full Name
+													</th>
+													<th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+														Email
+													</th>
+													<th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+														Actions
+													</th>
+												</tr>
+											</thead>
+											<tbody className="bg-white divide-y divide-gray-200">
+												{friends.map((friend) => (
+													<tr key={friend.id}>
+														<td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
+															{friend.username}
+														</td>
+														<td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
+															{friend.name || ""}
+														</td>
+														<td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
+															{friend.email}
+														</td>
+														<td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+															<button
+																className="text-red-600 hover:text-red-800"
+																onClick={() =>
+																	handleRemoveFriend(friend.username)
+																}
+															>
+																Remove
+															</button>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									)}
+								</div>
 							</div>
 						)}
 					</div>

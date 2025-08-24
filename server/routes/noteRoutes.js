@@ -11,7 +11,7 @@ import {
 	getModerationStats,
 	uploadMiddleware,
 } from "../controllers/noteController.js";
-import { protect } from "../controllers/authController.js";
+import { protect, optionalProtect } from "../controllers/authController.js";
 import Settings from "../models/settingsModel.js";
 import {
 	requireModeratorOrAbove,
@@ -42,7 +42,14 @@ const requireAuthIfConfigured = async (req, res, next) => {
 };
 
 // Place upload route before global protect so toggle works
-router.post("/upload", requireAuthIfConfigured, uploadMiddleware, uploadNote);
+// Use optionalProtect to attach user if token is present even when login isn't required
+router.post(
+	"/upload",
+	requireAuthIfConfigured,
+	optionalProtect,
+	uploadMiddleware,
+	uploadNote
+);
 
 // Default: protect routes below
 router.use(protect);

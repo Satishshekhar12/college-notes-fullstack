@@ -116,6 +116,8 @@ export const uploadNote = async (req, res) => {
 						.map((tag) => tag.trim())
 						.filter((tag) => tag)
 				: [],
+			professor: req.body.professor?.trim() || "",
+			year: req.body.year?.trim() || "",
 		};
 
 		// Validate required fields
