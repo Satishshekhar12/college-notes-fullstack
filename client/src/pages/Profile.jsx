@@ -12,6 +12,10 @@ import {
 	addFriend as addFriendApi,
 	listFriends as listFriendsApi,
 	removeFriend as removeFriendApi,
+	listFriendGroups as listFriendGroupsApi,
+	createFriendGroup as createFriendGroupApi,
+	addMemberToGroup as addMemberToGroupApi,
+	removeMemberFromGroup as removeMemberFromGroupApi,
 } from "../services/friendService";
 import { useNavigate } from "react-router-dom";
 import ModeratorRequestForm from "../components/common/ModeratorRequestForm";
@@ -76,12 +80,24 @@ function Profile() {
 
 	// Friends state
 	const [friends, setFriends] = useState([]);
+	const [friendGroups, setFriendGroups] = useState([]);
+	const [newGroupName, setNewGroupName] = useState("");
+	const [groupMemberInputs, setGroupMemberInputs] = useState({}); // { [groupId]: username }
 	const [friendUsername, setFriendUsername] = useState("");
 
 	const fetchFriends = async () => {
 		try {
 			const list = await listFriendsApi();
 			setFriends(list);
+		} catch {
+			// ignore
+		}
+	};
+
+	const fetchFriendGroups = async () => {
+		try {
+			const groups = await listFriendGroupsApi();
+			setFriendGroups(groups);
 		} catch {
 			// ignore
 		}
@@ -136,6 +152,7 @@ function Profile() {
 					// Fetch user statistics
 					await fetchUserStats();
 					await fetchFriends();
+					await fetchFriendGroups();
 				}
 			} catch (err) {
 				setError(err.message || "Failed to fetch profile");
@@ -159,6 +176,7 @@ function Profile() {
 		};
 
 		fetchFriends();
+		fetchFriendGroups();
 	}, [navigate]);
 
 	// Handle clicking outside college suggestions
@@ -416,6 +434,40 @@ function Profile() {
 			setError(err.message || "Failed to set password");
 		}
 	};
+
+	// Friend group handlers
+	const onCreateGroup = async (e) => {
+		e.preventDefault();
+		if (!newGroupName.trim()) return;
+		try {
+			await createFriendGroupApi({ name: newGroupName.trim() });
+			setNewGroupName("");
+			await fetchFriendGroups();
+		} catch (err) {
+			setError(err.message || "Failed to create group");
+		}
+	};
+
+	const onAddToGroup = async (groupId, username) => {
+		try {
+			await addMemberToGroupApi(groupId, username);
+			await fetchFriendGroups();
+		} catch (err) {
+			setError(err.message || "Failed to add member to group");
+		}
+	};
+
+	const onRemoveFromGroup = async (groupId, username) => {
+		try {
+			await removeMemberFromGroupApi(groupId, username);
+			await fetchFriendGroups();
+		} catch (err) {
+			setError(err.message || "Failed to remove member from group");
+		}
+	};
+
+	const setGroupMemberInput = (groupId, value) =>
+		setGroupMemberInputs((prev) => ({ ...prev, [groupId]: value }));
 
 	const handleLogout = () => {
 		userLogout();
@@ -1522,6 +1574,94 @@ function Profile() {
 									<p className="text-gray-600">
 										Manage your friends and connections.
 									</p>
+								</div>
+
+								{/* Friend Groups Section */}
+								<div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+									<h3 className="text-lg font-semibold mb-4">Friend Groups</h3>
+									<form onSubmit={onCreateGroup} className="flex gap-3 mb-4">
+										<input
+											type="text"
+											value={newGroupName}
+											onChange={(e) => setNewGroupName(e.target.value)}
+											placeholder="New group name (e.g., CSE 2021)"
+											className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+										/>
+										<button
+											type="submit"
+											className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+										>
+											Create Group
+										</button>
+									</form>
+
+									{friendGroups.length === 0 ? (
+										<p className="text-gray-500 text-sm">
+											No groups yet. Create one to organize friends by batch.
+										</p>
+									) : (
+										<div className="space-y-6">
+											{friendGroups.map((g) => (
+												<div key={g.id} className="border rounded-lg p-4">
+													<div className="flex items-center justify-between mb-3">
+														<div>
+															<div className="font-semibold">{g.name}</div>
+															<div className="text-sm text-gray-600">
+																{g.members?.length || 0} member(s)
+															</div>
+														</div>
+														<div className="flex items-center gap-2">
+															<input
+																value={groupMemberInputs[g.id] || ""}
+																onChange={(e) =>
+																	setGroupMemberInput(g.id, e.target.value)
+																}
+																placeholder="username"
+																className="px-3 py-2 border rounded"
+															/>
+															<button
+																onClick={() => {
+																	const u = (groupMemberInputs[g.id] || "")
+																		.trim()
+																		.toLowerCase();
+																	if (!u) return;
+																	onAddToGroup(g.id, u);
+																	setGroupMemberInput(g.id, "");
+																}}
+																className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+															>
+																Add Member
+															</button>
+														</div>
+													</div>
+													{g.members?.length ? (
+														<ul className="flex flex-wrap gap-2">
+															{g.members.map((m) => (
+																<li
+																	key={m.id}
+																	className="px-2 py-1 bg-gray-100 rounded text-sm flex items-center gap-2"
+																>
+																	<span>@{m.username}</span>
+																	<button
+																		onClick={() =>
+																			onRemoveFromGroup(g.id, m.username)
+																		}
+																		className="text-red-600 hover:underline"
+																	>
+																		Remove
+																	</button>
+																</li>
+															))}
+														</ul>
+													) : (
+														<div className="text-sm text-gray-600">
+															No members yet.
+														</div>
+													)}
+												</div>
+											))}
+										</div>
+									)}
 								</div>
 
 								{/* Add Friend Form */}

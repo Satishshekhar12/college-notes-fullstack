@@ -77,9 +77,13 @@ class DriveService {
 			// Give a clearer hint when the Google token doesn't have drive.file scope
 			try {
 				const j = JSON.parse(text);
-				const reason = j?.error?.details?.[0]?.reason || j?.error?.errors?.[0]?.reason;
+				const reason =
+					j?.error?.details?.[0]?.reason || j?.error?.errors?.[0]?.reason;
 				const msg = j?.error?.message || "Insufficient permissions";
-				if (res.status === 403 && String(reason).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT")) {
+				if (
+					res.status === 403 &&
+					String(reason).includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT")
+				) {
 					throw new Error(
 						`Google Drive access not granted for this account. Please reconnect Google from your Profile to grant Drive access (drive.file). If this still fails for non-developer accounts, ask the app owner to add you as a Test user in the Google OAuth consent screen or publish the app. Original: ${msg}`
 					);
@@ -96,16 +100,16 @@ class DriveService {
 		return data.id;
 	}
 
-	static async listFiles(user) {
+	static async listFiles(user, parentId) {
 		const accessToken = await this.getAccessToken(user);
-		const folderId = await this.ensureUserFolder(user);
+		const folderId = parentId || (await this.ensureUserFolder(user));
 
 		const params = new URLSearchParams({
 			q: `'${folderId}' in parents and trashed = false`,
 			fields:
 				"files(id,name,mimeType,modifiedTime,size,webViewLink,webContentLink)",
-			pageSize: "100",
-			orderBy: "modifiedTime desc",
+			pageSize: "200",
+			orderBy: "folder,name,modifiedTime desc",
 		});
 
 		const res = await fetch(
@@ -149,9 +153,9 @@ class DriveService {
 		};
 	}
 
-	static async uploadFile(user, file) {
+	static async uploadFile(user, file, parentId) {
 		const accessToken = await this.getAccessToken(user);
-		const folderId = await this.ensureUserFolder(user);
+		const folderId = parentId || (await this.ensureUserFolder(user));
 
 		const metadata = {
 			name: file.originalname,
@@ -181,6 +185,69 @@ class DriveService {
 			throw new Error(`Failed to upload file to Drive: ${res.status} ${text}`);
 		}
 
+		return await res.json();
+	}
+
+	static async getFileMeta(
+		user,
+		id,
+		fields = "id,name,mimeType,parents,size,modifiedTime,webViewLink"
+	) {
+		const accessToken = await this.getAccessToken(user);
+		const params = new URLSearchParams({ fields });
+		const res = await fetch(
+			`https://www.googleapis.com/drive/v3/files/${id}?${params.toString()}`,
+			{
+				headers: { Authorization: `Bearer ${accessToken}` },
+			}
+		);
+		if (!res.ok) {
+			const text = await res.text();
+			throw new Error(`Failed to get file meta: ${res.status} ${text}`);
+		}
+		return await res.json();
+	}
+
+	static async findChildFolderByName(user, parentId, name) {
+		const accessToken = await this.getAccessToken(user);
+		const params = new URLSearchParams({
+			q: `'${parentId}' in parents and name = '${name.replace(
+				/'/g,
+				"\\'"
+			)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+			fields: "files(id,name)",
+			pageSize: "5",
+		});
+		const res = await fetch(
+			`https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+			{
+				headers: { Authorization: `Bearer ${accessToken}` },
+			}
+		);
+		if (!res.ok) return null;
+		const j = await res.json();
+		return j.files?.[0] || null;
+	}
+
+	static async createFolderUnder(user, parentId, name) {
+		const accessToken = await this.getAccessToken(user);
+		const metadata = {
+			name,
+			mimeType: "application/vnd.google-apps.folder",
+			parents: [parentId],
+		};
+		const res = await fetch("https://www.googleapis.com/drive/v3/files", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(metadata),
+		});
+		if (!res.ok) {
+			const text = await res.text();
+			throw new Error(`Failed to create subfolder: ${res.status} ${text}`);
+		}
 		return await res.json();
 	}
 

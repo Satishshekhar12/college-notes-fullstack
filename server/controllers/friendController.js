@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import { protect } from "./authController.js";
+import FriendGroup from "../models/friendGroupModel.js";
 
 // POST /api/friends/add { username }
 export const addFriend = catchAsync(async (req, res, next) => {
@@ -87,4 +88,118 @@ export const searchUsers = catchAsync(async (req, res) => {
 		.limit(10)
 		.lean();
 	res.json({ status: "success", data: { users } });
+});
+
+// ===== Friend Groups =====
+
+// GET /api/friends/groups - list my groups with member basic info
+export const listGroups = catchAsync(async (req, res) => {
+	const groups = await FriendGroup.find({ ownerUser: req.user._id })
+		.sort({ createdAt: -1 })
+		.populate("members", "username name email")
+		.lean();
+	const data = groups.map((g) => ({
+		id: g._id,
+		name: g.name,
+		description: g.description || "",
+		members: (g.members || []).map((m) => ({
+			id: m._id,
+			username: m.username,
+			name: m.name,
+			email: m.email,
+		})),
+		createdAt: g.createdAt,
+		updatedAt: g.updatedAt,
+	}));
+	res.json({ status: "success", data: { groups: data } });
+});
+
+// POST /api/friends/groups { name, description }
+export const createGroup = catchAsync(async (req, res, next) => {
+	const { name, description } = req.body || {};
+	if (!name || !String(name).trim())
+		return next({ statusCode: 400, message: "Group name is required" });
+	const doc = await FriendGroup.create({
+		ownerUser: req.user._id,
+		name: String(name).trim(),
+		description: String(description || "").trim(),
+		members: [],
+	});
+	res
+		.status(201)
+		.json({
+			status: "success",
+			data: {
+				group: {
+					id: doc._id,
+					name: doc.name,
+					description: doc.description,
+					members: [],
+				},
+			},
+		});
+});
+
+// PATCH /api/friends/groups/:id { name?, description? }
+export const updateGroup = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+	const { name, description } = req.body || {};
+	const group = await FriendGroup.findOne({ _id: id, ownerUser: req.user._id });
+	if (!group) return next({ statusCode: 404, message: "Group not found" });
+	if (name && String(name).trim()) group.name = String(name).trim();
+	if (typeof description === "string") group.description = description;
+	await group.save();
+	res.json({
+		status: "success",
+		data: {
+			group: {
+				id: group._id,
+				name: group.name,
+				description: group.description,
+			},
+		},
+	});
+});
+
+// DELETE /api/friends/groups/:id
+export const deleteGroup = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+	const del = await FriendGroup.deleteOne({ _id: id, ownerUser: req.user._id });
+	if (!del.deletedCount)
+		return next({ statusCode: 404, message: "Group not found" });
+	res.json({ status: "success", message: "Group deleted" });
+});
+
+// POST /api/friends/groups/:id/members { username }
+export const addGroupMember = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+	const { username } = req.body || {};
+	if (!username) return next({ statusCode: 400, message: "Username required" });
+	const group = await FriendGroup.findOne({ _id: id, ownerUser: req.user._id });
+	if (!group) return next({ statusCode: 404, message: "Group not found" });
+	const user = await User.findOne({ username: username.toLowerCase() }).select(
+		"_id"
+	);
+	if (!user) return next({ statusCode: 404, message: "User not found" });
+	if (!group.members.some((m) => String(m) === String(user._id))) {
+		group.members.push(user._id);
+		await group.save();
+	}
+	res.json({ status: "success", message: "Member added" });
+});
+
+// DELETE /api/friends/groups/:id/members { username }
+export const removeGroupMember = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+	const { username } = req.body || {};
+	if (!username) return next({ statusCode: 400, message: "Username required" });
+	const group = await FriendGroup.findOne({ _id: id, ownerUser: req.user._id });
+	if (!group) return next({ statusCode: 404, message: "Group not found" });
+	const user = await User.findOne({ username: username.toLowerCase() }).select(
+		"_id"
+	);
+	if (!user) return next({ statusCode: 404, message: "User not found" });
+	group.members = group.members.filter((m) => String(m) !== String(user._id));
+	await group.save();
+	res.json({ status: "success", message: "Member removed" });
 });

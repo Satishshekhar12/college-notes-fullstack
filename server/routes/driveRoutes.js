@@ -6,6 +6,7 @@ import DriveService from "../services/driveService.js";
 import User from "../models/userModel.js";
 import DriveShare from "../models/driveShareModel.js";
 import eventBus from "../utils/eventBus.js";
+import FriendGroup from "../models/friendGroupModel.js";
 
 const router = express.Router();
 
@@ -26,7 +27,8 @@ router.get("/files", protect, async (req, res) => {
 					"Google is not connected. Please login via Google and grant Drive access.",
 			});
 		}
-		const files = await DriveService.listFiles(user);
+		const parentId = req.query.parentId || undefined;
+		const files = await DriveService.listFiles(user, parentId);
 		res.json({ success: true, data: { files } });
 	} catch (err) {
 		console.error("Drive list error:", err);
@@ -34,6 +36,326 @@ router.get("/files", protect, async (req, res) => {
 			success: false,
 			message: err.message || "Failed to list Drive files",
 		});
+	}
+});
+
+// Create a subfolder inside the user's Personal Drive folder
+router.post("/folders", protect, async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select(
+			"googleRefreshToken googleDriveFolderId"
+		);
+		if (!user)
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		if (!user.googleRefreshToken)
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
+		const { name } = req.body || {};
+		if (!name || !String(name).trim())
+			return res
+				.status(400)
+				.json({ success: false, message: "Folder name is required" });
+
+		const accessToken = await DriveService.getAccessToken(user);
+		const parentId = await DriveService.ensureUserFolder(user);
+		const metadata = {
+			name: String(name).trim(),
+			mimeType: "application/vnd.google-apps.folder",
+			parents: [parentId],
+		};
+		const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(metadata),
+		});
+		if (!createRes.ok) {
+			const text = await createRes.text();
+			return res
+				.status(500)
+				.json({ success: false, message: `Failed to create folder: ${text}` });
+		}
+		const folder = await createRes.json();
+		return res.json({ success: true, data: { folder } });
+	} catch (err) {
+		console.error("Drive create folder error:", err);
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to create folder",
+			});
+	}
+});
+
+// List subfolders in user's Personal Drive folder
+router.get("/folders", protect, async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select(
+			"googleRefreshToken googleDriveFolderId"
+		);
+		if (!user)
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		if (!user.googleRefreshToken)
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
+		const accessToken = await DriveService.getAccessToken(user);
+		const parentId = await DriveService.ensureUserFolder(user);
+		const params = new URLSearchParams({
+			q: `'${parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+			fields: "files(id,name,mimeType,modifiedTime)",
+			orderBy: "modifiedTime desc",
+			pageSize: "200",
+		});
+		const res2 = await fetch(
+			`https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+			{
+				headers: { Authorization: `Bearer ${accessToken}` },
+			}
+		);
+		if (!res2.ok) {
+			const text = await res2.text();
+			return res
+				.status(500)
+				.json({ success: false, message: `Failed to list folders: ${text}` });
+		}
+		const json = await res2.json();
+		res.json({ success: true, data: { folders: json.files || [] } });
+	} catch (err) {
+		console.error("Drive list folders error:", err);
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to list folders",
+			});
+	}
+});
+
+// Share a folder and optionally all its contents with a user or group
+router.post("/folders/:id/share", protect, async (req, res) => {
+	try {
+		const { id } = req.params; // folder id
+		const {
+			username,
+			groupId,
+			includeContents = true,
+			role = "reader",
+		} = req.body || {};
+		if (!username && !groupId) {
+			return res
+				.status(400)
+				.json({ success: false, message: "username or groupId required" });
+		}
+		const owner = await User.findById(req.user._id).select(
+			"googleRefreshToken googleDriveFolderId username email name"
+		);
+		if (!owner)
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		if (!owner.googleRefreshToken)
+			return res
+				.status(400)
+				.json({ success: false, message: "Google not connected" });
+		// Verify folder is inside owner's app folder
+		try {
+			const accessToken = await DriveService.getAccessToken(owner);
+			const parentsRes = await fetch(
+				`https://www.googleapis.com/drive/v3/files/${id}?fields=parents,mimeType`,
+				{ headers: { Authorization: `Bearer ${accessToken}` } }
+			);
+			if (!parentsRes.ok) {
+				const text = await parentsRes.text();
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: `Not allowed to share this folder: ${text}`,
+					});
+			}
+			const meta = await parentsRes.json();
+			const parents = meta.parents || [];
+			if (
+				!parents.includes(owner.googleDriveFolderId) ||
+				meta.mimeType !== "application/vnd.google-apps.folder"
+			) {
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: "You can only share folders created via this app.",
+					});
+			}
+		} catch (e) {
+			return res
+				.status(403)
+				.json({
+					success: false,
+					message: "You can only share folders created via this app.",
+				});
+		}
+
+		const recipients = [];
+		if (username) {
+			const user = await User.findOne({
+				username: username.toLowerCase(),
+			}).select("_id username email");
+			if (!user)
+				return res
+					.status(404)
+					.json({ success: false, message: "Recipient not found" });
+			if (String(user._id) === String(owner._id))
+				return res
+					.status(400)
+					.json({ success: false, message: "Cannot share with yourself" });
+			recipients.push(user);
+		}
+		if (groupId) {
+			const group = await FriendGroup.findOne({
+				_id: groupId,
+				ownerUser: owner._id,
+			}).populate("members", "username email");
+			if (!group)
+				return res
+					.status(404)
+					.json({ success: false, message: "Group not found" });
+			for (const m of group.members || []) {
+				if (String(m._id) !== String(owner._id))
+					recipients.push({ _id: m._id, username: m.username, email: m.email });
+			}
+		}
+
+		// Deduplicate recipients by _id
+		const byId = new Map();
+		for (const r of recipients) byId.set(String(r._id), r);
+		const finalRecipients = Array.from(byId.values());
+
+		// Share the folder and (optional) contents
+		const accessToken = await DriveService.getAccessToken(owner);
+		const shareOne = async (fileId, r) => {
+			return DriveService.shareFile(owner, {
+				fileId,
+				recipientEmail: r.email,
+				role: ["reader", "commenter", "writer"].includes(role)
+					? role
+					: "reader",
+			});
+		};
+
+		// folder meta for record
+		let folderName = "";
+		try {
+			const metaRes = await fetch(
+				`https://www.googleapis.com/drive/v3/files/${id}?fields=id,name,mimeType`,
+				{ headers: { Authorization: `Bearer ${accessToken}` } }
+			);
+			if (metaRes.ok) {
+				const m = await metaRes.json();
+				folderName = m.name || "";
+			}
+		} catch {}
+
+		for (const r of finalRecipients) {
+			await shareOne(id, r);
+			// Record a DriveShare for the folder itself (using fileId as folder id)
+			await DriveShare.findOneAndUpdate(
+				{ ownerUser: owner._id, recipientUser: r._id, fileId: id },
+				{
+					fileId: id,
+					fileName: folderName || id,
+					mimeType: "application/vnd.google-apps.folder",
+					size: 0,
+					webViewLink: `https://drive.google.com/drive/folders/${id}`,
+					ownerUser: owner._id,
+					ownerUsername: owner.username || "",
+					recipientUser: r._id,
+					recipientUsername: r.username || "",
+					role: ["reader", "commenter", "writer"].includes(role)
+						? role
+						: "reader",
+					sharedAt: new Date(),
+					...(groupId ? { groupId } : {}),
+				},
+				{ new: true, upsert: true, setDefaultsOnInsert: true }
+			);
+		}
+
+		if (includeContents) {
+			// list all non-trashed children files in folder (non-recursive for now)
+			const params = new URLSearchParams({
+				q: `'${id}' in parents and trashed = false`,
+				fields: "files(id,name,mimeType,size,webViewLink)",
+				pageSize: "200",
+			});
+			const listRes = await fetch(
+				`https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+				{ headers: { Authorization: `Bearer ${accessToken}` } }
+			);
+			const listJson = listRes.ok ? await listRes.json() : { files: [] };
+			for (const f of listJson.files || []) {
+				for (const r of finalRecipients) {
+					await shareOne(f.id, r);
+					await DriveShare.findOneAndUpdate(
+						{ ownerUser: owner._id, recipientUser: r._id, fileId: f.id },
+						{
+							fileId: f.id,
+							fileName: f.name || f.id,
+							mimeType: f.mimeType || "",
+							size: Number(f.size || 0),
+							webViewLink:
+								f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`,
+							ownerUser: owner._id,
+							ownerUsername: owner.username || "",
+							recipientUser: r._id,
+							recipientUsername: r.username || "",
+							role: ["reader", "commenter", "writer"].includes(role)
+								? role
+								: "reader",
+							sharedAt: new Date(),
+							...(groupId ? { groupId } : {}),
+						},
+						{ new: true, upsert: true, setDefaultsOnInsert: true }
+					);
+				}
+			}
+		}
+
+		// Notify via SSE
+		for (const r of finalRecipients) {
+			eventBus.sendToUser(String(r._id), "drive:newShare", {
+				type: "new_share",
+				fileId: id,
+				ownerUser: String(owner._id),
+				fileName: folderName || id,
+			});
+		}
+		eventBus.sendToUser(String(owner._id), "drive:sharesUpdated", {
+			type: "shares_updated",
+			folderId: id,
+			recipients: finalRecipients.map((r) => String(r._id)),
+		});
+
+		return res.json({
+			success: true,
+			data: { sharedWith: finalRecipients.length },
+		});
+	} catch (err) {
+		console.error("Drive folder share error:", err);
+		res
+			.status(500)
+			.json({
+				success: false,
+				message: err.message || "Failed to share folder",
+			});
 	}
 });
 
@@ -282,7 +604,7 @@ router.get("/files/:id/view", protect, async (req, res) => {
 router.post(
 	"/files",
 	protect,
-	upload.array("files", 10),
+	upload.array("files", 50),
 	async (req, res) => {
 		try {
 			const user = await User.findById(req.user._id).select(
@@ -307,10 +629,13 @@ router.post(
 					.json({ success: false, message: "No files provided" });
 			}
 
+			// Optional parent folder id to upload into (for hierarchy)
+			const parentId = req.body.parentId || undefined;
+
 			const results = [];
 			for (const f of files) {
 				try {
-					const uploaded = await DriveService.uploadFile(user, f);
+					const uploaded = await DriveService.uploadFile(user, f, parentId);
 					results.push({ success: true, file: { ...uploaded } });
 				} catch (e) {
 					results.push({
@@ -427,11 +752,14 @@ router.delete("/files/:id", protect, async (req, res) => {
 router.post("/files/:id/share", protect, async (req, res) => {
 	try {
 		const { id } = req.params;
-		const { username, role } = req.body || {};
-		if (!username)
+		const { username, groupId, role } = req.body || {};
+		if (!username && !groupId)
 			return res
 				.status(400)
-				.json({ success: false, message: "Recipient username is required" });
+				.json({
+					success: false,
+					message: "Recipient username or groupId is required",
+				});
 
 		const owner = await User.findById(req.user._id).select(
 			"googleRefreshToken googleDriveFolderId username email name"
@@ -445,17 +773,40 @@ router.post("/files/:id/share", protect, async (req, res) => {
 				.status(400)
 				.json({ success: false, message: "Google not connected" });
 
-		const recipient = await User.findOne({
-			username: username.toLowerCase(),
-		}).select("_id username email");
-		if (!recipient)
-			return res
-				.status(404)
-				.json({ success: false, message: "Recipient not found" });
-		if (String(recipient._id) === String(owner._id))
-			return res
-				.status(400)
-				.json({ success: false, message: "Cannot share with yourself" });
+		const recipients = [];
+		if (username) {
+			const r = await User.findOne({ username: username.toLowerCase() }).select(
+				"_id username email"
+			);
+			if (!r)
+				return res
+					.status(404)
+					.json({ success: false, message: "Recipient not found" });
+			if (String(r._id) === String(owner._id))
+				return res
+					.status(400)
+					.json({ success: false, message: "Cannot share with yourself" });
+			recipients.push(r);
+		}
+		if (groupId) {
+			const group = await FriendGroup.findOne({
+				_id: groupId,
+				ownerUser: owner._id,
+			}).populate("members", "username email");
+			if (!group)
+				return res
+					.status(404)
+					.json({ success: false, message: "Group not found" });
+			for (const m of group.members || []) {
+				if (String(m._id) !== String(owner._id)) {
+					recipients.push({ _id: m._id, username: m.username, email: m.email });
+				}
+			}
+		}
+		// Deduplicate recipients
+		const byId = new Map();
+		for (const r of recipients) byId.set(String(r._id), r);
+		const finalRecipients = Array.from(byId.values());
 
 		// Verify the file belongs to the owner's app folder (privacy)
 		try {
@@ -488,13 +839,15 @@ router.post("/files/:id/share", protect, async (req, res) => {
 
 		// Ensure owner has access token and then call Drive permissions API
 		try {
-			await DriveService.shareFile(owner, {
-				fileId: id,
-				recipientEmail: recipient.email,
-				role: ["reader", "commenter", "writer"].includes(role)
-					? role
-					: "reader",
-			});
+			for (const r of finalRecipients) {
+				await DriveService.shareFile(owner, {
+					fileId: id,
+					recipientEmail: r.email,
+					role: ["reader", "commenter", "writer"].includes(role)
+						? role
+						: "reader",
+				});
+			}
 		} catch (e) {
 			// Map specific Google Drive errors to cleaner client messages
 			let status = 500;
@@ -549,41 +902,48 @@ router.post("/files/:id/share", protect, async (req, res) => {
 		} catch {}
 
 		// Save or update share record
-		const record = await DriveShare.findOneAndUpdate(
-			{ ownerUser: owner._id, recipientUser: recipient._id, fileId: id },
-			{
-				fileId: id,
-				fileName,
-				mimeType,
-				size,
-				webViewLink,
-				ownerUser: owner._id,
-				ownerUsername: owner.username || "",
-				recipientUser: recipient._id,
-				recipientUsername: recipient.username || "",
-				role: ["reader", "commenter", "writer"].includes(role)
-					? role
-					: "reader",
-				sharedAt: new Date(),
-			},
-			{ new: true, upsert: true, setDefaultsOnInsert: true }
-		);
+		const records = [];
+		for (const r of finalRecipients) {
+			const record = await DriveShare.findOneAndUpdate(
+				{ ownerUser: owner._id, recipientUser: r._id, fileId: id },
+				{
+					fileId: id,
+					fileName,
+					mimeType,
+					size,
+					webViewLink,
+					ownerUser: owner._id,
+					ownerUsername: owner.username || "",
+					recipientUser: r._id,
+					recipientUsername: r.username || "",
+					role: ["reader", "commenter", "writer"].includes(role)
+						? role
+						: "reader",
+					sharedAt: new Date(),
+					...(groupId ? { groupId } : {}),
+				},
+				{ new: true, upsert: true, setDefaultsOnInsert: true }
+			);
+			records.push(record);
+		}
 
-		// Notify owner and recipient to refresh their lists
+		// Notify owner and recipients to refresh their lists
 		eventBus.sendToUser(String(owner._id), "drive:sharesUpdated", {
 			type: "shares_updated",
 			action: "shared",
 			fileId: id,
-			recipientUser: String(recipient._id),
+			recipients: finalRecipients.map((r) => String(r._id)),
 		});
-		eventBus.sendToUser(String(recipient._id), "drive:newShare", {
-			type: "new_share",
-			fileId: id,
-			ownerUser: String(owner._id),
-			fileName,
-		});
+		for (const r of finalRecipients) {
+			eventBus.sendToUser(String(r._id), "drive:newShare", {
+				type: "new_share",
+				fileId: id,
+				ownerUser: String(owner._id),
+				fileName,
+			});
+		}
 
-		return res.json({ success: true, data: { share: record } });
+		return res.json({ success: true, data: { shares: records } });
 	} catch (err) {
 		console.error("Drive share error:", err);
 		res
