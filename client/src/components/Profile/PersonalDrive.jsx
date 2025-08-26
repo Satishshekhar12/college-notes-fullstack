@@ -8,10 +8,16 @@ import {
 	listDriveSharesReceived,
 	downloadPersonalDriveFileWithProgress,
 	viewPersonalDriveFileWithProgress,
+	createPersonalDriveFolder,
+	sharePersonalDriveFolder,
+	uploadPersonalDriveFolder,
 } from "../../services/apiService";
 import { startGoogleLogin } from "../../services/userService";
 import { API_BASE_URL } from "../../config/api";
-import { listFriends as listFriendsApi } from "../../services/friendService";
+import {
+	listFriends as listFriendsApi,
+	listFriendGroups as listFriendGroupsApi,
+} from "../../services/friendService";
 
 const PersonalDrive = ({ isGoogleLinked }) => {
 	const [files, setFiles] = useState([]);
@@ -30,10 +36,17 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const [sharesSent, setSharesSent] = useState([]);
 	const [sharesReceived, setSharesReceived] = useState([]);
 	const [friends, setFriends] = useState([]);
+	const [groups, setGroups] = useState([]);
 	const [showFriendPicker, setShowFriendPicker] = useState(false);
 	const [shareTargetFile, setShareTargetFile] = useState(null);
 	const [typedUsername, setTypedUsername] = useState("");
+	const [showFolderShare, setShowFolderShare] = useState(false);
+	const [selectedGroupId, setSelectedGroupId] = useState("");
+	const [includeContents, setIncludeContents] = useState(true);
+	const [currentFolderId, setCurrentFolderId] = useState(undefined);
+	const [pathStack, setPathStack] = useState([]); // [{ id, name }]
 	const fileInputRef = useRef(null);
+	const folderInputRef = useRef(null);
 	const sseRef = useRef(null);
 
 	const formatBytes = (bytes) => {
@@ -46,7 +59,7 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 	const fetchFiles = async () => {
 		setLoading(true);
 		setError("");
-		const res = await listPersonalDriveFiles();
+		const res = await listPersonalDriveFiles(currentFolderId);
 		if (res.success) setFiles(res.data.files || []);
 		else setError(res.message || "Failed to load Drive files");
 		setLoading(false);
@@ -70,13 +83,24 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 		}
 	};
 
+	const fetchGroups = async () => {
+		try {
+			const list = await listFriendGroupsApi();
+			setGroups(list);
+		} catch {
+			// ignore group fetch errors
+		}
+	};
+
 	useEffect(() => {
 		if (isGoogleLinked) {
 			fetchFiles();
 			fetchShares();
 			fetchFriends();
+			fetchGroups();
 		}
-	}, [isGoogleLinked]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isGoogleLinked, currentFolderId]);
 
 	// Background refresh so shares auto-update without user actions
 	useEffect(() => {
@@ -135,8 +159,10 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 		setUploading(true);
 		setProcessing(true);
 		setProgress({ phase: "upload", percent: 0, loaded: 0, total: 0 });
-		const res = await uploadPersonalDriveFilesWithProgress(selected, (p) =>
-			setProgress(p)
+		const res = await uploadPersonalDriveFilesWithProgress(
+			selected,
+			(p) => setProgress(p),
+			currentFolderId
 		);
 		if (res.success) {
 			setSuccess("Uploaded successfully");
@@ -223,11 +249,64 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 			<div className="flex items-center justify-between">
 				<h3 className="text-lg font-semibold">Personal Drive</h3>
 				<div className="flex items-center gap-3">
+					{pathStack.length > 0 && (
+						<button
+							onClick={() => {
+								const next = [...pathStack];
+								next.pop();
+								setPathStack(next);
+								setCurrentFolderId(
+									next.length ? next[next.length - 1].id : undefined
+								);
+							}}
+							className="px-3 py-2 bg-gray-100 border rounded hover:bg-gray-200"
+						>
+							Back
+						</button>
+					)}
+					<div className="text-sm text-gray-600 max-w-[40ch] truncate">
+						<span className="font-medium">My Drive</span>
+						{pathStack.map((p, idx) => (
+							<span key={p.id}>
+								{" / "}
+								<button
+									onClick={() => {
+										setPathStack(pathStack.slice(0, idx + 1));
+										setCurrentFolderId(p.id);
+									}}
+									className="hover:underline"
+								>
+									{p.name}
+								</button>
+							</span>
+						))}
+					</div>
 					<button
 						onClick={fetchFiles}
 						className="px-3 py-2 bg-gray-100 border rounded hover:bg-gray-200"
 					>
 						Refresh
+					</button>
+					<button
+						onClick={async () => {
+							const name = window.prompt("Folder name");
+							if (!name) return;
+							setError("");
+							const folder = await createPersonalDriveFolder(name);
+							if (!folder) {
+								setError("Failed to create folder");
+							} else {
+								await fetchFiles();
+							}
+						}}
+						className={`px-3 py-2 rounded ${
+							!isGoogleLinked || uploading
+								? "bg-indigo-300 text-white cursor-not-allowed"
+								: "bg-indigo-600 text-white hover:bg-indigo-700"
+						}`}
+						aria-disabled={!isGoogleLinked || uploading}
+					>
+						New Folder
 					</button>
 					<label
 						className={`px-3 py-2 text-white rounded cursor-pointer ${
@@ -244,6 +323,38 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 							multiple
 							className="hidden"
 							onChange={onUpload}
+							disabled={!isGoogleLinked || uploading}
+						/>
+					</label>
+					<label
+						className={`px-3 py-2 text-white rounded cursor-pointer ${
+							!isGoogleLinked || uploading
+								? "bg-purple-300 cursor-not-allowed"
+								: "bg-purple-600 hover:bg-purple-700"
+						}`}
+						aria-disabled={!isGoogleLinked || uploading}
+					>
+						{uploading ? "Uploading..." : "Upload Folder"}
+						<input
+							ref={folderInputRef}
+							type="file"
+							multiple
+							className="hidden"
+							onChange={async (e) => {
+								const files = Array.from(e.target.files || []);
+								if (!files.length) return;
+								setError("");
+								setUploading(true);
+								const res = await uploadPersonalDriveFolder(
+									files,
+									currentFolderId
+								);
+								if (!res.success)
+									setError(res.message || "Folder upload failed");
+								await fetchFiles();
+								setUploading(false);
+								e.target.value = "";
+							}}
 							disabled={!isGoogleLinked || uploading}
 						/>
 					</label>
@@ -320,67 +431,104 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 				<div className="text-gray-600">Loading...</div>
 			) : files.length ? (
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-					{files.map((f) => (
-						<div key={f.id} className="p-3 border rounded bg-white">
-							<div className="font-medium truncate">{f.name}</div>
-							<div className="text-sm text-gray-600">
-								{(Number(f.size || 0) / (1024 * 1024)).toFixed(2)} MB •{" "}
-								{new Date(f.modifiedTime).toLocaleString()}
-							</div>
-							<div className="mt-2 flex gap-2">
-								<button
-									onClick={async () => {
-										setError("");
-										setProcessing(true);
-										setProgress({
-											phase: "open",
-											percent: 0,
-											loaded: 0,
-											total: Number(f.size) || 0,
-										});
-										const r = await viewPersonalDriveFileWithProgress(
-											f.id,
-											(p) => setProgress(p)
-										);
-										setProcessing(false);
-										if (!r.success) {
-											if (
-												String(r.message || "")
-													.toLowerCase()
-													.includes("file not found")
-											) {
-												fetchShares();
+					{files.map((f) => {
+						const isFolder =
+							f.mimeType === "application/vnd.google-apps.folder";
+						return (
+							<div key={f.id} className="p-3 border rounded bg-white">
+								<div className="font-medium truncate flex items-center gap-2">
+									<span>{isFolder ? "📁" : "📄"}</span>
+									{isFolder ? (
+										<button
+											onClick={() => {
+												setPathStack([
+													...pathStack,
+													{ id: f.id, name: f.name },
+												]);
+												setCurrentFolderId(f.id);
+											}}
+											className="truncate text-left hover:underline"
+										>
+											{f.name}
+										</button>
+									) : (
+										<span className="truncate">{f.name}</span>
+									)}
+								</div>
+								<div className="text-sm text-gray-600">
+									{isFolder
+										? "Folder"
+										: `${(Number(f.size || 0) / (1024 * 1024)).toFixed(
+												2
+										  )} MB`}{" "}
+									• {new Date(f.modifiedTime).toLocaleString()}
+								</div>
+								<div className="mt-2 flex gap-2">
+									{!isFolder && (
+										<button
+											onClick={async () => {
+												setError("");
+												setProcessing(true);
+												setProgress({
+													phase: "open",
+													percent: 0,
+													loaded: 0,
+													total: Number(f.size) || 0,
+												});
+												const r = await viewPersonalDriveFileWithProgress(
+													f.id,
+													(p) => setProgress(p)
+												);
+												setProcessing(false);
+												if (!r.success) {
+													if (
+														String(r.message || "")
+															.toLowerCase()
+															.includes("file not found")
+													) {
+														fetchShares();
+													}
+													return setError(r.message || "Failed to open file");
+												}
+												const url = URL.createObjectURL(r.blob);
+												window.location.href = url;
+											}}
+											className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+										>
+											Open
+										</button>
+									)}
+									{!isFolder && (
+										<button
+											onClick={() => onDownload(f)}
+											className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+										>
+											Download
+										</button>
+									)}
+									<button
+										onClick={() => {
+											if (isFolder) {
+												setShareTargetFile(f);
+												setShowFolderShare(true);
+											} else {
+												onShare(f);
 											}
-											return setError(r.message || "Failed to open file");
-										}
-										const url = URL.createObjectURL(r.blob);
-										window.location.href = url;
-									}}
-									className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
-								>
-									Open
-								</button>
-								<button
-									onClick={() => onDownload(f)}
-									className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
-								>
-									Download
-								</button>
-								<button
-									onClick={() => onShare(f)}
-									className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-								>
-									Share
-								</button>
-								<button
-									onClick={() => onDelete(f.id)}
-									className="px-2 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
-								>
-									Delete
-								</button>
+										}}
+										className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+									>
+										{isFolder ? "Share Folder" : "Share"}
+									</button>
+									<button
+										onClick={() => onDelete(f.id)}
+										className="px-2 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+									>
+										Delete
+									</button>
+								</div>
 							</div>
-						</div>
-					))}
+						);
+					})}
 				</div>
 			) : (
 				<div className="text-gray-600">
@@ -666,6 +814,98 @@ const PersonalDrive = ({ isGoogleLinked }) => {
 								onClick={() => {
 									setShowFriendPicker(false);
 									setShareTargetFile(null);
+									setTypedUsername("");
+								}}
+							>
+								Close
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Folder share modal */}
+			{showFolderShare && shareTargetFile && (
+				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+					<div className="bg-white rounded-xl p-4 w-[420px] max-h-[80vh] overflow-auto">
+						<div className="font-semibold mb-2">Share folder</div>
+						<div className="text-sm text-gray-600 mb-3 truncate">
+							{shareTargetFile.name}
+						</div>
+						<div className="space-y-3">
+							<label className="block text-sm font-medium">
+								Select group (optional)
+							</label>
+							<select
+								value={selectedGroupId}
+								onChange={(e) => setSelectedGroupId(e.target.value)}
+								className="w-full border rounded px-3 py-2"
+							>
+								<option value="">-- None --</option>
+								{groups.map((g) => (
+									<option key={g.id} value={g.id}>
+										{g.name} ({g.members?.length || 0})
+									</option>
+								))}
+							</select>
+							<div className="flex items-center gap-2">
+								<input
+									type="checkbox"
+									checked={includeContents}
+									onChange={(e) => setIncludeContents(e.target.checked)}
+									id="include-contents"
+								/>
+								<label htmlFor="include-contents" className="text-sm">
+									Also share all files inside this folder
+								</label>
+							</div>
+							<div className="text-xs text-gray-500">
+								Or share with a username:
+							</div>
+							<div className="flex items-center gap-2">
+								<input
+									type="text"
+									value={typedUsername}
+									onChange={(e) => setTypedUsername(e.target.value)}
+									placeholder="e.g. john_doe"
+									className="flex-1 px-3 py-2 border rounded"
+								/>
+								<button
+									onClick={async () => {
+										if (!shareTargetFile) return;
+										setError("");
+										const resp = await sharePersonalDriveFolder(
+											shareTargetFile.id,
+											{
+												username: typedUsername.trim() || undefined,
+												groupId: selectedGroupId || undefined,
+												includeContents,
+											}
+										);
+										if (!resp.success)
+											setError(resp.message || "Failed to share folder");
+										else {
+											setSuccess("Folder shared successfully");
+											setTimeout(() => setSuccess(""), 1500);
+										}
+										setShowFolderShare(false);
+										setShareTargetFile(null);
+										setSelectedGroupId("");
+										setTypedUsername("");
+									}}
+									className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+								>
+									Share
+								</button>
+							</div>
+						</div>
+						<div className="mt-4 text-right">
+							<button
+								className="px-3 py-1 bg-gray-100 rounded"
+								onClick={() => {
+									setShowFolderShare(false);
+									setShareTargetFile(null);
+									setSelectedGroupId("");
 									setTypedUsername("");
 								}}
 							>

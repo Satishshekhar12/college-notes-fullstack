@@ -20,6 +20,13 @@ const driveShareSchema = new mongoose.Schema(
 			required: true,
 			index: true,
 		},
+		// Optional: share to a group (fan-out stored separately per member; kept for auditing)
+		groupId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "FriendGroup",
+			index: true,
+			default: null,
+		},
 		recipientUsername: { type: String, default: "" },
 		role: {
 			type: String,

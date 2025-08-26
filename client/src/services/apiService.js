@@ -342,10 +342,12 @@ export const listFilesByCategory = async (params) => {
 
 // ===== Google Drive: Personal Files (for Google-linked users) =====
 
-export const listPersonalDriveFiles = async () => {
+export const listPersonalDriveFiles = async (parentId) => {
 	try {
 		const token = localStorage.getItem("userToken");
-		const res = await fetch(`${API_BASE_URL}/api/drive/files`, {
+		const url = new URL(`${API_BASE_URL}/api/drive/files`);
+		if (parentId) url.searchParams.set("parentId", parentId);
+		const res = await fetch(url.toString(), {
 			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
 		});
 		const data = await res.json();
@@ -357,11 +359,74 @@ export const listPersonalDriveFiles = async () => {
 	}
 };
 
-export const uploadPersonalDriveFiles = async (files) => {
+// Personal Drive: Folders
+export const createPersonalDriveFolder = async (name) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/folders`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
+			},
+			body: JSON.stringify({ name }),
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to create folder");
+		return data?.data?.folder;
+	} catch (e) {
+		console.error("Drive create folder error:", e);
+		return null;
+	}
+};
+
+export const listPersonalDriveFolders = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/folders`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to list folders");
+		return data?.data?.folders || [];
+	} catch (e) {
+		console.error("Drive list folders error:", e);
+		return [];
+	}
+};
+
+export const sharePersonalDriveFolder = async (
+	folderId,
+	{ username, groupId, includeContents = true, role = "reader" }
+) => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(
+			`${API_BASE_URL}/api/drive/folders/${folderId}/share`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					...(token ? { Authorization: `Bearer ${token}` } : {}),
+				},
+				body: JSON.stringify({ username, groupId, includeContents, role }),
+			}
+		);
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to share folder");
+		return data;
+	} catch (e) {
+		console.error("Drive share folder error:", e);
+		return { success: false, message: e.message };
+	}
+};
+
+export const uploadPersonalDriveFiles = async (files, parentId) => {
 	try {
 		const token = localStorage.getItem("userToken");
 		const form = new FormData();
 		for (const f of files) form.append("files", f);
+		if (parentId) form.append("parentId", parentId);
 		const res = await fetch(`${API_BASE_URL}/api/drive/files`, {
 			method: "POST",
 			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -379,13 +444,15 @@ export const uploadPersonalDriveFiles = async (files) => {
 // Upload with progress (uses XMLHttpRequest to get upload progress events)
 export const uploadPersonalDriveFilesWithProgress = async (
 	files,
-	onProgress
+	onProgress,
+	parentId
 ) => {
 	return new Promise((resolve) => {
 		try {
 			const token = localStorage.getItem("userToken");
 			const form = new FormData();
 			for (const f of files) form.append("files", f);
+			if (parentId) form.append("parentId", parentId);
 
 			const xhr = new XMLHttpRequest();
 			xhr.open("POST", `${API_BASE_URL}/api/drive/files`);
@@ -433,6 +500,12 @@ export const uploadPersonalDriveFilesWithProgress = async (
 			resolve({ success: false, message: e.message });
 		}
 	});
+};
+
+// Upload a folder (directory) using input.webkitdirectory - pass the FileList as-is
+export const uploadPersonalDriveFolder = async (fileList, parentId) => {
+	// fileList here is an array-like of File with webkitRelativePath; server treats as regular files but parentId determines target
+	return uploadPersonalDriveFiles(fileList, parentId);
 };
 
 export const deletePersonalDriveFile = async (fileId) => {

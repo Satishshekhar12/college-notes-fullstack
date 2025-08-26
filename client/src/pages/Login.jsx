@@ -159,6 +159,20 @@ function Login() {
 				setTimeout(() => {
 					window.dispatchEvent(new Event("userLogin"));
 				}, 100);
+				// If visitor account, redirect to admin panel for read-only viewing
+				try {
+					const raw = localStorage.getItem("user");
+					const u = raw ? JSON.parse(raw) : null;
+					if (u?.role === "visitor") {
+						setSuccess(
+							"Logged in as visitor. Redirecting to Admin Panel (read-only)…"
+						);
+						setTimeout(() => navigate("/admin"), 500);
+						return;
+					}
+				} catch {
+					// ignore JSON parse/storage issues
+				}
 				navigate("/profile");
 			}
 		} catch (err) {
@@ -317,6 +331,27 @@ function Login() {
 			{/* instruction */}
 			<div className="min-h-screen bg-gray-100 flex items-center justify-center pt-2 pb-2">
 				<div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+					{/* Visitor quick login banner */}
+					<div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded">
+						<div className="font-semibold mb-1">Demo Visitor Account</div>
+						<div className="text-sm">
+							Use Email: <b>visitor@gmail.com</b>, Password: <b>12345</b>. This
+							visitor can only see the Admin Panel and cannot edit anything.
+						</div>
+						<div className="mt-2">
+							<button
+								onClick={() =>
+									setLoginData({
+										identifier: "visitor@gmail.com",
+										password: "12345",
+									})
+								}
+								className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+							>
+								Fill Visitor Credentials
+							</button>
+						</div>
+					</div>
 					{/* Tab Navigation */}
 					<div className="flex mb-6">
 						<button

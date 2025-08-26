@@ -165,16 +165,29 @@ export const isAdminLoggedIn = () => {
 	const userData = localStorage.getItem("adminUser");
 
 	if (!token || !userData) {
+		// Allow visitor to view admin panel in read-only mode
+		try {
+			const raw = localStorage.getItem("user");
+			const u = raw ? JSON.parse(raw) : null;
+			if (u?.role === "visitor" && localStorage.getItem("userToken")) {
+				return true; // Logged in for viewing only
+			}
+		} catch {
+			// ignore
+		}
 		return false;
 	}
 
 	try {
 		const user = JSON.parse(userData);
 
-		// Check if user has admin/moderator role
-		const hasAdminRole = ["admin", "moderator", "senior moderator"].includes(
-			user.role
-		);
+		// Check if user has admin/moderator role, or visitor (view-only)
+		const hasAdminRole = [
+			"admin",
+			"moderator",
+			"senior moderator",
+			"visitor",
+		].includes(user.role);
 
 		return hasAdminRole;
 	} catch (error) {
