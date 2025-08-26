@@ -18,6 +18,7 @@ import ForgotPassword from "../components/admin/ForgotPassword.jsx";
 function Admin() {
 	const [activeSection, setActiveSection] = useState("dashboard");
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [visitorMode, setVisitorMode] = useState(false);
 	const [showForgotPassword, setShowForgotPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -45,6 +46,14 @@ function Admin() {
 		if (isAdminLoggedIn()) {
 			console.log("✅ Admin already logged in, setting state");
 			setIsLoggedIn(true);
+			try {
+				const raw =
+					localStorage.getItem("adminUser") || localStorage.getItem("user");
+				const u = raw ? JSON.parse(raw) : null;
+				if (u?.role === "visitor") setVisitorMode(true);
+			} catch {
+				// ignore
+			}
 		} else {
 			console.log("❌ Admin not logged in");
 		}
@@ -184,6 +193,13 @@ function Admin() {
 			if (result.status === "success") {
 				setIsLoggedIn(true);
 				setLoginData({ email: "", password: "" });
+				try {
+					const raw = localStorage.getItem("adminUser");
+					const u = raw ? JSON.parse(raw) : null;
+					setVisitorMode(u?.role === "visitor");
+				} catch {
+					// ignore
+				}
 			} else {
 				setError("Login failed. Please check your credentials.");
 			}
@@ -237,6 +253,11 @@ function Admin() {
 					<h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
 						🔐 Admin Login
 					</h2>
+
+					{/* Visitor Notice */}
+					<div className="mb-4 p-3 rounded border border-blue-400 bg-blue-50 text-blue-800">
+						Demo Visitor can view the Admin Panel only. No actions are allowed.
+					</div>
 
 					{showNonAdminNotice && (
 						<div
@@ -374,6 +395,11 @@ function Admin() {
 							<p className="text-gray-600 mt-2">
 								Manage your college notes platform
 							</p>
+							{visitorMode && (
+								<div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+									Visitor Mode: Read-only preview. Actions are disabled.
+								</div>
+							)}
 						</div>
 						{renderContent()}
 					</div>

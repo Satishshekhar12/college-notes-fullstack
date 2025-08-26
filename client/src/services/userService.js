@@ -21,6 +21,14 @@ export const userLogin = async (identifier, password) => {
 		// Store token in localStorage
 		if (result.status === "success" && result.token) {
 			localStorage.setItem("userToken", result.token);
+			// Store user for quick role checks
+			try {
+				if (result.user) {
+					localStorage.setItem("user", JSON.stringify(result.user));
+				}
+			} catch {
+				// ignore JSON storage failures
+			}
 			// Dispatch custom event to notify components of login
 			window.dispatchEvent(new Event("userLogin"));
 		}

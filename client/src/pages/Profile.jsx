@@ -31,6 +31,7 @@ function Profile() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [activeTab, setActiveTab] = useState("profile");
+	const [visitorMode, setVisitorMode] = useState(false);
 	const [showModeratorRequestForm, setShowModeratorRequestForm] =
 		useState(false);
 
@@ -149,6 +150,13 @@ function Profile() {
 					if (response.data.user.course) {
 						setCourseSearch(response.data.user.course);
 					}
+					// Visitor mode: restrict features
+					try {
+						setVisitorMode((response.data.user?.role || "") === "visitor");
+					} catch {
+						// ignore
+					}
+
 					// Fetch user statistics
 					await fetchUserStats();
 					await fetchFriends();
@@ -520,6 +528,12 @@ function Profile() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-20">
 			<div className="max-w-6xl mx-auto px-4 py-8">
+				{visitorMode && (
+					<div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+						Visitor Mode: This account is read-only. Please go to the Admin
+						Panel to preview features.
+					</div>
+				)}
 				{/* Enhanced Profile Header */}
 				<div className="bg-white rounded-xl shadow-lg p-8 mb-8 border border-gray-100">
 					<div className="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
