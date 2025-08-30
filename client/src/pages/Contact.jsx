@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../config/api.js";
 
 const Contact = () => {
 	const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ const Contact = () => {
 
 	const sendEmail = async (formData) => {
 		try {
-			const response = await fetch("/api/contact", {
+			const response = await fetch(`${API_BASE_URL}/api/contact`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -74,15 +75,26 @@ const Contact = () => {
 				}),
 			});
 
-			const data = await response.json();
+			// Try parsing JSON; fall back to text on HTML/error pages
+			let data;
+			const contentType = response.headers.get("content-type") || "";
+			if (contentType.includes("application/json")) {
+				data = await response.json();
+			} else {
+				const text = await response.text();
+				if (!response.ok) {
+					throw new Error(text || "Failed to send message");
+				}
+				data = { message: text };
+			}
 
 			if (!response.ok) {
-				throw new Error(data.message || "Failed to send message");
+				throw new Error(data?.message || "Failed to send message");
 			}
 
 			return {
 				status: "success",
-				message: data.message || "Message sent successfully!",
+				message: data?.message || "Message sent successfully!",
 			};
 		} catch (error) {
 			console.error("Contact form submission error:", error);

@@ -578,6 +578,22 @@ export const listDriveSharesReceived = async () => {
 	}
 };
 
+// Check Google Drive connection status (refresh token + scope)
+export const getDriveStatus = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/status`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to get Drive status");
+		return data?.data || { connected: false, scopeHasDriveFile: false };
+	} catch (e) {
+		console.error("Drive status error:", e);
+		return { connected: false, scopeHasDriveFile: false };
+	}
+};
+
 export const downloadPersonalDriveFile = async (fileId, fileName) => {
 	try {
 		const token = localStorage.getItem("userToken");
