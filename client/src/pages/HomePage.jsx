@@ -11,6 +11,8 @@ import { API_BASE_URL } from "../config/api";
 const HomePage = () => {
 	const [selectedCollege, setSelectedCollege] = useState("nitk"); // Default to NITK
 	const [showModal, setShowModal] = useState(false);
+	const [programFilter, setProgramFilter] = useState("ALL"); // ALL | UG | PG
+	const [courseSearch, setCourseSearch] = useState("");
 	const [stats, setStats] = useState({
 		totalNotes: 0,
 		pendingNotes: 0,
@@ -45,7 +47,9 @@ const HomePage = () => {
 				// Calculate total courses from course structure
 				let totalCourses = 0;
 				if (nitkCourseStructure.nitk) {
-					totalCourses += Object.keys(nitkCourseStructure.nitk).length;
+					const nitk = nitkCourseStructure.nitk;
+					const map = { ...(nitk.PG || {}), ...(nitk.UG || {}) };
+					totalCourses += Object.keys(map).length;
 				}
 				if (bhuCourseStructure.bhu) {
 					totalCourses += Object.keys(bhuCourseStructure.bhu).length;
@@ -98,12 +102,33 @@ const HomePage = () => {
 				return null;
 			}
 			// For BHU, show degree types (bsc, bcom, ba)
-			courses = Object.keys(bhuCourseStructure.bhu);
+			const bhuMap = bhuCourseStructure.bhu;
+			const q = courseSearch.trim().toLowerCase();
+			courses = Object.keys(bhuMap).filter((id) => {
+				if (!q) return true;
+				const label =
+					typeof bhuMap[id] === "string"
+						? bhuMap[id]
+						: bhuMap[id]?.name || bhuMap[id]?.title || "";
+				return id.toLowerCase().includes(q) || label.toLowerCase().includes(q);
+			});
 		} else if (selectedCollege === "nitk") {
-			if (!nitkCourseStructure[selectedCollege]) {
+			const nitk = nitkCourseStructure.nitk;
+			if (!nitk) {
 				return null;
 			}
-			courses = Object.keys(nitkCourseStructure[selectedCollege]);
+			let courseMap = {};
+			if (programFilter === "UG") courseMap = nitk.UG || {};
+			else if (programFilter === "PG") courseMap = nitk.PG || {};
+			else courseMap = { ...(nitk.PG || {}), ...(nitk.UG || {}) };
+
+			const q = courseSearch.trim().toLowerCase();
+			courses = Object.keys(courseMap).filter((id) => {
+				if (!q) return true;
+				const c = courseMap[id];
+				const label = typeof c === "string" ? c : c?.name || c?.title || "";
+				return id.toLowerCase().includes(q) || label.toLowerCase().includes(q);
+			});
 		} else {
 			return null;
 		}
@@ -114,7 +139,10 @@ const HomePage = () => {
 					const course =
 						selectedCollege === "bhu"
 							? bhuCourseStructure.bhu[courseId]
-							: nitkCourseStructure[selectedCollege][courseId];
+							: {
+									...(nitkCourseStructure.nitk?.PG || {}),
+									...(nitkCourseStructure.nitk?.UG || {}),
+							  }[courseId];
 					return (
 						<CourseCard
 							key={courseId}
@@ -254,6 +282,57 @@ const HomePage = () => {
 						<h2 className={styles.sectionTitle}>
 							{selectedCollege === "bhu" ? "BHU" : "NITK"} Courses
 						</h2>
+					</div>
+
+					{/* Filters: UG/PG toggle and Search */}
+					<div className="mt-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+						{selectedCollege === "nitk" && (
+							<div className="inline-flex rounded-md shadow-sm" role="group">
+								<button
+									type="button"
+									className={`px-4 py-2 text-sm font-medium border rounded-l-md focus:outline-none ${
+										programFilter === "ALL"
+											? "bg-teal-600 text-white border-teal-600"
+											: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+									}`}
+									onClick={() => setProgramFilter("ALL")}
+								>
+									All
+								</button>
+								<button
+									type="button"
+									className={`px-4 py-2 text-sm font-medium border-t border-b ${
+										programFilter === "UG"
+											? "bg-teal-600 text-white border-teal-600"
+											: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+									}`}
+									onClick={() => setProgramFilter("UG")}
+								>
+									UG
+								</button>
+								<button
+									type="button"
+									className={`px-4 py-2 text-sm font-medium border rounded-r-md ${
+										programFilter === "PG"
+											? "bg-teal-600 text-white border-teal-600"
+											: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+									}`}
+									onClick={() => setProgramFilter("PG")}
+								>
+									PG
+								</button>
+							</div>
+						)}
+
+						<div className="relative w-full md:w-80">
+							<input
+								type="text"
+								value={courseSearch}
+								onChange={(e) => setCourseSearch(e.target.value)}
+								placeholder="Search courses..."
+								className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+							/>
+						</div>
 					</div>
 
 					{renderCourseCards()}

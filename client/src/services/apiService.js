@@ -55,6 +55,9 @@ export const uploadFilesToServer = async (files, uploadConfig, onProgress) => {
 				formData.append("semester", String(uploadConfig.semester || "")); // Ensure semester is a string
 				formData.append("subject", String(uploadConfig.subject || ""));
 				formData.append("uploadType", String(uploadConfig.uploadType || ""));
+				if (uploadConfig.programLevel) {
+					formData.append("programLevel", String(uploadConfig.programLevel));
+				}
 				formData.append(
 					"tags",
 					uploadConfig.tags ? uploadConfig.tags.join(",") : ""
@@ -575,6 +578,22 @@ export const listDriveSharesReceived = async () => {
 	} catch (e) {
 		console.error("Drive list received shares error:", e);
 		return { success: false, message: e.message };
+	}
+};
+
+// Check Google Drive connection status (refresh token + scope)
+export const getDriveStatus = async () => {
+	try {
+		const token = localStorage.getItem("userToken");
+		const res = await fetch(`${API_BASE_URL}/api/drive/status`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.message || "Failed to get Drive status");
+		return data?.data || { connected: false, scopeHasDriveFile: false };
+	} catch (e) {
+		console.error("Drive status error:", e);
+		return { connected: false, scopeHasDriveFile: false };
 	}
 };
 

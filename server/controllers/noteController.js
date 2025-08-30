@@ -110,6 +110,11 @@ export const uploadNote = async (req, res) => {
 			semester: req.body.semester?.trim(), // Keep as string initially
 			subject: req.body.subject?.trim(),
 			uploadType: req.body.uploadType?.trim(),
+			// Optional: UG/PG program level metadata (does not affect S3 paths)
+			programLevel: (() => {
+				const lvl = req.body.programLevel?.trim()?.toUpperCase();
+				return lvl === "UG" || lvl === "PG" ? lvl : "";
+			})(),
 			tags: req.body.tags
 				? req.body.tags
 						.split(",")
@@ -169,6 +174,7 @@ export const uploadNote = async (req, res) => {
 					semester: savedNote.semester,
 					subject: savedNote.subject,
 					uploadType: savedNote.uploadType,
+					programLevel: savedNote.programLevel || "",
 				};
 				const moveResult = await moveToApprovedLocation(
 					savedNote.file.s3Key,
@@ -245,6 +251,7 @@ export const getAllNotes = async (req, res) => {
 			semester,
 			subject,
 			uploadType,
+			programLevel,
 			page = 1,
 			limit = 20,
 			sortBy = "createdAt",
@@ -261,6 +268,7 @@ export const getAllNotes = async (req, res) => {
 			semester,
 			subject,
 			uploadType,
+			programLevel,
 			search,
 		};
 
@@ -493,6 +501,7 @@ export const approveNote = async (req, res) => {
 				semester: note.semester,
 				subject: note.subject,
 				uploadType: note.uploadType,
+				programLevel: note.programLevel || "",
 			};
 
 			console.log(`🔄 Moving file for note ${id}:`, {
