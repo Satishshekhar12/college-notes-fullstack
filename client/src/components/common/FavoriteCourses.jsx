@@ -45,9 +45,11 @@ const FavoriteCourses = () => {
 				college: "bhu",
 			}));
 		} else if (selectedCollege === "nitk") {
-			return Object.keys(nitkCourseStructure.nitk || {}).map((courseId) => ({
+			const nitk = nitkCourseStructure.nitk || {};
+			const courseMap = { ...(nitk.PG || {}), ...(nitk.UG || {}) };
+			return Object.keys(courseMap).map((courseId) => ({
 				id: courseId,
-				name: nitkCourseStructure.nitk[courseId]?.courseName || courseId,
+				name: courseMap[courseId]?.courseName || courseId,
 				college: "nitk",
 			}));
 		}

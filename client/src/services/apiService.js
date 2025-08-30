@@ -55,6 +55,9 @@ export const uploadFilesToServer = async (files, uploadConfig, onProgress) => {
 				formData.append("semester", String(uploadConfig.semester || "")); // Ensure semester is a string
 				formData.append("subject", String(uploadConfig.subject || ""));
 				formData.append("uploadType", String(uploadConfig.uploadType || ""));
+				if (uploadConfig.programLevel) {
+					formData.append("programLevel", String(uploadConfig.programLevel));
+				}
 				formData.append(
 					"tags",
 					uploadConfig.tags ? uploadConfig.tags.join(",") : ""

@@ -91,8 +91,15 @@ export const generateS3Key = (
 	originalFileName,
 	isPending = true
 ) => {
-	const { college, course, subcourse, semester, subject, uploadType } =
-		noteMetadata;
+	const {
+		college,
+		course,
+		subcourse,
+		semester,
+		subject,
+		uploadType,
+		programLevel,
+	} = noteMetadata;
 
 	// Clean folder names (remove special characters)
 	const cleanString = (str) => str.replace(/[^a-zA-Z0-9-_]/g, "").toLowerCase();
@@ -107,6 +114,15 @@ export const generateS3Key = (
 	}
 
 	folderParts.push(cleanString(college));
+
+	// Insert academic level for NITK between college and course when provided
+	if (
+		cleanString(college) === "nitk" &&
+		typeof programLevel === "string" &&
+		["ug", "pg"].includes(programLevel.toLowerCase())
+	) {
+		folderParts.push(programLevel.toUpperCase());
+	}
 
 	if (course) folderParts.push(cleanString(course));
 	if (subcourse && college === "bhu") folderParts.push(cleanString(subcourse));
@@ -177,6 +193,7 @@ export const uploadToS3 = async (file, noteMetadata) => {
 				semester: String(noteMetadata.semester || "unknown"),
 				subject: String(noteMetadata.subject || "unknown"),
 				"upload-type": String(noteMetadata.uploadType || "notes"),
+				"program-level": String(noteMetadata.programLevel || ""),
 				"file-size": String(file.size),
 			},
 			// Set appropriate storage class for cost optimization

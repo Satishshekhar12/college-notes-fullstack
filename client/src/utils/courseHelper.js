@@ -8,15 +8,23 @@ export const getAllCourses = () => {
 
 	// NITK courses
 	if (nitkCourseStructure.nitk) {
-		Object.keys(nitkCourseStructure.nitk).forEach((courseKey) => {
-			const course = nitkCourseStructure.nitk[courseKey];
-			courses.push({
-				key: courseKey,
-				name: course.courseName,
-				college: "NITK",
-				maxSemesters: course.totalSemesters || 8,
+		const nitk = nitkCourseStructure.nitk;
+		const addFromLevel = (bucket, level) => {
+			if (!bucket) return;
+			Object.keys(bucket).forEach((courseKey) => {
+				const course = bucket[courseKey];
+				courses.push({
+					key: courseKey,
+					name: course.courseName,
+					college: "NITK",
+					maxSemesters: course.totalSemesters || 8,
+					programLevel: level, // e.g., PG or UG
+				});
 			});
-		});
+		};
+
+		addFromLevel(nitk.PG, "PG");
+		addFromLevel(nitk.UG, "UG");
 	}
 
 	// BHU courses
@@ -47,8 +55,12 @@ export const getCoursesByCollege = (collegeId) => {
 
 // Get maximum semesters for a course
 export const getMaxSemesters = (courseKey, collegeId) => {
-	if (collegeId === "nitk" && nitkCourseStructure.nitk[courseKey]) {
-		return nitkCourseStructure.nitk[courseKey].totalSemesters || 8;
+	if (collegeId === "nitk") {
+		const nitk = nitkCourseStructure.nitk || {};
+		const fromPG = nitk.PG && nitk.PG[courseKey];
+		const fromUG = nitk.UG && nitk.UG[courseKey];
+		if (fromPG) return fromPG.totalSemesters || 8;
+		if (fromUG) return fromUG.totalSemesters || 8;
 	}
 
 	if (collegeId === "bhu" && bhuCourseStructure.bhu[courseKey]) {

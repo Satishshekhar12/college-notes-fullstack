@@ -31,7 +31,9 @@ const NITKCoursePage = () => {
 	const [selectedSemester, setSelectedSemester] = useState(null);
 	const [showBooks, setShowBooks] = useState(false);
 
-	const courseData = nitkCourseStructure.nitk?.[courseId];
+	const nitk = nitkCourseStructure.nitk || {};
+	const courseData =
+		(nitk.PG && nitk.PG[courseId]) || (nitk.UG && nitk.UG[courseId]);
 
 	if (!courseData) {
 		return (

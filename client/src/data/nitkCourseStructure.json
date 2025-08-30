@@ -4335,6 +4335,3231 @@
 				]
 			}
 		},
-		"UG": {}
+		"UG": {
+			"common": {
+				"courseName": "B.Tech First Year Common Courses",
+				"subjects": [
+					{
+						"code": "MA110",
+						"name": "Engineering Mathematics - I",
+						"credits": 3,
+						"type": "BSC"
+					},
+					{
+						"code": "MA111",
+						"name": "Engineering Mathematics - II",
+						"credits": 3,
+						"type": "BSC"
+					},
+					{ "code": "PH110", "name": "Physics", "credits": 4, "type": "BSC" },
+					{
+						"code": "PH111",
+						"name": "Physics Laboratory",
+						"credits": 1,
+						"type": "BSC Lab"
+					},
+					{ "code": "CY110", "name": "Chemistry", "credits": 3, "type": "BSC" },
+					{
+						"code": "CY111",
+						"name": "Chemistry Laboratory",
+						"credits": 2,
+						"type": "BSC Lab"
+					},
+
+					{
+						"code": "WO110",
+						"name": "Engineering Mechanics",
+						"credits": 3,
+						"type": "ESC"
+					},
+					{
+						"code": "ME111",
+						"name": "Engineering Graphics",
+						"credits": 3,
+						"type": "ESC"
+					},
+					{
+						"code": "EC100",
+						"name": "Elements of Electronics and Communication Engineering",
+						"credits": 2,
+						"type": "ESC"
+					},
+					{
+						"code": "EE110",
+						"name": "Elements of Electrical Engineering",
+						"credits": 2,
+						"type": "ESC"
+					},
+					{
+						"code": "ME110",
+						"name": "Elements of Mechanical Engineering",
+						"credits": 2,
+						"type": "ESC"
+					},
+					{
+						"code": "CS110",
+						"name": "C Programming",
+						"credits": 3,
+						"type": "ESC",
+						"appliesTo": "Set-1"
+					},
+					{
+						"code": "CS111",
+						"name": "C Programming Lab",
+						"credits": 2,
+						"type": "ESC Lab",
+						"appliesTo": "Set-1"
+					},
+					{
+						"code": "CS100",
+						"name": "Python Programming",
+						"credits": 3,
+						"type": "ESC",
+						"appliesTo": "Set-2"
+					},
+					{
+						"code": "CS101",
+						"name": "Python Programming Lab",
+						"credits": 2,
+						"type": "ESC Lab",
+						"appliesTo": "Set-2"
+					},
+
+					{
+						"code": "SM110",
+						"name": "Professional Communication",
+						"credits": 3,
+						"type": "HSC"
+					},
+
+					{
+						"code": "CV110",
+						"name": "Environmental Studies",
+						"credits": 1,
+						"type": "MLC"
+					},
+					{
+						"code": "SM111",
+						"name": "Professional Ethics and Human Values",
+						"credits": 1,
+						"type": "MLC"
+					},
+					{
+						"code": "ME100",
+						"name": "Introduction to Design Thinking",
+						"credits": 2,
+						"type": "MLC"
+					}
+				]
+			},
+			"ch": {
+				"courseName": "Bachelor of Technology (B.Tech) in Chemical Engineering",
+				"departmentCode": "CH",
+				"totalSemesters": 8,
+				"totalCredits": 161,
+				"creditRequirements": {
+					"foundationCourses": 50,
+					"programCore": 68,
+					"programElectivesAndMOOC": 21,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics and Communication Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "EE110",
+								"name": "Elements of Electrical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "WO110",
+								"name": "Engineering Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "CH150",
+								"name": "Process Calculations",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "ME100",
+								"name": "Introduction to Design Thinking",
+								"type": "MLC",
+								"credits": 2
+							},
+							{
+								"code": "CV110",
+								"name": "Environmental Studies",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{
+								"code": "CH200",
+								"name": "Momentum Transfer",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH201",
+								"name": "Particulate Technology",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH202",
+								"name": "Chemical Engineering Thermodynamics",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH203",
+								"name": "Transport Phenomena",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH204",
+								"name": "Computer Simulation Lab",
+								"type": "Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA207",
+								"name": "Numerical Methods",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MA211",
+								"name": "Laplace and Z Transforms",
+								"type": "BSC",
+								"credits": 1
+							}
+						]
+					},
+					"4": {
+						"subjects": [
+							{
+								"code": "CH250",
+								"name": "Heat Transfer",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH251",
+								"name": "Mass Transfer - I",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH252",
+								"name": "Chemical Reaction Engineering - I",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CY205",
+								"name": "Organic Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CH253",
+								"name": "Momentum Transfer Lab",
+								"type": "Lab",
+								"credits": 2
+							},
+							{
+								"code": "CH254",
+								"name": "Particulate Technology Lab",
+								"type": "Lab",
+								"credits": 2
+							}
+						]
+					},
+					"5": {
+						"subjects": [
+							{
+								"code": "CY255",
+								"name": "Technical Analysis Lab",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "SM300",
+								"name": "Engineering Economics",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "CH300",
+								"name": "Chemical Reaction Engineering - II",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH301",
+								"name": "Mass Transfer - II",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH302",
+								"name": "Process Dynamics and Control",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "CH303",
+								"name": "Heat Transfer Operations Lab",
+								"type": "Lab",
+								"credits": 2
+							},
+							{
+								"code": "PSE1",
+								"name": "Program Elective 1",
+								"type": "Elective",
+								"credits": 3
+							}
+						]
+					},
+					"6": {
+						"subjects": [
+							{
+								"code": "CY300",
+								"name": "Instrumental Methods of Analysis",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "CH350",
+								"name": "Chemical Process Industries",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "CH351",
+								"name": "Process Design of Chemical Equipment",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "CH352",
+								"name": "Mass Transfer Operations Lab",
+								"type": "Lab",
+								"credits": 2
+							},
+							{
+								"code": "CH353",
+								"name": "Design and Simulation Lab",
+								"type": "Lab",
+								"credits": 1
+							},
+							{
+								"code": "CH440",
+								"name": "Seminar",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"7": {
+						"subjects": [
+							{
+								"code": "CH400",
+								"name": "Pollution Control and Safety in Process Industries",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "CH401",
+								"name": "Chemical Reaction Engg. & Process Control Lab",
+								"type": "Lab",
+								"credits": 2
+							},
+							{
+								"code": "PSE2",
+								"name": "Program Elective 2",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "PSE3",
+								"name": "Program Elective 3",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "PSE4",
+								"name": "Program Elective 4",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "CH449",
+								"name": "Major Project I",
+								"type": "Project",
+								"credits": 2
+							}
+						]
+					},
+					"8": {
+						"subjects": [
+							{
+								"code": "PSE5",
+								"name": "Program Elective 5",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "PSE6",
+								"name": "Program Elective 6",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "PSE7",
+								"name": "Program Elective 7",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "PSE8",
+								"name": "Program Elective 8",
+								"type": "Elective",
+								"credits": 3
+							},
+							{
+								"code": "CH499",
+								"name": "Major Project II",
+								"type": "Project",
+								"credits": 4
+							},
+							{
+								"code": "UC401",
+								"name": "Liberal Arts (Co/Extra Curricular)",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "CH450", "name": "Process Instrumentation", "credits": 3 },
+					{ "code": "CH451", "name": "Energy Technology", "credits": 3 },
+					{
+						"code": "CH452",
+						"name": "Petroleum Refining Processes",
+						"credits": 3
+					},
+					{ "code": "CH453", "name": "Biochemical Engineering", "credits": 3 },
+					{
+						"code": "CH454",
+						"name": "Introduction to Molecular Simulations",
+						"credits": 3
+					},
+					{
+						"code": "CH455",
+						"name": "Energy Conservation & Management in Process Industries",
+						"credits": 3
+					},
+					{ "code": "CH456", "name": "Fuel Cell Engineering", "credits": 3 },
+					{
+						"code": "CH457",
+						"name": "Chemical Project Engineering",
+						"credits": 3
+					},
+					{
+						"code": "CH458",
+						"name": "Biology for Chemical Engineers",
+						"credits": 3
+					},
+					{
+						"code": "CH460",
+						"name": "Cornerstone/Capstone Project",
+						"credits": 4
+					}
+				]
+			},
+			"cv": {
+				"courseName": "Bachelor of Technology (B.Tech) in Civil Engineering",
+				"departmentCode": "CV",
+				"totalSemesters": 8,
+				"totalCredits": 168,
+				"creditRequirements": {
+					"foundationCourses": 42,
+					"programCore": 65,
+					"programElectives": 39,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics and Communication Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "EE110",
+								"name": "Elements of Electrical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "WO110",
+								"name": "Engineering Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA207",
+								"name": "Numerical Methods",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "UC100",
+								"name": "Introduction to Design Thinking",
+								"type": "MLC",
+								"credits": 2
+							},
+							{
+								"code": "CV110",
+								"name": "Environmental Studies",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "CV201", "name": "Elements of Surveying" },
+							{ "code": "CV202", "name": "Engineering Geology" },
+							{ "code": "CV216", "name": "Civil Engineering Materials Lab" },
+							{ "code": "MA207", "name": "Numerical Methods" },
+							{ "code": "WO200", "name": "Mechanics of Materials" },
+							{ "code": "WO216", "name": "Mechanics of Materials Lab" },
+							{
+								"code": "CV100",
+								"name": "Civil Engineering Materials and Construction"
+							},
+							{ "code": "WO219", "name": "Hydraulics Lab" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CV251", "name": "Civil Engineering Materials Lab?" },
+							{ "code": "CV252", "name": "Surveying II / related" },
+							{ "code": "CV253", "name": "" },
+							{ "code": "CV254", "name": "" },
+							{ "code": "CV265", "name": "" },
+							{ "code": "CV266", "name": "" },
+							{ "code": "CV267", "name": "" },
+							{ "code": "WO260", "name": "Water Resources Engineering" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "SM302", "name": "Principles of Management" },
+							{ "code": "CV301", "name": "" },
+							{ "code": "CV316", "name": "" },
+							{ "code": "Elective1", "name": "Program Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "SM300", "name": "Engineering Economics" },
+							{ "code": "CV351", "name": "" },
+							{ "code": "CV366", "name": "" },
+							{ "code": "CV367", "name": "" },
+							{ "code": "Elective2", "name": "Program Elective" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{
+								"code": "CV401",
+								"name": "Cornerstone/Capstone Project / Advanced topic"
+							},
+							{ "code": "CV417", "name": "" },
+							{ "code": "CV449", "name": "Major Project I" },
+							{ "code": "CV440", "name": "Practical Training" },
+							{ "code": "Elective3", "name": "Program Elective" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CV499", "name": "Major Project II" },
+							{ "code": "CV390", "name": "Seminar" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" },
+							{ "code": "Elective4", "name": "Program Elective" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "CV268", "name": "Advanced Mining Geology?" },
+					{ "code": "CV321", "name": "Applied Soil Engineering?" },
+					{ "code": "CV322", "name": "Concrete Technology?" }
+				]
+			},
+			"cs": {
+				"courseName": "Bachelor of Technology (B.Tech) in Computer Science and Engineering",
+				"departmentCode": "CS",
+				"totalSemesters": 8,
+				"totalCredits": 160,
+				"creditRequirements": {
+					"foundationCourses": 38,
+					"programCore": 66,
+					"programElectives": 34,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "SM300",
+								"name": "Engineering Economics",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "CS110",
+								"name": "C Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS111",
+								"name": "C Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "WO110",
+								"name": "Engineering Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS112",
+								"name": "Discrete Mathematical Structures",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "SM300", "name": "Engineering Economics" },
+							{ "code": "CS200", "name": "Theory of Computation" },
+							{ "code": "CS201", "name": "Data Structures and Algorithms" },
+							{ "code": "CS202", "name": "Data Structures and Algorithms Lab" },
+							{ "code": "CS203", "name": "Design and Analysis of Algorithms" },
+							{ "code": "CS204", "name": "Design of Digital Systems Lab" },
+							{ "code": "CS205", "name": "Database Systems" },
+							{ "code": "CS251", "name": "Operating Systems" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CS251", "name": "Operating Systems" },
+							{ "code": "CS252", "name": "Operating Systems Lab" },
+							{ "code": "CS253", "name": "Computer Networks" },
+							{ "code": "CS254", "name": "Computer Networks Lab" },
+							{
+								"code": "CS255",
+								"name": "Computer Organization and Architecture"
+							},
+							{
+								"code": "CS256",
+								"name": "Computer Organization and Architecture Lab"
+							},
+							{ "code": "CS257", "name": "Software Engineering" },
+							{ "code": "CS258", "name": "Compiler Design" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "CS301", "name": "Software Engineering" },
+							{ "code": "CS302", "name": "Database Systems" },
+							{ "code": "CS303", "name": "Database Systems Lab" },
+							{ "code": "CS304", "name": "Web Engineering" },
+							{ "code": "CS305", "name": "Web Engineering Lab" },
+							{ "code": "CS306", "name": "Mini Project I" },
+							{ "code": "CS307", "name": "Mini Project II" },
+							{ "code": "CS308", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "SM302", "name": "Principles of Management" },
+							{ "code": "CS398", "name": "Seminar" },
+							{ "code": "CS399", "name": "Practical Training" },
+							{ "code": "CS390", "name": "Elective" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "Elective1", "name": "Elective" },
+							{ "code": "Elective2", "name": "Elective" },
+							{ "code": "Elective3", "name": "Elective" },
+							{ "code": "Elective4", "name": "Elective" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CS402", "name": "Major Project" },
+							{ "code": "UC100", "name": "Introduction to Design Thinking" },
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							}
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "CS311", "name": "Cryptography and Applications" },
+					{ "code": "CS312", "name": "Machine Learning" },
+					{ "code": "CS320", "name": "Artificial Intelligence" },
+					{ "code": "CS321", "name": "Deep Learning" },
+					{ "code": "CS322", "name": "Computer Vision" },
+					{ "code": "CS323", "name": "Speech Processing" },
+					{ "code": "CS324", "name": "Natural Language Processing" },
+					{ "code": "CS325", "name": "Reinforcement Learning" },
+					{ "code": "CS326", "name": "Cloud Security" },
+					{ "code": "CS327", "name": "Storage Systems" },
+					{ "code": "CS328", "name": "Distributed Computing" },
+					{ "code": "CS329", "name": "Cloud Networking" },
+					{
+						"code": "CS330",
+						"name": "Next Generation Multi-Cloud Architecture"
+					},
+					{ "code": "CS331", "name": "Digital Systems Verification" },
+					{ "code": "CS332", "name": "Quantum Computer Architecture" },
+					{ "code": "CS333", "name": "Wireless Networks" },
+					{ "code": "CS334", "name": "Mobile Computing" },
+					{ "code": "CS335", "name": "Open Source Networking Technologies" },
+					{ "code": "CS336", "name": "Software Based Networks" },
+					{ "code": "CS337", "name": "Database Security" },
+					{ "code": "CS338", "name": "Information Storage Management" },
+					{ "code": "CS339", "name": "Applications of Blockchain Technology" },
+					{ "code": "CS340", "name": "Software Engineering" },
+					{ "code": "CS341", "name": "Project for ML Minors" }
+				]
+			},
+			"ee": {
+				"courseName": "Bachelor of Technology (B.Tech) in Electrical and Electronics Engineering",
+				"departmentCode": "EE",
+				"totalSemesters": 8,
+				"totalCredits": 166,
+				"creditRequirements": {
+					"foundationCourses": 38,
+					"programCore": 70,
+					"programElectives": 36,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "EE207",
+								"name": "Analysis of Electric Circuits",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EE213",
+								"name": "Electromagnetic Theory",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EE226",
+								"name": "Induction Motors and Transformers",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "EE224",
+								"name": "Electrical Measurements and Measuring Instruments",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EE258",
+								"name": "Power Electronics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EE326",
+								"name": "Power Systems and Distribution",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "MA110", "name": "Engineering Mathematics - I" },
+							{ "code": "PH111", "name": "Physics Laboratory" },
+							{ "code": "EE226", "name": "Induction Motors and Transformers" },
+							{
+								"code": "EE265",
+								"name": "Synchronous Machines and DC Machines"
+							},
+							{ "code": "EE350", "name": "Power System Analysis" },
+							{ "code": "EE258", "name": "Power Electronics" },
+							{ "code": "EE326", "name": "Power Systems and Distribution" },
+							{ "code": "SM300", "name": "Engineering Economics" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CS101", "name": "Python Programming Lab" },
+							{ "code": "ME110", "name": "Elements of Mechanical Engineering" },
+							{ "code": "EE256", "name": "Linear Control Systems" },
+							{ "code": "EE276", "name": "Digital Electronic Circuits" },
+							{ "code": "Elective1", "name": "Elective" },
+							{ "code": "Elective2", "name": "Elective" },
+							{ "code": "Elective3", "name": "Elective" },
+							{ "code": "Elective4", "name": "Elective" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "CS101", "name": "Python Programming Lab" },
+							{ "code": "ME111", "name": "Engineering Graphics" },
+							{ "code": "Elective5", "name": "Elective" },
+							{ "code": "Elective6", "name": "Elective" },
+							{ "code": "Elective7", "name": "Elective" },
+							{ "code": "Elective8", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "WO110", "name": "Engineering Mechanics" },
+							{ "code": "EE143", "name": "Electromagnetic Theory" },
+							{ "code": "Elective9", "name": "Elective" },
+							{ "code": "Elective10", "name": "Elective" },
+							{ "code": "Elective11", "name": "Elective" },
+							{ "code": "Elective12", "name": "Elective" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "EE101", "name": "Analysis of Electric Circuits" },
+							{ "code": "SM110", "name": "Professional Communication" },
+							{ "code": "Elective13", "name": "Elective" },
+							{ "code": "Elective14", "name": "Elective" },
+							{ "code": "Elective15", "name": "Elective" },
+							{ "code": "Elective16", "name": "Elective" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							},
+							{ "code": "EE498", "name": "Practical Training" },
+							{ "code": "EE499", "name": "Major Project II" },
+							{ "code": "UC100", "name": "Introduction to Design Thinking" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{
+						"code": "EE229",
+						"name": "Polyphase Systems and Component – Transformations"
+					},
+					{ "code": "EE261", "name": "Basic Electric Machines" },
+					{ "code": "EE230", "name": "Electric Circuits" },
+					{
+						"code": "EE303",
+						"name": "Distribution Systems Control and Automation"
+					},
+					{ "code": "EE311", "name": "Digital System Design" },
+					{ "code": "EE312", "name": "Power System Harmonics" },
+					{ "code": "EE313", "name": "Digital Signal Processing" },
+					{ "code": "EE319", "name": "Neural Networks and Applications" },
+					{ "code": "EE320", "name": "Data Structures and Algorithms" },
+					{ "code": "EE321", "name": "Linear and Nonlinear Systems" },
+					{
+						"code": "EE324",
+						"name": "Electronic Measurements and Instrumentation"
+					},
+					{
+						"code": "EE329",
+						"name": "Traveling Waves on Transmission Systems"
+					},
+					{ "code": "EE335", "name": "Digital System Design Laboratory" },
+					{ "code": "EE337", "name": "Power System Harmonics Laboratory" },
+					{
+						"code": "EE343",
+						"name": "Statistical Foundation for Electrical Engineers"
+					},
+					{ "code": "EE359", "name": "Energy Auditing" },
+					{ "code": "EE360", "name": "Microprocessors and Microcontrollers" },
+					{ "code": "EE362", "name": "Operation and control of Power Systems" },
+					{ "code": "EE363", "name": "Advanced Digital Signal Processing" },
+					{ "code": "EE366", "name": "Special Machines and Drives" },
+					{ "code": "EE369", "name": "Embedded System Design" },
+					{
+						"code": "EE371",
+						"name": "Power Electronics Applications to Power Systems"
+					},
+					{ "code": "EE373", "name": "Electric Power Stations" },
+					{ "code": "EE374", "name": "Electric Energy Systems" },
+					{ "code": "EE376", "name": "Advanced Control Systems" },
+					{
+						"code": "EE385",
+						"name": "Microprocessors and Microcontrollers Laboratory"
+					},
+					{ "code": "EE386", "name": "Digital Signal Processing Laboratory" },
+					{
+						"code": "EE387",
+						"name": "Advanced Digital Signal Processing Laboratory"
+					},
+					{ "code": "EE392", "name": "Embedded System Design Laboratory" },
+					{ "code": "EE404", "name": "Soft Computing and applications" },
+					{ "code": "EE406", "name": "Electromagnetic Compatibility" },
+					{ "code": "EE408", "name": "Solid-State Drives" },
+					{ "code": "EE410", "name": "Power-System Protection" },
+					{ "code": "EE411", "name": "Random Signal Processing" },
+					{ "code": "EE418", "name": "Advanced Power Electronics" },
+					{ "code": "EE420", "name": "Power System Dynamics" },
+					{
+						"code": "EE427",
+						"name": "Principles of Switchgear and Protection"
+					},
+					{ "code": "EE428", "name": "Switchgear and Protection Laboratory" },
+					{ "code": "EE447", "name": "Computer Networks" },
+					{ "code": "EE439", "name": "Advanced Power Electronics Laboratory" },
+					{ "code": "EE454", "name": "Flexible AC Transmission Systems" },
+					{ "code": "EE456", "name": "High-Voltage Engineering" },
+					{ "code": "EE458", "name": "Photovoltaics and Applications" },
+					{ "code": "EE464", "name": "Power Generation and Economics" },
+					{ "code": "EE467", "name": "Industrial Electrical Systems" },
+					{ "code": "EE468", "name": "Advanced Electric Drives" },
+					{ "code": "EE469", "name": "New and Renewable Energy Systems" },
+					{ "code": "EE471", "name": "Power System Simulation Laboratory" },
+					{ "code": "EE472", "name": "Insulation and Testing Engineering" },
+					{
+						"code": "EE476",
+						"name": "Introduction to Nonlinear and Linear Optimization"
+					},
+					{ "code": "EE489", "name": "Advanced Electric Drives Laboratory" },
+					{
+						"code": "EE491",
+						"name": "Insulation and Testing Engineering Laboratory"
+					},
+					{ "code": "EE500", "name": "System Analysis in Discrete Time" },
+					{ "code": "EE501", "name": "Analysis of Nonlinear Circuits" },
+					{ "code": "EE502", "name": "Cornerstone/capstone Project" },
+					{
+						"code": "EE537",
+						"name": "Design & Development Task in Control Systems"
+					},
+					{
+						"code": "EE548",
+						"name": "Design & Development Task in Power Electronics & Drives"
+					},
+					{
+						"code": "EE397",
+						"name": "Design & Development Task in Signal Processing"
+					},
+					{
+						"code": "EE398",
+						"name": "Design & Development Task in Power Systems"
+					}
+				]
+			},
+			"ec": {
+				"courseName": "Bachelor of Technology (B.Tech) in Electronics and Communication Engineering",
+				"departmentCode": "EC",
+				"totalSemesters": 8,
+				"totalCredits": 161,
+				"creditRequirements": {
+					"programCore": 62,
+					"programElectives": 39,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "EC200",
+								"name": "Joy of Electronics and Communication",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EC201",
+								"name": "Analog Electronics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EC202",
+								"name": "Analog and Digital Communication",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "CS110",
+								"name": "C Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS111",
+								"name": "C Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "EC206",
+								"name": "Analog and Digital Communication Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "EC207",
+								"name": "Electromagnetic Waves and Transmission Lines",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "EC208",
+								"name": "Digital Signal Processing",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "MA110", "name": "Engineering Mathematics - I" },
+							{ "code": "PH111", "name": "Physics Laboratory" },
+							{ "code": "EC202", "name": "Analog and Digital Communication" },
+							{ "code": "EC208", "name": "Digital Signal Processing" },
+							{ "code": "EC301", "name": "Microelectronic Devices" },
+							{ "code": "EC302", "name": "VLSI Design" },
+							{ "code": "EC303", "name": "Communication Lab-I" },
+							{ "code": "SM300", "name": "Engineering Economics" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CS101", "name": "Python Programming Lab" },
+							{ "code": "ME110", "name": "Elements of Mechanical Engineering" },
+							{
+								"code": "EC203",
+								"name": "Linear Algebra and Probability Theory"
+							},
+							{ "code": "EC209", "name": "Control Systems" },
+							{ "code": "EC302", "name": "VLSI Design" },
+							{ "code": "Elective1", "name": "Elective" },
+							{ "code": "Elective2", "name": "Elective" },
+							{ "code": "Elective3", "name": "Elective" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "CS101", "name": "Python Programming Lab" },
+							{ "code": "ME111", "name": "Engineering Graphics" },
+							{ "code": "EC204", "name": "Analog Electronics Lab" },
+							{ "code": "EC210", "name": "Digital Signal Processing Lab" },
+							{ "code": "EC303", "name": "Communication Lab-I" },
+							{ "code": "Elective4", "name": "Elective" },
+							{ "code": "Elective5", "name": "Elective" },
+							{ "code": "Elective6", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "WO110", "name": "Engineering Mechanics" },
+							{ "code": "SM110", "name": "Professional Communication" },
+							{ "code": "EC205", "name": "Digital System Design Lab" },
+							{ "code": "EC211", "name": "Digital Signal Processing Lab" },
+							{ "code": "Elective7", "name": "Elective" },
+							{ "code": "Elective8", "name": "Elective" },
+							{ "code": "Elective9", "name": "Elective" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{
+								"code": "EC101",
+								"name": "Joy of Electronics and Communication"
+							},
+							{ "code": "EC102", "name": "Circuits and Systems" },
+							{ "code": "Elective10", "name": "Elective" },
+							{ "code": "Elective11", "name": "Elective" },
+							{ "code": "Elective12", "name": "Elective" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							},
+							{ "code": "EC390", "name": "Seminar" },
+							{ "code": "EC490", "name": "Practical Training" },
+							{ "code": "EC498", "name": "Major Project" },
+							{ "code": "UC100", "name": "Introduction to Design Thinking" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "EC340", "name": "Computer Organization and Architecture" },
+					{ "code": "EC341", "name": "Computer Arithmetic" },
+					{ "code": "EC342", "name": "Embedded System Design" },
+					{ "code": "EC343", "name": "FPGA based System Design" },
+					{ "code": "EC344", "name": "Analog Integrated Circuits" },
+					{ "code": "EC345", "name": "Data Structures and Algorithms" },
+					{ "code": "EC346", "name": "Foundations of Machine Learning" },
+					{ "code": "EC347", "name": "Speech and Audio Processing" },
+					{ "code": "EC348", "name": "Image and Video Processing" },
+					{ "code": "EC349", "name": "Applied Number Theory" },
+					{ "code": "EC350", "name": "Numerical Analysis" },
+					{ "code": "EC351", "name": "Satellite Communications" },
+					{
+						"code": "EC352",
+						"name": "Principles of Modern Radar and Techniques"
+					},
+					{ "code": "EC353", "name": "Modern Electronic Navigation Systems" },
+					{ "code": "EC354", "name": "Communication Networks" },
+					{ "code": "EC355", "name": "Wireless Mobile Communication" },
+					{ "code": "EC356", "name": "Information Theory and Coding" },
+					{ "code": "EC357", "name": "Adhoc and Sensor Networks" },
+					{ "code": "EC358", "name": "Multimedia Communication" },
+					{ "code": "EC359", "name": "Software Defined and Cognitive Radio" },
+					{
+						"code": "EC360",
+						"name": "Machine Learning for Wireless Communication Systems"
+					},
+					{ "code": "EC361", "name": "Quantum Computing" },
+					{ "code": "EC362", "name": "Deep Reinforcement Learning" },
+					{
+						"code": "EC364",
+						"name": "Machine Learning Applications in Radar Signal Processing"
+					},
+					{ "code": "EC404", "name": "VLSI CAD" },
+					{ "code": "EC441", "name": "Mixed Signal Design" },
+					{ "code": "EC443", "name": "VLSI Testing and Testability" },
+					{
+						"code": "EC444",
+						"name": "Synthesis and Optimization of Digital Circuits"
+					},
+					{ "code": "EC445", "name": "Techniques in Low Power VLSI" },
+					{ "code": "EC446", "name": "Submicron Devices" },
+					{ "code": "EC447", "name": "Active Filters" },
+					{
+						"code": "EC449",
+						"name": "Algorithms and Architectures for Signal Processing"
+					},
+					{ "code": "EC450", "name": "Analog and Digital Filter Design" },
+					{ "code": "EC451", "name": "Advanced Digital Signal Processing" },
+					{ "code": "EC452", "name": "Real Time Signal Processing" },
+					{ "code": "EC453", "name": "Fourier and Wavelet Signal Processing" },
+					{
+						"code": "EC454",
+						"name": "Mathematical Algorithms for Signal Processing"
+					},
+					{ "code": "EC455", "name": "Digital Signal Compression" },
+					{
+						"code": "EC465",
+						"name": "Dynamical Systems, Chaos and Statistical Analysis"
+					},
+					{ "code": "EC458", "name": "Stochastic Processes" },
+					{ "code": "EC459", "name": "Optimization and Applications" },
+					{ "code": "EC460", "name": "Neural Networks and Deep Learning" },
+					{ "code": "EC461", "name": "Spread Spectrum Communication" },
+					{ "code": "EC462", "name": "Error Control Coding" },
+					{
+						"code": "EC463",
+						"name": "Optical Communication Systems and Networks"
+					},
+					{ "code": "EC464", "name": "Radar Signal Processing" },
+					{
+						"code": "EC465",
+						"name": "Algorithms for Parameter and State Estimation"
+					},
+					{ "code": "EC466", "name": "Detection and Estimation Theory" },
+					{
+						"code": "EC467",
+						"name": "Advanced Topics in Communication Engineering"
+					},
+					{ "code": "EC468", "name": "Signal Integrity and EMI/ EMC" },
+					{ "code": "EC469", "name": "Introduction to Photonics" },
+					{ "code": "EC470", "name": "MIMO Communication Systems" },
+					{ "code": "EC471", "name": "RF IC Design" },
+					{
+						"code": "EC472",
+						"name": "Principles of Modern Radar- Advanced Techniques"
+					},
+					{ "code": "EC473", "name": "Electronic Defense Systems" },
+					{ "code": "EC474", "name": "Principles of Modern Sonar Systems" },
+					{ "code": "EC475", "name": "Advanced Electromagnetics" }
+				]
+			},
+			"it": {
+				"courseName": "Bachelor of Technology (B.Tech) in Information Technology",
+				"departmentCode": "IT",
+				"totalSemesters": 8,
+				"totalCredits": 161,
+				"creditRequirements": {
+					"foundationCourses": 38,
+					"programCore": 77,
+					"programElectives": 24,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CS110",
+								"name": "C Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS111",
+								"name": "C Programming Lab",
+								"type": "ESC Lab",
+								"credits": 2
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{
+								"code": "IT200",
+								"name": "Computer Communication and Networking"
+							},
+							{
+								"code": "IT201",
+								"name": "Computer Organization and Architecture"
+							},
+							{ "code": "IT202", "name": "Data Structures and Algorithms-I" },
+							{ "code": "IT203", "name": "Discrete Mathematics" },
+							{ "code": "IT204", "name": "Signals and Systems" },
+							{ "code": "IT205", "name": "Computer Networking Lab" },
+							{
+								"code": "IT206",
+								"name": "Data Structures and Algorithms-I Lab"
+							},
+							{ "code": "IT250", "name": "Object Oriented Programming" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "IT251", "name": "Automata and Compiler Design" },
+							{ "code": "IT252", "name": "Data Structures and Algorithms-II" },
+							{ "code": "IT253", "name": "Operating Systems" },
+							{ "code": "IT254", "name": "Web Technologies and Applications" },
+							{ "code": "IT290", "name": "Seminar" },
+							{ "code": "Elective1", "name": "Elective" },
+							{ "code": "Elective2", "name": "Elective" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "IT300", "name": "Design and Analysis of Algorithms" },
+							{ "code": "IT301", "name": "Parallel Computing" },
+							{ "code": "IT302", "name": "Software Engineering" },
+							{ "code": "IT303", "name": "Database Systems" },
+							{ "code": "Elective3", "name": "Elective" },
+							{ "code": "Elective4", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "IT350", "name": "Probability and Statistics" },
+							{ "code": "IT351", "name": "Human Computer Interaction" },
+							{ "code": "IT352", "name": "Information Assurance and Security" },
+							{ "code": "Elective5", "name": "Elective" },
+							{ "code": "Elective6", "name": "Elective" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "Elective7", "name": "Elective" },
+							{ "code": "Elective8", "name": "Elective" },
+							{ "code": "Elective9", "name": "Elective" },
+							{ "code": "IT440", "name": "Practical Training" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							},
+							{ "code": "IT498", "name": "Major Project" },
+							{ "code": "UC100", "name": "Introduction to Design Thinking" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "IT360", "name": "Information Systems" },
+					{ "code": "IT361", "name": "Paradigms of Programming" },
+					{ "code": "IT362", "name": "Computer Graphics" },
+					{ "code": "IT363", "name": "Microprocessors and Interfacing" },
+					{ "code": "IT364", "name": "Performance Modeling" },
+					{ "code": "IT365", "name": "Advanced Computer Networks" },
+					{ "code": "IT366", "name": "Object Oriented Analysis and Design" },
+					{ "code": "IT372", "name": "Mobile Networks" },
+					{ "code": "IT401", "name": "Perceptual Video Processing" },
+					{ "code": "IT402", "name": "Soft Computing" },
+					{ "code": "IT403", "name": "Genetic Algorithms" },
+					{ "code": "IT404", "name": "Artificial Neural Networks" },
+					{ "code": "IT405", "name": "Fuzzy System Models" },
+					{ "code": "IT406", "name": "Distributed Computing Systems" },
+					{ "code": "IT407", "name": "Technologies for Internet of Things" },
+					{ "code": "IT408", "name": "Mobile Computing" },
+					{ "code": "IT409", "name": "Bioinspired Systems" },
+					{ "code": "IT410", "name": "Bioinformatics" },
+					{ "code": "IT411", "name": "Knowledge Management" },
+					{ "code": "IT412", "name": "Time Series Analysis" },
+					{ "code": "IT413", "name": "System Integration" },
+					{ "code": "IT414", "name": "Data Warehousing and Data Mining" },
+					{ "code": "IT415", "name": "Middleware Technologies" },
+					{ "code": "IT416", "name": "Computer Vision" },
+					{ "code": "IT417", "name": "Pattern Recognition" },
+					{ "code": "IT418", "name": "Cloud Computing" },
+					{ "code": "IT419", "name": "Wireless Sensor Networks" },
+					{ "code": "IT420", "name": "Mobile Adhoc Networks" },
+					{ "code": "IT421", "name": "Semantic Web Technologies" },
+					{ "code": "IT422", "name": "Virtual Reality" },
+					{ "code": "IT423", "name": "Rich Internet Applications" },
+					{ "code": "IT450", "name": "Web Services" },
+					{ "code": "IT451", "name": "Software Architecture" },
+					{ "code": "IT452", "name": "Advanced Computer Architecture" },
+					{ "code": "IT453", "name": "Transaction Processing" },
+					{ "code": "IT454", "name": "Software Quality Assurance" },
+					{ "code": "IT455", "name": "Information Technology for Healthcare" },
+					{
+						"code": "IT456",
+						"name": "Enterprise Resource Planning and Systems"
+					},
+					{ "code": "IT457", "name": "Natural Language Processing" },
+					{ "code": "IT458", "name": "Information Retrieval" },
+					{ "code": "IT459", "name": "Simulation and Modelling" },
+					{ "code": "IT459A", "name": "E-Commerce" },
+					{ "code": "IT460", "name": "Advanced Database Systems" },
+					{ "code": "IT461", "name": "Theory and Cryptography" },
+					{ "code": "IT462", "name": "Linux Kernel Internals" },
+					{ "code": "IT463", "name": "Foundations of Machine Learning" },
+					{
+						"code": "IT464",
+						"name": "Cryptocurrencies and Blockchain Technologies"
+					},
+					{ "code": "IT465", "name": "Fundamentals of 5G" },
+					{ "code": "IT466", "name": "Robotic Process Automation" },
+					{ "code": "IT468", "name": "Quantum Computing" },
+					{ "code": "IT470", "name": "Cornerstone/capstone Project" },
+					{ "code": "IT482", "name": "Social Network Analysis" },
+					{ "code": "IT483", "name": "Narrowband Internet of Things" }
+				]
+			},
+			"ai": {
+				"courseName": "Bachelor of Technology (B.Tech) in Artificial Intelligence",
+				"departmentCode": "AI",
+				"totalSemesters": 8,
+				"totalCredits": 161,
+				"creditRequirements": {
+					"foundationCourses": 38,
+					"programCore": 64,
+					"programElectives": 37,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "IT207",
+								"name": "Human Intelligence",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "IT255",
+								"name": "Artificial Intelligence",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "SM300",
+								"name": "Engineering Economics",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "IT208",
+								"name": "Discrete Mathematics",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "IT256",
+								"name": "Applied Linear Algebra",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "IT304",
+								"name": "Optimization Techniques",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "IT353",
+								"name": "Deep Learning",
+								"type": "PC",
+								"credits": 4
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "MA110", "name": "Engineering Mathematics - I" },
+							{ "code": "PH111", "name": "Physics Laboratory" },
+							{ "code": "IT209", "name": "Data Structures and Algorithms" },
+							{ "code": "IT257", "name": "Design and Analysis of Algorithms" },
+							{ "code": "IT305", "name": "Game Theory" },
+							{ "code": "IT354", "name": "Reinforcement Learning" },
+							{ "code": "Elective1", "name": "Elective" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CS110", "name": "C Programming" },
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics & Communication Engineering"
+							},
+							{ "code": "IT211", "name": "Probability and Statistics" },
+							{ "code": "IT258", "name": "Data Science" },
+							{
+								"code": "IT306",
+								"name": "Parallel and Distributed Problem Solving"
+							},
+							{ "code": "Elective2", "name": "Elective" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "CS111", "name": "C Programming Lab" },
+							{ "code": "ME111", "name": "Engineering Graphics" },
+							{ "code": "Elective3", "name": "Elective" },
+							{ "code": "IT289", "name": "Seminar" },
+							{ "code": "IT307", "name": "Machine Learning" },
+							{ "code": "Elective4", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "WO110", "name": "Engineering Mechanics" },
+							{ "code": "SM110", "name": "Professional Communication" },
+							{ "code": "Elective5", "name": "Elective" },
+							{ "code": "Elective6", "name": "Elective" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "IT111", "name": "Fundamentals of Computer Systems" },
+							{ "code": "IT151", "name": "Computer Systems Lab" },
+							{ "code": "Elective7", "name": "Elective" },
+							{ "code": "Elective8", "name": "Elective" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "IT112", "name": "Digital System Design" },
+							{ "code": "IT152", "name": "Python Programming Lab" },
+							{ "code": "Elective9", "name": "Elective" },
+							{ "code": "Elective10", "name": "Elective" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "IT213", "name": "Database Systems" },
+					{ "code": "IT355", "name": "Autonomous Agents" },
+					{ "code": "IT371", "name": "Operating Systems" },
+					{ "code": "IT431", "name": "Distributed Computing" },
+					{ "code": "IT436", "name": "Cloud Computing" },
+					{ "code": "IT472", "name": "Computer Networks" },
+					{ "code": "IT473", "name": "Cognitive Networks" },
+					{ "code": "IT474", "name": "Formal Languages & Automata Theory" },
+					{ "code": "IT475", "name": "Computer Organisation & Architecture" },
+					{ "code": "IT477", "name": "Digital System Design" },
+					{ "code": "IT479", "name": "Signals and Systems" },
+					{ "code": "IT308", "name": "Brain Computer Interfaces" },
+					{ "code": "IT356", "name": "Natural Language Processing" },
+					{ "code": "IT357", "name": "Computer Vision" },
+					{ "code": "IT424", "name": "Computational Auditory Perception" },
+					{ "code": "IT425", "name": "Computational Visual Perception" },
+					{ "code": "IT432", "name": "Computational Photography" },
+					{ "code": "IT439", "name": "Sentiment Analysis" },
+					{ "code": "IT445", "name": "User Experience Design" },
+					{ "code": "IT476", "name": "Human Centered Computing" },
+					{ "code": "IT260", "name": "Robotics Programming" },
+					{ "code": "IT358", "name": "Soft Computing" },
+					{ "code": "IT359", "name": "Pattern Recognition" },
+					{ "code": "IT247", "name": "Genetic Algorithms" },
+					{ "code": "IT435", "name": "Computational Biology" },
+					{ "code": "IT434", "name": "Stochastic Processes" },
+					{ "code": "IT449", "name": "AI in Healthcare" },
+					{ "code": "IT712", "name": "Intelligent Data Management" },
+					{ "code": "IT729", "name": "Data Visualization" },
+					{ "code": "IT369", "name": "Performance Modeling" },
+					{ "code": "IT367", "name": "Information Retrieval" },
+					{ "code": "IT448", "name": "Big Data Analytics" },
+					{ "code": "IT484", "name": "Social Computing" },
+					{ "code": "IT478", "name": "Data Mining" },
+					{ "code": "IT481", "name": "Cornerstone/capstone Project" },
+					{ "code": "IT366", "name": "Internet of Things" },
+					{ "code": "IT246", "name": "Smart Systems Development" },
+					{ "code": "IT478A", "name": "Industry 4.0" },
+					{ "code": "IT429", "name": "Number Theory and Cryptography" },
+					{ "code": "IT430", "name": "Quantum Cryptography" },
+					{ "code": "IT433", "name": "Blockchain Technology" },
+					{ "code": "IT784", "name": "Digital Forensics" },
+					{ "code": "IT442", "name": "Autonomous Cyber Physical Systems" },
+					{ "code": "IT471", "name": "Cyber Security" }
+				]
+			},
+			"ma": {
+				"courseName": "Bachelor of Technology (B.Tech) in Computational and Data Science",
+				"departmentCode": "MA",
+				"totalSemesters": 8,
+				"totalCredits": 160,
+				"creditRequirements": {
+					"foundationCourses": 38,
+					"programCore": 70,
+					"programElectives": 30,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MA202",
+								"name": "Discrete Mathematical Structures",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MA207",
+								"name": "Numerical Methods",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MA302",
+								"name": "Data Analysis, Time Series Analysis and Non-Parametric Methods",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "SM300",
+								"name": "Engineering Economics",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC Lab",
+								"credits": 1
+							},
+							{
+								"code": "MA221",
+								"name": "Data Structures",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MA208",
+								"name": "Probability Theory and Applications",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MA321",
+								"name": "Fundamentals of Data Science",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MA325",
+								"name": "Machine Learning",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "MA110", "name": "Engineering Mathematics - I" },
+							{ "code": "PH111", "name": "Physics Laboratory" },
+							{ "code": "MA222", "name": "Computational Linear Algebra" },
+							{ "code": "MA226", "name": "Operating Systems" },
+							{ "code": "MA322", "name": "Design & Analysis of Algorithms" },
+							{ "code": "MA326", "name": "Big Data Analytics" },
+							{ "code": "MA421", "name": "Financial Mathematics" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{ "code": "CS100", "name": "Python Programming" },
+							{ "code": "EC100", "name": "Communication Engineering" },
+							{ "code": "MA223", "name": "Computer Org & Arch" },
+							{ "code": "MA227", "name": "Database Systems" },
+							{ "code": "MA323", "name": "Statistical Methods Lab" },
+							{ "code": "MA327", "name": "Scientific Computing Lab" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "CS101", "name": "Python Programming Lab" },
+							{ "code": "ME111", "name": "Engineering Graphics" },
+							{ "code": "MA224", "name": "DS Lab" },
+							{ "code": "MA228", "name": "Operating Systems Lab" },
+							{ "code": "MA324", "name": "DAA Lab" },
+							{ "code": "Elective1", "name": "Elective" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "WO110", "name": "Engineering Mechanics" },
+							{ "code": "SM110", "name": "Professional Communication" },
+							{ "code": "MA225", "name": "COA Lab" },
+							{ "code": "MA229", "name": "Database Systems Lab" },
+							{ "code": "Elective2", "name": "Elective" },
+							{ "code": "MA498", "name": "Major Project I" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "MA112", "name": "Digital System Design" },
+							{ "code": "MA113", "name": "Linear Algebra" },
+							{
+								"code": "MA303",
+								"name": "Integral Transforms and Applications"
+							},
+							{ "code": "Elective3", "name": "Elective" },
+							{ "code": "MA490", "name": "Practical Training" },
+							{ "code": "MA491", "name": "Seminar" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							},
+							{ "code": "MA499", "name": "Major Project II" },
+							{ "code": "Elective4", "name": "Elective" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "MA201", "name": "Concrete Mathematics" },
+					{ "code": "MA206", "name": "Number Theory and Cryptography" },
+					{ "code": "MA401", "name": "Computational Fluid Dynamics" },
+					{ "code": "MA403", "name": "Mathematical Modelling" },
+					{ "code": "MA405", "name": "Reliability Theory and Applications" },
+					{ "code": "MA408", "name": "Stochastic Analysis and Applications" },
+					{ "code": "MA500", "name": "Capstone Project" },
+					{ "code": "MA506", "name": "Quadratic Forms and Linear Algebra" },
+					{ "code": "MA507", "name": "Image Processing" },
+					{ "code": "MA508", "name": "Soft Computing" },
+					{ "code": "MA509", "name": "Combinatorial Optimization" },
+					{
+						"code": "MA512",
+						"name": "Numerical Solutions of Differential Equations"
+					},
+					{ "code": "MA514", "name": "Pattern Recognition" },
+					{ "code": "MA515", "name": "Statistical Techniques for Data Mining" },
+					{ "code": "MA516", "name": "Software Engineering" },
+					{ "code": "MA517", "name": "Algorithmic Combinatorics" },
+					{ "code": "MA518", "name": "Selected Topics in Graph Theory" },
+					{ "code": "MA519", "name": "Systems Modelling and Simulation" },
+					{ "code": "MA520", "name": "Selected Topics in Computer Algorithms" },
+					{ "code": "MA521", "name": "Mobile Computing" },
+					{ "code": "MA523", "name": "Computer Networks" },
+					{ "code": "MA525", "name": "Computational Number Theory" },
+					{ "code": "MA526", "name": "Game Theory" },
+					{ "code": "MA527", "name": "Network Security" },
+					{ "code": "MA528", "name": "Introduction to Parallel Programming" },
+					{ "code": "MA529", "name": "Advanced Data Science" },
+					{ "code": "MA531", "name": "Statistical Quality Control" },
+					{ "code": "MA533", "name": "Big data Analytics" },
+					{ "code": "MA534", "name": "Wavelets in Data Science" },
+					{ "code": "MA535", "name": "Cloud Computing" },
+					{ "code": "MA536", "name": "Advanced Database Systems" },
+					{ "code": "MA537", "name": "Optimization Techniques" },
+					{ "code": "MA538", "name": "Artificial Intelligence" }
+				]
+			},
+			"me": {
+				"courseName": "Bachelor of Technology (B.Tech) in Mechanical Engineering",
+				"departmentCode": "ME",
+				"totalSemesters": 8,
+				"totalCredits": 169,
+				"creditRequirements": {
+					"foundationCourses": 48,
+					"programCore": 79,
+					"programElectives": 21,
+					"project": 5,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MA207",
+								"name": "Numerical Methods",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MA208",
+								"name": "Probability Theory and Applications",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "SM300",
+								"name": "Engineering Economics",
+								"type": "HSC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"fromCommon": true,
+						"subjects": [
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 4
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC Lab",
+								"credits": 2
+							},
+							{
+								"code": "ME201",
+								"name": "Basic Engineering Thermodynamics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "ME251",
+								"name": "Applied Thermodynamics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "ME301",
+								"name": "Metrology and Instrumentation",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "ME351",
+								"name": "Energy Engineering",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{ "code": "PH111", "name": "Physics Laboratory" },
+							{ "code": "MA111", "name": "Engineering Mathematics - II" },
+							{ "code": "ME202", "name": "Fluid Mechanics and Machinery" },
+							{
+								"code": "ME252",
+								"name": "Analysis and Design of Machine Components"
+							},
+							{ "code": "ME302", "name": "Heat Transfer" },
+							{ "code": "ME352", "name": "Machine Dynamics and Vibrations" },
+							{ "code": "ME421", "name": "Financial Mathematics" }
+						]
+					},
+					"4": {
+						"subjects": [
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics and Communication Engineering"
+							},
+							{ "code": "CS100", "name": "Python Programming" },
+							{ "code": "ME203", "name": "Mechanics of Machinery" },
+							{ "code": "ME253", "name": "Computer Aided Engineering" },
+							{ "code": "ME303", "name": "Design of Mechanical Drives" },
+							{ "code": "ME353", "name": "Control Engineering" }
+						]
+					},
+					"5": {
+						"subjects": [
+							{ "code": "EE110", "name": "Elements of Electrical Engineering" },
+							{ "code": "CS101", "name": "Python Programming Laboratory" },
+							{ "code": "ME204", "name": "Basic Manufacturing Processes" },
+							{ "code": "ME254", "name": "Manufacturing Technology" },
+							{ "code": "ME304", "name": "Automobile Engineering" },
+							{ "code": "ME354", "name": "Operations Research" }
+						]
+					},
+					"6": {
+						"subjects": [
+							{ "code": "ME111", "name": "Engineering Graphics" },
+							{ "code": "ME110", "name": "Elements of Mechanical Engineering" },
+							{ "code": "WO217", "name": "Mechanics of Solids Lab" },
+							{ "code": "ME255", "name": "Engineering Drawing" },
+							{ "code": "ME305", "name": "Mechatronics Systems" },
+							{ "code": "ME307", "name": "Machine Shop - I" }
+						]
+					},
+					"7": {
+						"subjects": [
+							{ "code": "SM110", "name": "Professional Communication" },
+							{ "code": "ME113", "name": "Hydraulics and Pneumatic Control" },
+							{ "code": "ME205", "name": "Workshop Practice" },
+							{ "code": "ME306", "name": "Metrology and CAD Lab" },
+							{ "code": "WO317", "name": "Fluid Mechanics and Machinery Lab" },
+							{ "code": "ME308", "name": "Mechanical Lab - II" }
+						]
+					},
+					"8": {
+						"subjects": [
+							{ "code": "ME112", "name": "Theory of Metal Forming" },
+							{ "code": "ME313", "name": "Welding Technology" },
+							{ "code": "CV110", "name": "Environmental Studies" },
+							{ "code": "UC100", "name": "Introduction to Design Thinking" },
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values"
+							},
+							{ "code": "ME490", "name": "Seminar" },
+							{ "code": "ME440", "name": "Practical Training / Internship" },
+							{ "code": "ME452", "name": "Machine Shop - II" },
+							{ "code": "ME451", "name": "Mechanical Lab - II" },
+							{ "code": "ME499", "name": "Major Project - 2" },
+							{ "code": "UC401", "name": "Liberal Arts / Co-curricular" }
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "ME311", "name": "Finite Element Method" },
+					{ "code": "ME312", "name": "Theory of Elasticity" },
+					{ "code": "ME313", "name": "Hydraulics and Pneumatic Control" },
+					{ "code": "ME314", "name": "Product Design and Development" },
+					{ "code": "ME315", "name": "Theory of Metal Forming" },
+					{ "code": "ME316", "name": "Welding Technology" },
+					{ "code": "ME317", "name": "Basics of Computational Fluid Dynamics" },
+					{ "code": "ME318", "name": "Principles of Turbomachinery" },
+					{ "code": "ME320", "name": "Cryogenics" },
+					{ "code": "ME411", "name": "Theory of Fatigue and Analysis" },
+					{ "code": "ME412", "name": "Experimental Stress Analysis" },
+					{ "code": "ME413", "name": "Synthesis of Mechanisms" },
+					{ "code": "ME414", "name": "Microsystem Technology" },
+					{ "code": "ME415", "name": "Automation Systems" },
+					{ "code": "ME416", "name": "Robotics" },
+					{ "code": "ME417", "name": "Non-Destructive Evaluation" },
+					{ "code": "ME418", "name": "Production and Operations Management" },
+					{ "code": "ME419", "name": "Composites Materials" },
+					{ "code": "ME420", "name": "IC Engines" },
+					{ "code": "ME421", "name": "Refrigeration and Air Conditioning" },
+					{ "code": "ME422", "name": "Mechanics of Compressible Flow" },
+					{ "code": "ME423", "name": "Multi Body Dynamics" },
+					{ "code": "ME424", "name": "Vehicle Dynamics" },
+					{ "code": "ME425", "name": "Automotive Electronics" },
+					{
+						"code": "ME426",
+						"name": "Contemporary Concepts in Product Design"
+					},
+					{ "code": "ME427", "name": "Introduction to Additive Manufacturing" },
+					{ "code": "ME428", "name": "Non-Traditional Machining Processes" },
+					{ "code": "ME429", "name": "Energy Auditing and Management" },
+					{ "code": "ME430", "name": "Gas Turbines and Jet Propulsion" },
+					{ "code": "ME431", "name": "Continuum Mechanics" },
+					{ "code": "ME432", "name": "Analytical Mechanics" },
+					{ "code": "ME433", "name": "Condition Monitoring" },
+					{ "code": "ME434", "name": "Microfluidics" },
+					{ "code": "ME435", "name": "Solar Energy" },
+					{ "code": "ME436", "name": "Engineering Tribology" },
+					{ "code": "ME437", "name": "Thermal Stress Analysis" },
+					{ "code": "ME438", "name": "Injury Biomechanics" },
+					{ "code": "ME439", "name": "Introduction to Flight" },
+					{
+						"code": "ME441",
+						"name": "Application Control and Environment Management"
+					},
+					{ "code": "ME497", "name": "Cornerstone/capstone Project" }
+				]
+			},
+			"mt": {
+				"courseName": "Bachelor of Technology (B.Tech) in Metallurgical and Materials Engineering",
+				"departmentCode": "MT",
+				"totalSemesters": 8,
+				"totalCredits": 165,
+				"creditRequirements": {
+					"foundationCourses": 43,
+					"programCore": 81,
+					"programElectives": 21,
+					"project": 4,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"subjects": [
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "ME200",
+								"name": "Workshop",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "MT251",
+								"name": "Transport Phenomena",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "MT400",
+								"name": "Corrosion Engineering",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"2": {
+						"subjects": [
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC",
+								"credits": 2
+							},
+							{
+								"code": "WO200",
+								"name": "Mechanics of Materials",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "MT252",
+								"name": "Phase Diagrams",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT300",
+								"name": "Production of Iron and Ferro Alloys",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT350",
+								"name": "Production of Steel",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC",
+								"credits": 2
+							},
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "MT200",
+								"name": "Science of Materials",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT253",
+								"name": "Principles of Extractive Metallurgy",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT301",
+								"name": "Heat Treatment Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MT351",
+								"name": "Ceramics and Refractories",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"4": {
+						"subjects": [
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics and Communication Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "MT201",
+								"name": "Metallurgical Thermodynamics & Kinetics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT254",
+								"name": "X-ray Diffraction & Electron Microscopy",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT302",
+								"name": "Machine Design",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT352",
+								"name": "Metallography Lab",
+								"type": "PC",
+								"credits": 2
+							}
+						]
+					},
+					"5": {
+						"subjects": [
+							{
+								"code": "EE110",
+								"name": "Elements of Electrical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "MT202",
+								"name": "Physical Metallurgy",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT255",
+								"name": "Instrumental Methods of Analysis",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT303",
+								"name": "Electronic Properties of Materials",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT353",
+								"name": "Ceramics and Polymers Lab",
+								"type": "PC",
+								"credits": 2
+							}
+						]
+					},
+					"6": {
+						"subjects": [
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "WO110",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "MT203",
+								"name": "Polymer Science and Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT256",
+								"name": "Measurements and Control",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT304",
+								"name": "Physical Metallurgy Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MT354",
+								"name": "Heat Treatment Lab",
+								"type": "PC",
+								"credits": 2
+							}
+						]
+					},
+					"7": {
+						"subjects": [
+							{
+								"code": "ME111",
+								"name": "Engineering Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "MT160",
+								"name": "Introduction to Materials Science & Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT305",
+								"name": "Extrative Metallurgy Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MT455",
+								"name": "Science & Technology of Nanomaterials",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MT440",
+								"name": "Practical Training",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "MT441",
+								"name": "Seminar",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"8": {
+						"subjects": [
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "CV110",
+								"name": "Environmental Studies",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "SM111",
+								"name": "Professional Ethics & Human Values",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "UC100",
+								"name": "Introduction to Design Thinking",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "UC401",
+								"name": "Liberal Arts / Co-curricular",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "MT442",
+								"name": "Major Project - I",
+								"type": "MP",
+								"credits": 2
+							},
+							{
+								"code": "MT492",
+								"name": "Major Project - II",
+								"type": "MP",
+								"credits": 2
+							}
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "MT306", "name": "Fatigue, Fracture and Creep" },
+					{ "code": "MT307", "name": "Fuels and Furnaces" },
+					{ "code": "MT355", "name": "Powder Metallurgy" },
+					{ "code": "MT356", "name": "Joining of Metals" },
+					{ "code": "MT357", "name": "Aerospace Materials" },
+					{ "code": "MT402", "name": "Foundry Technology" },
+					{ "code": "MT404", "name": "Extraction of Non-Ferrous Metals" },
+					{ "code": "MT405", "name": "Secondary Refining of Steels" },
+					{ "code": "MT406", "name": "Process Plant Materials" },
+					{ "code": "MT407", "name": "Advanced Engineering Materials" },
+					{ "code": "MT408", "name": "Thin Films, Coatings and Applications" },
+					{ "code": "MT409", "name": "Nuclear Materials" },
+					{ "code": "MT410", "name": "Fracture of Engineering Materials" },
+					{ "code": "MT451", "name": "Composite Materials" },
+					{ "code": "MT452", "name": "Advanced Welding Technology" },
+					{
+						"code": "MT454",
+						"name": "Modeling & Simulation in Materials Processes"
+					},
+					{ "code": "MT455", "name": "Science & Technology of Nanomaterials" },
+					{ "code": "MT456", "name": "Advanced Microscopic Techniques" },
+					{ "code": "MT457", "name": "Smart Materials and Sensors" },
+					{ "code": "MT497", "name": "Cornerstone/capstone Project" }
+				]
+			},
+			"mi": {
+				"courseName": "Bachelor of Technology (B.Tech) in Mining Engineering",
+				"departmentCode": "MI",
+				"totalSemesters": 8,
+				"totalCredits": 170,
+				"creditRequirements": {
+					"foundationCourses": 46,
+					"programCore": 81,
+					"programElectives": 21,
+					"project": 6,
+					"mandatoryLearning": 16
+				},
+				"semesters": {
+					"1": {
+						"subjects": [
+							{
+								"code": "MA110",
+								"name": "Engineering Mathematics - I",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH110",
+								"name": "Physics",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "PH111",
+								"name": "Physics Laboratory",
+								"type": "BSC",
+								"credits": 2
+							},
+							{
+								"code": "EC100",
+								"name": "Elements of Electronics and Communication Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "EE110",
+								"name": "Elements of Electrical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME110",
+								"name": "Elements of Mechanical Engineering",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "ME111",
+								"name": "Engineering Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM110",
+								"name": "Professional Communication",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "SM111",
+								"name": "Professional Ethics and Human Values",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"2": {
+						"subjects": [
+							{
+								"code": "CY110",
+								"name": "Chemistry",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CY111",
+								"name": "Chemistry Laboratory",
+								"type": "BSC",
+								"credits": 2
+							},
+							{
+								"code": "ME200",
+								"name": "Workshop",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "WO110",
+								"name": "Engineering Graphics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "WO200",
+								"name": "Mechanics of Materials",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "SM302",
+								"name": "Principles of Management",
+								"type": "HSC",
+								"credits": 3
+							},
+							{
+								"code": "CV110",
+								"name": "Environmental Studies",
+								"type": "MLC",
+								"credits": 1
+							}
+						]
+					},
+					"3": {
+						"subjects": [
+							{
+								"code": "MA111",
+								"name": "Engineering Mathematics - II",
+								"type": "BSC",
+								"credits": 3
+							},
+							{
+								"code": "CS100",
+								"name": "Python Programming",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "CS101",
+								"name": "Python Programming Lab",
+								"type": "ESC",
+								"credits": 2
+							},
+							{
+								"code": "MI101",
+								"name": "Introduction to Mining Engineering",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI201",
+								"name": "Development of Mineral Deposits",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI202",
+								"name": "Mine Surveying",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI203",
+								"name": "Mine Surveying Lab",
+								"type": "PC",
+								"credits": 2
+							}
+						]
+					},
+					"4": {
+						"subjects": [
+							{
+								"code": "MI211",
+								"name": "Thermodynamics & Fluid Mechanics",
+								"type": "ESC",
+								"credits": 3
+							},
+							{
+								"code": "MI251",
+								"name": "Industrial Training in Mines-I",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI252",
+								"name": "Industrial Training in Mines-II",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI253",
+								"name": "Industrial Training in Mines-III",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI254",
+								"name": "Mining Machinery",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI255",
+								"name": "Numerical Modeling Techniques",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"5": {
+						"subjects": [
+							{
+								"code": "MI301",
+								"name": "Surface Mining Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI302",
+								"name": "Mine Hazards, Rescue and Recovery",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI303",
+								"name": "Underground Coal Mining Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI304",
+								"name": "Industrial and Professional Practice",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI305",
+								"name": "Rock Mechanics Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI306",
+								"name": "Rock Mechanics",
+								"type": "PC",
+								"credits": 3
+							}
+						]
+					},
+					"6": {
+						"subjects": [
+							{
+								"code": "MI351",
+								"name": "Underground Metal Mining Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI352",
+								"name": "Rock Mechanics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI353",
+								"name": "Rock Mechanics Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI354",
+								"name": "Industrial and Professional Practice",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "MI355",
+								"name": "Numerical Modeling Techniques",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "MI356",
+								"name": "Industrial Training in Mines-III",
+								"type": "PC",
+								"credits": 2
+							}
+						]
+					},
+					"7": {
+						"subjects": [
+							{
+								"code": "M1401",
+								"name": "Mineral Processing Technology Lab",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "M1402",
+								"name": "Mineral Processing Technology",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "M1403",
+								"name": "Rock Fragmentation Engineering",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "M1404",
+								"name": "Mine Design Laboratory",
+								"type": "PC",
+								"credits": 2
+							},
+							{
+								"code": "M1405",
+								"name": "Strata Mechanics",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "M1449",
+								"name": "Mine Design Project-I",
+								"type": "MP",
+								"credits": 3
+							}
+						]
+					},
+					"8": {
+						"subjects": [
+							{
+								"code": "M1451",
+								"name": "Ore Reserve Estimation and Mine Valuation",
+								"type": "PC",
+								"credits": 3
+							},
+							{
+								"code": "M1452",
+								"name": "Mine Legislation & Safety",
+								"type": "PC",
+								"credits": 4
+							},
+							{
+								"code": "M1453",
+								"name": "Mine Projects Exposure",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "M1490",
+								"name": "Seminar",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "UC100",
+								"name": "Introduction to Design Thinking",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "UC401",
+								"name": "Liberal Arts / Co-curricular",
+								"type": "MLC",
+								"credits": 1
+							},
+							{
+								"code": "M1499",
+								"name": "Mine Design Project-II",
+								"type": "MP",
+								"credits": 3
+							}
+						]
+					}
+				},
+				"electiveCourses": [
+					{ "code": "M1310", "name": "Noise Pollution & Control Engg." },
+					{ "code": "M1311", "name": "Rock Reinforcement Engg." },
+					{ "code": "M1312", "name": "Mine Power Systems" },
+					{ "code": "M1360", "name": "Mine Health and Safety Engg." },
+					{ "code": "M1361", "name": "Advanced Surface Mining Technology" },
+					{ "code": "M1362", "name": "Production Drilling for Oil Wells" },
+					{ "code": "M1363", "name": "Mechanization and Materials Handling" },
+					{ "code": "M1410", "name": "Advanced UG/Coal Mining Technology" },
+					{ "code": "M1411", "name": "Geostatistics" },
+					{ "code": "M1412", "name": "Applications of IT in Mining Projects" },
+					{ "code": "M1460", "name": "Coal Washing and Handling" },
+					{ "code": "M1461", "name": "Surface Mine Design" },
+					{ "code": "M1462", "name": "Underground Coal Mine Design" },
+					{ "code": "M1463", "name": "Underground Road Mine Design" },
+					{
+						"code": "M1464",
+						"name": "Environmental Management and Sustainable Development"
+					},
+					{ "code": "M1471", "name": "Reliability Analysis of Engg. Process" },
+					{
+						"code": "M1472",
+						"name": "Rock Excavation in Mines and Infrastructure Projects"
+					},
+					{ "code": "M1475", "name": "Stability of Rock Slopes" },
+					{ "code": "M1476", "name": "Tunneling Engineering" },
+					{ "code": "M1477", "name": "Numerical Modeling Techniques" },
+					{ "code": "M1478", "name": "Industrial Engineering & Management" },
+					{
+						"code": "M1479",
+						"name": "Energy Resources Utilization and Climate Change"
+					},
+					{ "code": "M1499", "name": "Cornerstone/capstone Project" }
+				]
+			}
+		}
 	}
 }

@@ -37,7 +37,10 @@ const UploadWrapper = () => {
 		if (selectedCollege === "bhu") {
 			courseStructure = bhuCourseStructure.bhu;
 		} else if (selectedCollege === "nitk") {
-			courseStructure = nitkCourseStructure.nitk;
+			// Support nested structure nitk: { PG: {...}, UG: {...} }
+			const nitk = nitkCourseStructure.nitk || {};
+			// Merge PG and UG maps without changing course IDs
+			courseStructure = { ...(nitk.PG || {}), ...(nitk.UG || {}) };
 		} else {
 			return [];
 		}
@@ -93,7 +96,10 @@ const UploadWrapper = () => {
 			}
 			return [];
 		} else if (selectedCollege === "nitk") {
-			courseData = nitkCourseStructure.nitk[selectedCourse];
+			const nitk = nitkCourseStructure.nitk || {};
+			courseData =
+				(nitk.PG && nitk.PG[selectedCourse]) ||
+				(nitk.UG && nitk.UG[selectedCourse]);
 			if (courseData && courseData.semesters) {
 				return Object.keys(courseData.semesters).map((sem) => ({
 					id: sem,
@@ -125,7 +131,10 @@ const UploadWrapper = () => {
 			}
 			return [];
 		} else if (selectedCollege === "nitk") {
-			const courseData = nitkCourseStructure.nitk[selectedCourse];
+			const nitk = nitkCourseStructure.nitk || {};
+			const courseData =
+				(nitk.PG && nitk.PG[selectedCourse]) ||
+				(nitk.UG && nitk.UG[selectedCourse]);
 			if (
 				courseData &&
 				courseData.semesters &&
@@ -577,6 +586,13 @@ const UploadWrapper = () => {
 											uploadType: uploadTypeObj?.id || selectedType,
 											semester: selectedSemester,
 											subject: selectedSubject,
+											// Optional: store academic level separately for analytics (does not change S3 path)
+											programLevel:
+												(nitkCourseStructure?.nitk?.PG?.[selectedCourse] &&
+													"PG") ||
+												(nitkCourseStructure?.nitk?.UG?.[selectedCourse] &&
+													"UG") ||
+												"",
 											description: "", // default description
 											// professor and year will come from form and be merged before upload
 										}}

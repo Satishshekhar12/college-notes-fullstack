@@ -48,6 +48,17 @@ const noteSchema = new mongoose.Schema(
 			trim: true,
 		},
 
+		// Optional: Academic level for analytics (e.g., UG/PG). Does not affect S3 paths
+		programLevel: {
+			type: String,
+			trim: true,
+			enum: {
+				values: ["UG", "PG", ""],
+				message: "programLevel must be UG, PG, or empty",
+			},
+			default: "",
+		},
+
 		// Upload classification
 		uploadType: {
 			type: String,
@@ -256,6 +267,14 @@ noteSchema.statics.getFilteredNotes = function (filters = {}, user = null) {
 	if (filters.semester) query.semester = String(filters.semester); // Keep as string to match model
 	if (filters.subject) query.subject = new RegExp(filters.subject, "i");
 	if (filters.uploadType) query.uploadType = filters.uploadType;
+	if (filters.programLevel) {
+		const lvl = String(filters.programLevel).toUpperCase();
+		if (["UG", "PG"].includes(lvl)) {
+			query.programLevel = lvl;
+		} else if (lvl === "ALL") {
+			// no-op: include both UG and PG
+		}
+	}
 
 	// Search query
 	if (filters.search) {

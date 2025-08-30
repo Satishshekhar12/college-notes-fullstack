@@ -9,7 +9,8 @@
 	"scripts": {
 		"start": "node server.js",
 		"dev": "nodemon server.js",
-		"build": "echo 'No build step required for server'"
+		"build": "echo 'No build step required for server'",
+		"migrate:nitk-mca:pg": "node scripts/migrate-nitk-mca-to-pg.js"
 	},
 	"keywords": [
 		"file-upload",
